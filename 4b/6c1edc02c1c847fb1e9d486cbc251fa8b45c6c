@@ -1,0 +1,42 @@
+static/app.js
+  s_165826812145e1::t_b95b88043a891f 126-127,131-134,140-149,152
+templates/batch.html
+  s_165826812145e1::t_3ea2bed8f8b094 63-66
+templates/lipinski.html
+  s_165826812145e1::t_ca90b7f08b69ce 20-21
+templates/substructure.html
+  s_165826812145e1::t_ca90b7f08b69ce 23-24
+templates/properties.html
+  s_165826812145e1::t_ca90b7f08b69ce 20-21
+templates/depict.html
+  s_165826812145e1::t_ca90b7f08b69ce 20-21
+templates/similarity.html
+  s_165826812145e1::t_ca90b7f08b69ce 36
+  s_165826812145e1::t_1c1451835e0530 35
+templates/api_docs.html
+  s_165826812145e1::t_3ea2bed8f8b094 240-241,298-300
+templates/formula.html
+  s_165826812145e1::t_ca90b7f08b69ce 34-35
+templates/three_d.html
+  s_165826812145e1::t_ca90b7f08b69ce 27-28
+app.py
+  s_165826812145e1::t_3ea2bed8f8b094 1466,1495-1496
+  s_165826812145e1::t_0a8e5ba93d90d8 38-39,208-211,219-229,848,1165-1182,1186-1187,1189-1191
+  s_165826812145e1::t_7aca724e38900a 1188
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4b6c1edc02c1c847fb1e9d486cbc251fa8b45c6c",
+  "prompts": {},
+  "sessions": {
+    "s_165826812145e1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "38c4da09-d30d-49e4-b5f9-dae3537ee1ec",
+        "model": "deepseek-v4.1-flash-1017"
+      },
+      "human_author": "xingzhiwei <xingzhiwei@xunlei.com>"
+    }
+  }
+}
