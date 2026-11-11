@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block content %}
+<div id="bio-tool" data-op="{{ op }}">
+<h2 class="page-title">{{ h1 }}</h2>
+<p class="lead">{{ lead }}</p>
+
+<div class="card">
+  <label>{{ input_label }}</label>
+  <textarea id="bio-input" placeholder="{{ placeholder }}" style="min-height:180px"></textarea>
+  <div class="row">
+    <input type="file" id="bio-file" style="font-size:13px" />
+    <button class="ghost" data-example="bio">Load example</button>
+    {% if show_frame %}
+    <label class="chip" style="gap:8px">Frame
+      <select id="bio-frame" style="width:auto;padding:2px 6px;border:0;background:transparent">
+        <option value="0">+1</option><option value="1">+2</option><option value="2">+3</option>
+      </select>
+    </label>
+    {% endif %}
+  </div>
+  <div class="row">
+    <button class="btn" id="bio-run">{{ action }}</button>
+    <button class="ghost" data-copy="bio-out">Copy</button>
+    <button class="ghost" id="bio-download">Download</button>
+  </div>
+  <div class="status" id="bio-status"></div>
+</div>
+
+<div class="card">
+  <div id="bio-stats" style="display:none;overflow:auto"></div>
+  <pre id="bio-out"></pre>
+</div>
+
+{% block prose %}{% endblock %}
+
+<div class="card">
+  <h3 style="margin:0 0 10px;font-size:15px">More sequence tools</h3>
+  <div class="row" style="gap:8px">
+    <a class="ghost-link" href="/bio/">All bioinformatics tools</a>
+    <a class="ghost-link" href="/bio/fasta-to-fastq">FASTA → FASTQ</a>
+    <a class="ghost-link" href="/bio/fastq-to-fasta">FASTQ → FASTA</a>
+    <a class="ghost-link" href="/bio/gc-content">GC content</a>
+    <a class="ghost-link" href="/bio/reverse-complement">Reverse complement</a>
+    <a class="ghost-link" href="/bio/translate">Translate</a>
+  </div>
+</div>
+</div>
+{% endblock %}

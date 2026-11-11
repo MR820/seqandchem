@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 class="page-title">Molecular Similarity (Tanimoto)</h2>
+<p class="lead">Compare two molecules and get their Tanimoto similarity using FP2, FP3, FP4
+   or MACCS fingerprints. A score of 1.0 means identical fingerprints, 0.0 means no overlap.</p>
+
+<div class="card">
+  <div class="grid">
+    <div>
+      <label>Molecule A</label>
+      <input type="text" id="sim-a" value="CC(=O)Oc1ccccc1C(=O)O" />
+    </div>
+    <div>
+      <label>Molecule B</label>
+      <input type="text" id="sim-b" value="CC(=O)Oc1ccccc1C(=O)OC" />
+    </div>
+  </div>
+  <div class="grid" style="margin-top:12px">
+    <div>
+      <label>Input format</label>
+      <select id="sim-from" data-fmt data-dir="read" data-default="smi"></select>
+    </div>
+    <div>
+      <label>Fingerprint</label>
+      <select id="sim-fp">
+        <option value="FP2">FP2 (Daylight, 1024 bits)</option>
+        <option value="FP3">FP3</option>
+        <option value="FP4">FP4</option>
+        <option value="MACCS">MACCS (166 keys)</option>
+      </select>
+    </div>
+  </div>
+  <div class="row">
+    <button class="btn" id="sim-run">Compute Tanimoto</button>
+  </div>
+  <div class="status" id="sim-status"></div>
+</div>
+
+<div class="card" id="sim-result" style="display:none"></div>
+
+<div class="prose">
+  <h2>How Tanimoto similarity works</h2>
+  <p>Each molecule is converted into a binary fingerprint — a bit string where each bit means
+     "this substructure is present". The Tanimoto coefficient is the number of shared bits
+     divided by the number of bits present in either molecule:</p>
+  <p><code>T = (A ∩ B) / (A ∪ B)</code></p>
+  <p>Rules of thumb widely used in cheminformatics: <strong>T &gt; 0.85</strong> usually means
+     the same compound, <strong>T &gt; 0.5</strong> suggests a similar scaffold, and
+     <strong>T &lt; 0.3</strong> indicates little structural overlap.</p>
+
+  <h2>Which fingerprint should I use?</h2>
+  <ul>
+    <li><strong>FP2</strong> — Daylight-style path-based fingerprint, good general-purpose choice.</li>
+    <li><strong>FP3</strong> — smaller, faster, more permissive.</li>
+    <li><strong>FP4</strong> — SMARTS-based, emphasises functional groups.</li>
+    <li><strong>MACCS</strong> — 166 predefined structural keys, very interpretable.</li>
+  </ul>
+</div>
+{% endblock %}

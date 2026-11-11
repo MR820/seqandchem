@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 class="page-title">{{ h1 }}</h2>
+<p class="lead">{{ lead }}</p>
+
+<div class="card">
+  <div class="grid">
+    <div>
+      <label>Input format</label>
+      <select id="conv-from" data-fmt data-dir="read" data-default="{{ from_fmt }}"></select>
+    </div>
+    <div>
+      <label>Output format</label>
+      <select id="conv-to" data-fmt data-dir="write" data-default="{{ to_fmt }}"></select>
+    </div>
+  </div>
+  <div style="margin-top:12px">
+    <label>Molecule data (paste or upload a file)</label>
+    <textarea id="conv-input" placeholder="{{ placeholder }}"></textarea>
+    <div class="row">
+      <button class="ghost" data-example="conv">Load example</button>
+    </div>
+  </div>
+  <div class="chips">
+    <label class="chip"><input type="checkbox" value="--gen3d" {% if gen3d_default %}checked{% endif %} /> 3D coordinates</label>
+    <label class="chip"><input type="checkbox" value="--canonical" /> Canonicalize</label>
+    <label class="chip"><input type="checkbox" value="--deletehydrogens" /> Remove hydrogens</label>
+  </div>
+  <div class="row">
+    <button class="btn" id="conv-run">Convert</button>
+    <button class="ghost" data-copy="conv-out">Copy</button>
+    <button class="ghost" id="conv-download">Download</button>
+    <button class="ghost" id="conv-toggle" style="display:none">View source</button>
+  </div>
+  <div class="status" id="conv-status"></div>
+</div>
+
+<div class="card">
+  <div id="conv-3d-wrap" style="display:none;margin-bottom:12px">
+    <label>3D preview</label>
+    <div id="conv-3d" class="viewer" style="width:100%;height:420px"></div>
+    <p class="hint">Drag to rotate · scroll to zoom</p>
+  </div>
+  <div class="svg-box" id="conv-preview" style="display:none"></div>
+  <pre id="conv-out"></pre>
+</div>
+
+{% block prose %}<div class="prose">{{ prose|default('', true)|safe }}</div>{% endblock %}
+
+<div class="card">
+  <h3 style="margin:0 0 10px;font-size:15px">More converters</h3>
+  <div class="row" style="gap:8px">
+    {% if related %}
+      {% for r in related %}<a class="ghost-link" href="/{{ r.slug }}">{{ r.label }}</a>
+      {% endfor %}
+    {% else %}
+    <a class="ghost-link" href="/smiles-to-inchi">SMILES → InChI</a>
+    <a class="ghost-link" href="/inchi-to-smiles">InChI → SMILES</a>
+    <a class="ghost-link" href="/sdf-to-smiles">SDF → SMILES</a>
+    <a class="ghost-link" href="/mol-to-smiles">MOL → SMILES</a>
+    <a class="ghost-link" href="/smiles-to-sdf">SMILES → SDF</a>
+    <a class="ghost-link" href="/smiles-to-png">SMILES → PNG</a>
+    {% endif %}
+    <a class="ghost-link" href="/convert">All formats</a>
+    <a class="ghost-link" href="/guides/">Guides</a>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}<script src="/3dmol-min.js?v={{ v_3dmol }}"></script>{% endblock %}

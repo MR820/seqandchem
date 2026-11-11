@@ -1,0 +1,26 @@
+{% extends "preset.html" %}
+{% block prose %}
+<div class="prose">
+  <h2>What is InChI?</h2>
+  <p>InChI (International Chemical Identifier) is a standard, non-proprietary text identifier
+     for chemical substances maintained by IUPAC. Unlike SMILES, which can be written in many
+     equivalent ways for the same molecule, InChI is <strong>canonical</strong>: every valid
+     representation of the same structure produces the same InChI string.</p>
+
+  <h2>Why convert SMILES to InChI?</h2>
+  <ul>
+    <li><strong>Deduplication</strong> — two different SMILES for the same molecule give one InChI.</li>
+    <li><strong>Database lookup</strong> — PubChem, ChEMBL and Wikidata index compounds by InChI and InChIKey.</li>
+    <li><strong>Regulatory and patent filing</strong> — InChI is the IUPAC standard for structure registration.</li>
+    <li><strong>Stable keys</strong> — the 27-character InChIKey is a fixed-length hash you can use as a primary key.</li>
+  </ul>
+
+  <h2>Frequently asked questions</h2>
+  <h3>Does it preserve stereochemistry?</h3>
+  <p>Yes. OpenBabel reads stereo information from the SMILES (@ and @@ markers) and encodes it in
+     the InChI layer, so chiral centres are preserved.</p>
+  <h3>Will I get the InChIKey too?</h3>
+  <p>The output is InChI. To get the InChIKey, run the same input with the output format set to
+     <a href="/convert">InChIKey</a>, or use the <a href="/properties">property calculator</a>.</p>
+</div>
+{% endblock %}

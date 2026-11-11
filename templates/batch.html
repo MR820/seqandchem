@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="page-title">Batch Chemical Format Converter</h2>
+<p class="lead">Convert hundreds of molecules in one go. Upload an SDF or paste a list of
+   SMILES, choose an output format, and download the whole converted file.</p>
+
+<div class="card">
+  <div class="grid">
+    <div>
+      <label>Input format</label>
+      <select id="batch-from" data-fmt data-dir="read" data-default="sdf"></select>
+    </div>
+    <div>
+      <label>Output format</label>
+      <select id="batch-to" data-fmt data-dir="write" data-default="smi"></select>
+    </div>
+  </div>
+  <div style="margin-top:12px">
+    <label>Molecule file or list</label>
+    <textarea id="batch-input" placeholder="Paste an SDF file or a list of SMILES — or upload a file below"></textarea>
+    <div class="row">
+      <input type="file" id="batch-file" style="font-size:13px" />
+      <button class="ghost" data-example="batch">Load example</button>
+      <a class="ghost-link" href="/sample-batch.smi" download>SMILES template</a>
+      <a class="ghost-link" href="/sample-batch.sdf" download>SDF template</a>
+    </div>
+  </div>
+  <div class="chips">
+    <label class="chip"><input type="checkbox" value="--canonical" /> Canonicalize</label>
+    <label class="chip"><input type="checkbox" value="--unique" /> Deduplicate</label>
+    <label class="chip"><input type="checkbox" value="--deletehydrogens" /> Remove hydrogens</label>
+  </div>
+  <p class="hint">Choosing an image format (PNG, JPG, SVG) renders one image per molecule
+     and packs them into a ZIP download.</p>
+  <div class="row">
+    <button class="btn" id="batch-run">Convert all</button>
+    <button class="ghost" data-copy="batch-out">Copy</button>
+    <button class="ghost" id="batch-download">Download</button>
+  </div>
+  <div class="status" id="batch-status"></div>
+</div>
+
+<div class="card">
+  <div class="svg-box" id="batch-image" style="display:none"></div>
+  <pre id="batch-out"></pre>
+</div>
+
+<div class="prose">
+  <h2>Why batch conversion?</h2>
+  <p>Most chemistry work happens on libraries, not single molecules. This tool runs OpenBabel
+     over every record in your file in one pass, so a 1000-compound SDF becomes a clean SMILES
+     list in seconds instead of 1000 manual conversions.</p>
+
+  <h2>Supported inputs</h2>
+  <ul>
+    <li><strong>SDF / SD</strong> — multi-record structure files, the standard for compound libraries</li>
+    <li><strong>SMILES list</strong> — one molecule per line</li>
+    <li><strong>MOL2, PDB, XYZ, InChI</strong> and any other readable OpenBabel format</li>
+  </ul>
+
+  <h2>Frequently asked questions</h2>
+  <h3>How large can the file be?</h3>
+  <p>Up to 8 MB of text, which is roughly 20,000–50,000 SDF records depending on molecule size.
+     Conversion runs with a 5-minute server-side timeout.</p>
+  <h3>What if some records fail?</h3>
+  <p>OpenBabel skips records it cannot parse and reports how many were converted. The output
+     keeps the successful ones in their original order.</p>
+  <h3>Can I convert to different formats per record?</h3>
+  <p>No — one run produces one output format. Run the tool again with a different target format
+     if you need several.</p>
+</div>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "preset.html" %}
+{% block prose %}
+<div class="prose">
+  <h2>MOL to SMILES converter</h2>
+  <p>A MOL file is a single-molecule structure file in the MDL format — the same record format
+     used inside SDF files, just without the property block and without the record separator.
+     This converter turns one MOL file into a SMILES string.</p>
+
+  <h2>Common use cases</h2>
+  <ul>
+    <li>You drew a structure in ChemDraw, Marvin or Avogadro and need the SMILES.</li>
+    <li>You have a MOL file from a vendor catalogue and want to search it in a database.</li>
+    <li>You are building a dataset and need a uniform text representation.</li>
+  </ul>
+
+  <h2>Frequently asked questions</h2>
+  <h3>MOL vs SDF — what is the difference?</h3>
+  <p>SDF is essentially a MOL file followed by data fields and a <code>$$$$</code> separator, so
+     one SDF file can hold many molecules while a MOL file holds exactly one. If your file has
+     multiple records, use <a href="/sdf-to-smiles">SDF to SMILES</a> instead.</p>
+</div>
+{% endblock %}

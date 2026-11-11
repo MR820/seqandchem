@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 class="page-title">2D Structure Generator</h2>
+<p class="lead">Draw a clean 2D skeletal structure from a SMILES, InChI or any supported
+   chemical format. The result is a vector SVG you can download and use anywhere.</p>
+
+<div class="card">
+  <div class="grid">
+    <div>
+      <label>Input format</label>
+      <select id="depict-from" data-fmt data-dir="read" data-default="smi"></select>
+    </div>
+    <div></div>
+  </div>
+  <div style="margin-top:12px">
+    <label>Molecule data</label>
+    <textarea id="depict-input" placeholder="e.g. CC(=O)Oc1ccccc1C(=O)O"></textarea>
+    <div class="row">
+      <button class="ghost" data-example="depict">Load example</button>
+    </div>
+  </div>
+  <div class="row">
+    <button class="btn" id="depict-run">Depict</button>
+    <button class="ghost" id="depict-download">Download SVG</button>
+  </div>
+  <div class="status" id="depict-status"></div>
+</div>
+
+<div class="card">
+  <div class="svg-box" id="depict-out"></div>
+</div>
+
+<div class="prose">
+  <h2>About 2D depiction</h2>
+  <p>OpenBabel lays the molecule out on a plane using a ring-aware layout algorithm, so
+     fused rings and side chains are drawn in a readable orientation. The output is vector
+     SVG — infinitely scalable, ideal for papers, slides, patents and web pages.</p>
+  <h2>Typical use cases</h2>
+  <ul>
+    <li>Turn a SMILES string from a database into a figure for a report</li>
+    <li>Verify that a SMILES string matches the intended structure</li>
+    <li>Produce structure images for a website or patent filing</li>
+  </ul>
+</div>
+{% endblock %}

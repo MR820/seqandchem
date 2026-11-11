@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 class="page-title">SMARTS Substructure Search</h2>
+<p class="lead">Paste a list of molecules and a SMARTS pattern. Every structure containing
+   the pattern is returned — ideal for filtering screening libraries by functional group.</p>
+
+<div class="card">
+  <div class="grid">
+    <div>
+      <label>Input format</label>
+      <select id="sub-from" data-fmt data-dir="read" data-default="smi"></select>
+    </div>
+    <div>
+      <label>SMARTS pattern</label>
+      <input type="text" id="sub-smarts" value="c1ccccc1" />
+    </div>
+  </div>
+  <div style="margin-top:12px">
+    <label>Molecule data (one per line)</label>
+    <textarea id="sub-input" placeholder="One molecule per line"></textarea>
+    <div class="row">
+      <button class="ghost" data-example="sub">Load example</button>
+    </div>
+  </div>
+  <div class="row">
+    <button class="btn" id="sub-run">Match</button>
+  </div>
+  <div class="status" id="sub-status"></div>
+</div>
+
+<div class="card" id="sub-result" style="display:none"></div>
+
+<div class="prose">
+  <h2>Common SMARTS patterns</h2>
+  <ul>
+    <li><code>c1ccccc1</code> — benzene ring</li>
+    <li><code>[CX3](=O)[OX2H1]</code> — carboxylic acid</li>
+    <li><code>[NX3;H2,H1;!$(NC=O)]</code> — primary or secondary amine</li>
+    <li><code>[OX2H]</code> — hydroxyl group</li>
+    <li><code>[#6]=[#6]</code> — carbon–carbon double bond</li>
+    <li><code>[F,Cl,Br,I]</code> — any halogen</li>
+    <li><code>[R]</code> — any atom in a ring</li>
+  </ul>
+
+  <h2>SMILES vs SMARTS</h2>
+  <p>SMILES describes one specific molecule, while SMARTS describes a <em>query</em>: atom
+     properties, bond types and ring membership can all be constrained. Substructure matching
+     returns a molecule if the pattern can be mapped onto any part of it.</p>
+</div>
+{% endblock %}

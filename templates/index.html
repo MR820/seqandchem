@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="hero">
+  <h2>Free online chemistry and sequence tools</h2>
+  <p>Convert chemical file formats, calculate molecular properties, draw 2D structures,
+     generate 3D conformers, search substructures with SMARTS and compute similarity —
+     plus FASTA/FASTQ utilities and IUPAC name resolution. No registration, no install,
+     no limits.</p>
+</section>
+
+<div class="tool-grid">
+  <a class="tool-card" href="/convert">
+    <div class="tool-icon">⇄</div>
+    <h3>Format Converter</h3>
+    <p>Convert between SMILES, InChI, MOL, SDF, PDB, XYZ, CML, MOL2 and 190+ more chemical file formats.</p>
+  </a>
+  <a class="tool-card" href="/properties">
+    <div class="tool-icon">∑</div>
+    <h3>Molecular Properties</h3>
+    <p>Molecular weight, formula, logP, TPSA, hydrogen bond donors/acceptors, rotatable bonds, InChIKey.</p>
+  </a>
+  <a class="tool-card" href="/depict">
+    <div class="tool-icon">⚛</div>
+    <h3>2D Structure Depiction</h3>
+    <p>Turn a SMILES or InChI into a clean 2D skeletal structure image (SVG) you can download.</p>
+  </a>
+  <a class="tool-card" href="/3d">
+    <div class="tool-icon">◈</div>
+    <h3>3D Structure Generator</h3>
+    <p>Generate and rotate an interactive 3D conformer from any SMILES, and export it as SDF.</p>
+  </a>
+  <a class="tool-card" href="/substructure">
+    <div class="tool-icon">⌕</div>
+    <h3>Substructure Search</h3>
+    <p>Find molecules containing a SMARTS pattern. Paste a list and get every match instantly.</p>
+  </a>
+  <a class="tool-card" href="/similarity">
+    <div class="tool-icon">≈</div>
+    <h3>Molecular Similarity</h3>
+    <p>Compare two molecules with Tanimoto similarity using FP2, FP3, FP4 or MACCS fingerprints.</p>
+  </a>
+  <a class="tool-card" href="/iupac-to-structure">
+    <div class="tool-icon">🔤</div>
+    <h3>Name to Structure</h3>
+    <p>Turn an IUPAC name into a structure — SMILES, InChI, InChIKey and a drawn image.</p>
+  </a>
+  <a class="tool-card" href="/lipinski">
+    <div class="tool-icon">⚖</div>
+    <h3>Drug-likeness Checker</h3>
+    <p>Evaluate Lipinski's rule of five and Veber rules: MW, logP, HBD, HBA, TPSA, rotatable bonds.</p>
+  </a>
+  <a class="tool-card" href="/batch">
+    <div class="tool-icon">⧉</div>
+    <h3>Batch Converter</h3>
+    <p>Convert a whole compound library at once — upload an SDF or paste a SMILES list.</p>
+  </a>
+  <a class="tool-card" href="/formula">
+    <div class="tool-icon">∑</div>
+    <h3>Formula &amp; Weight</h3>
+    <p>Molecular weight and elemental composition from a formula, or formula from a structure.</p>
+  </a>
+  <a class="tool-card" href="/bio/">
+    <div class="tool-icon">🧬</div>
+    <h3>FASTA / FASTQ Tools</h3>
+    <p>Sequence format conversion, GC content, reverse complement and DNA to protein translation.</p>
+  </a>
+</div>
+
+<div class="prose">
+  <h2>Popular conversions</h2>
+  <ul>
+    <li><a href="/smiles-to-inchi">SMILES to InChI converter</a> — canonical IUPAC identifier</li>
+    <li><a href="/inchi-to-smiles">InChI to SMILES converter</a> — recover an editable SMILES</li>
+    <li><a href="/sdf-to-smiles">SDF to SMILES converter</a> — flatten a compound library</li>
+    <li><a href="/mol-to-smiles">MOL to SMILES converter</a> — single-molecule MOL files</li>
+    <li><a href="/smiles-to-sdf">SMILES to SDF converter</a> — with 3D coordinates</li>
+    <li><a href="/smiles-to-png">SMILES to PNG</a> — structure images</li>
+    <li><a href="/lipinski">Lipinski rule of five calculator</a> — drug-likeness check</li>
+    <li><a href="/smiles-to-mol">SMILES to MOL converter</a> — open structures in ChemDraw / Marvin</li>
+    <li><a href="/pdb-to-smiles">PDB to SMILES converter</a> — extract ligands from crystal structures</li>
+    <li><a href="/convert">All 26 converters</a></li>
+  </ul>
+
+  <h2>Guides</h2>
+  <ul>
+    <li><a href="/guides/smiles-inchi-inchikey">SMILES vs InChI vs InChIKey</a> — which identifier to
+        use, and why SMILES is not a safe database key</li>
+    <li><a href="/guides/lipinski-rule-of-five">Lipinski's rule of five</a> — what it measures and
+        where it misleads</li>
+    <li><a href="/guides/fasta-vs-fastq">FASTA vs FASTQ</a> — Phred scores and what you lose when
+        converting</li>
+  </ul>
+
+  <h2>What is SeqChem?</h2>
+  <p>SeqChem wraps several open-source tools behind a simple web interface.
+     <strong>OpenBabel</strong> — the chemistry toolbox used by researchers worldwide — handles
+     every conversion, descriptor calculation and structure generation, so you get the same
+     results as the command line without installing anything. <strong>OPSIN</strong> parses
+     IUPAC names, with <strong>PubChem</strong> as a fallback for trivial names, and the
+     sequence tools are implemented natively in Python.</p>
+
+  <h2>Common workflows</h2>
+  <ul>
+    <li><strong>SMILES → InChI / InChIKey</strong> — standardise structures for databases and patents.</li>
+    <li><strong>SMILES → 3D SDF</strong> — generate a conformer for docking or visualisation.</li>
+    <li><strong>SDF → SMILES</strong> — flatten a structure file into a one-line representation.</li>
+    <li><strong>SMARTS substructure search</strong> — filter a compound list by functional group.</li>
+    <li><strong>Tanimoto similarity</strong> — cluster or deduplicate a screening library.</li>
+  </ul>
+
+  <h2>Why use it?</h2>
+  <ul>
+    <li>No account, no paywall, no usage limit</li>
+    <li>190+ molecule formats supported by OpenBabel, plus FASTA/FASTQ sequence tools</li>
+    <li>Everything runs on our server — nothing to install</li>
+    <li>Works on desktop and mobile browsers</li>
+  </ul>
+</div>
+{% endblock %}

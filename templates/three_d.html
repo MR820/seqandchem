@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 class="page-title">3D Molecular Structure Generator</h2>
+<p class="lead">Generate a 3D conformer from a SMILES or any supported format, rotate it
+   interactively in your browser and download the result as an SDF file.</p>
+
+<div class="card">
+  <div class="grid">
+    <div>
+      <label>Input format</label>
+      <select id="mol3d-from" data-fmt data-dir="read" data-default="smi"></select>
+    </div>
+    <div>
+      <label>Style</label>
+      <select id="mol3d-style">
+        <option value="stick">Stick</option>
+        <option value="sphere">Sphere</option>
+        <option value="line">Line</option>
+      </select>
+    </div>
+  </div>
+  <div style="margin-top:12px">
+    <label>Molecule data</label>
+    <textarea id="mol3d-input" placeholder="e.g. CC(=O)Oc1ccccc1C(=O)O"></textarea>
+    <div class="row">
+      <button class="ghost" data-example="mol3d">Load example</button>
+    </div>
+  </div>
+  <div class="row">
+    <button class="btn" id="mol3d-run">Generate 3D</button>
+    <button class="ghost" id="mol3d-download">Download SDF</button>
+    <span class="hint">Drag to rotate · scroll to zoom</span>
+  </div>
+  <div class="status" id="mol3d-status"></div>
+</div>
+
+<div class="card">
+  <div id="mol3d-out" class="viewer" style="width:100%;height:480px"></div>
+</div>
+
+<div class="prose">
+  <h2>How the 3D structure is generated</h2>
+  <p>OpenBabel first builds an initial geometry, then optimises it with a force field
+     (MMFF94 or UFF) to reach a low-energy conformer. The result is written as SDF with
+     explicit 3D coordinates, which is the input most molecular viewers, docking programs
+     and 3D printing pipelines expect.</p>
+  <h2>Notes</h2>
+  <ul>
+    <li>Generation can take a few seconds for medium-sized molecules and longer for large ones.</li>
+    <li>Only one low-energy conformer is produced — not an ensemble.</li>
+    <li>Hydrogens are added automatically because 3D geometry needs them.</li>
+  </ul>
+</div>
+{% endblock %}
+
+{% block scripts %}<script src="/3dmol-min.js?v={{ v_3dmol }}"></script>{% endblock %}

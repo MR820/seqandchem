@@ -1,0 +1,23 @@
+{% extends "preset.html" %}
+{% block prose %}
+<div class="prose">
+  <h2>SDF to SMILES converter</h2>
+  <p>SDF (Structure-Data File, also called SD file) is the most common format for compound
+     libraries. Each record stores one molecule with its 2D or 3D coordinates plus attached
+     properties. Converting to SMILES gives you a compact, one-line representation for each
+     molecule that is easy to store in a CSV or pass to another tool.</p>
+
+  <h2>Multi-record files are supported</h2>
+  <p>Paste a whole SDF with many records (separated by <code>$$$$</code>) and you get one SMILES
+     per line, in the same order. This is the usual way to flatten a screening library.</p>
+
+  <h2>Frequently asked questions</h2>
+  <h3>Are properties lost?</h3>
+  <p>Yes — SMILES only stores the structure. Any SDF data fields are dropped. If you need to keep
+     them, convert to a format that preserves annotations, or join the SMILES back to your source
+     table by record order.</p>
+  <h3>Which SMILES flavour is produced?</h3>
+  <p>A standard OpenBabel SMILES. Enable <em>Canonicalize</em> if you need the canonical form for
+     deduplication.</p>
+</div>
+{% endblock %}

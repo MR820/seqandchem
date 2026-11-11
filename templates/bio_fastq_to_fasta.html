@@ -1,0 +1,21 @@
+{% extends "bio_tool.html" %}
+{% block prose %}
+<div class="prose">
+  <h2>Why drop quality scores?</h2>
+  <p>Quality strings often double the size of a sequencing file. Once you have trimmed and
+     filtered your reads, most downstream tools — aligners, assemblers, BLAST, sequence
+     databases — only need the sequence itself. Converting to FASTA makes files smaller and
+     compatible with those tools.</p>
+
+  <h2>What happens to the quality data?</h2>
+  <p>It is discarded. If you still need the original reads, keep the FASTQ file — conversion is
+     one-way and cannot be undone.</p>
+
+  <h2>Frequently asked questions</h2>
+  <h3>Which FASTQ variants are supported?</h3>
+  <p>Standard four-line FASTQ (Sanger, Illumina 1.8+) is supported. Multi-line sequence
+     records, used by a few older tools, are not.</p>
+  <h3>Are the identifiers preserved?</h3>
+  <p>Yes. The <code>@</code> header becomes a <code>&gt;</code> header with the same content.</p>
+</div>
+{% endblock %}

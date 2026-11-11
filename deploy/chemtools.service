@@ -1,0 +1,18 @@
+[Unit]
+Description=ChemTools - OpenBabel web tools
+After=network.target
+
+[Service]
+Environment=BASE_URL=https://seqandchem.com
+Type=simple
+User=chemtools
+WorkingDirectory=/opt/chemtools
+ExecStart=/opt/chemtools/venv/bin/gunicorn -w 2 -b 127.0.0.1:8080 --timeout 120 --access-logfile - app:app
+Restart=always
+RestartSec=3
+MemoryMax=400M
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

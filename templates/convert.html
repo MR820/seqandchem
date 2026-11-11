@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 class="page-title">Chemical File Format Converter</h2>
+<p class="lead">Convert between SMILES, InChI, InChIKey, MOL, SDF, PDB, XYZ, CML, MOL2 and
+   more than 190 other chemical formats. Paste your data or upload a file.</p>
+
+<div class="card">
+  <div class="grid">
+    <div>
+      <label>Input format</label>
+      <select id="conv-from" data-fmt data-dir="read" data-default="smi"></select>
+    </div>
+    <div>
+      <label>Output format</label>
+      <select id="conv-to" data-fmt data-dir="write" data-default="mol"></select>
+    </div>
+  </div>
+  <div style="margin-top:12px">
+    <label>Molecule data (paste or upload a file)</label>
+    <textarea id="conv-input" placeholder="e.g. CC(=O)Oc1ccccc1C(=O)O"></textarea>
+    <div class="row">
+      <button class="ghost" data-example="conv">Load example</button>
+    </div>
+  </div>
+  <div class="chips">
+    <label class="chip"><input type="checkbox" value="--gen3d" /> 3D coordinates</label>
+    <label class="chip"><input type="checkbox" value="--canonical" /> Canonicalize</label>
+    <label class="chip"><input type="checkbox" value="--addhydrogens" /> Add hydrogens</label>
+    <label class="chip"><input type="checkbox" value="--deletehydrogens" /> Remove hydrogens</label>
+    <label class="chip"><input type="checkbox" value="--unique" /> Deduplicate</label>
+  </div>
+  <div class="row">
+    <button class="btn" id="conv-run">Convert</button>
+    <button class="ghost" data-copy="conv-out">Copy</button>
+    <button class="ghost" id="conv-download">Download</button>
+    <button class="ghost" id="conv-toggle" style="display:none">View source</button>
+  </div>
+  <div class="status" id="conv-status"></div>
+</div>
+
+<div class="card">
+  <div id="conv-3d-wrap" style="display:none;margin-bottom:12px">
+    <label>3D preview</label>
+    <div id="conv-3d" class="viewer" style="width:100%;height:420px"></div>
+    <p class="hint">Drag to rotate · scroll to zoom</p>
+  </div>
+  <div class="svg-box" id="conv-preview" style="display:none"></div>
+  <pre id="conv-out"></pre>
+</div>
+
+<div class="card">
+  <h3 style="margin:0 0 10px;font-size:15px">One-click converters</h3>
+  <div class="row" style="gap:8px">
+    {% for c in converters %}<a class="ghost-link" href="/{{ c.slug }}">{{ c.label }}</a>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="prose">
+  <h2>Supported conversions</h2>
+  <p>Any format OpenBabel can read can be converted to any format it can write. Popular pairs:</p>
+  <ul>
+    <li><strong>SMILES → InChI</strong> and <strong>InChI → SMILES</strong></li>
+    <li><strong>SDF → SMILES</strong>, <strong>MOL → SMILES</strong></li>
+    <li><strong>SMILES → SDF</strong> with generated 3D coordinates</li>
+    <li><strong>PDB → SDF</strong> for protein ligands</li>
+    <li><strong>SMILES → PNG / SVG</strong> for structure images</li>
+  </ul>
+
+  <h2>Options explained</h2>
+  <ul>
+    <li><strong>3D coordinates</strong> — runs a force-field conformer search instead of a flat 2D layout.</li>
+    <li><strong>Canonicalize</strong> — outputs the canonical SMILES form, useful for deduplication.</li>
+    <li><strong>Add / remove hydrogens</strong> — controls explicit hydrogen atoms in the output.</li>
+    <li><strong>Deduplicate</strong> — removes duplicate structures when converting a list.</li>
+  </ul>
+</div>
+{% endblock %}
+
+{% block scripts %}<script src="/3dmol-min.js?v={{ v_3dmol }}"></script>{% endblock %}

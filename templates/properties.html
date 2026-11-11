@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 class="page-title">Molecular Property Calculator</h2>
+<p class="lead">Calculate molecular weight, formula, logP, TPSA, hydrogen bond donors and
+   acceptors, rotatable bonds, molar refractivity, canonical SMILES, InChI and InChIKey.</p>
+
+<div class="card">
+  <div class="grid">
+    <div>
+      <label>Input format</label>
+      <select id="prop-from" data-fmt data-dir="read" data-default="smi"></select>
+    </div>
+    <div></div>
+  </div>
+  <div style="margin-top:12px">
+    <label>Molecule data</label>
+    <textarea id="prop-input" placeholder="e.g. CC(=O)Oc1ccccc1C(=O)O"></textarea>
+    <div class="row">
+      <button class="ghost" data-example="prop">Load example</button>
+    </div>
+    <p class="hint">Multiple molecules are allowed — one per line or a multi-record SDF.</p>
+  </div>
+  <div class="row">
+    <button class="btn" id="prop-run">Calculate</button>
+  </div>
+  <div class="status" id="prop-status"></div>
+</div>
+
+<div class="card" id="prop-result" style="display:none"></div>
+
+<div class="prose">
+  <h2>Descriptors provided</h2>
+  <ul>
+    <li><strong>Molecular weight (MW)</strong> — average mass in g/mol.</li>
+    <li><strong>Formula</strong> — molecular formula in Hill notation.</li>
+    <li><strong>logP</strong> — octanol/water partition coefficient, a lipophilicity measure.</li>
+    <li><strong>TPSA</strong> — topological polar surface area, correlated with membrane permeability.</li>
+    <li><strong>HBD / HBA</strong> — hydrogen bond donors and acceptors (Lipinski's rule of five).</li>
+    <li><strong>Rotatable bonds</strong> — molecular flexibility indicator.</li>
+    <li><strong>MR</strong> — molar refractivity.</li>
+    <li><strong>InChI / InChIKey</strong> — standard identifiers for database lookup.</li>
+  </ul>
+
+  <h2>Drug-likeness</h2>
+  <p>These are the descriptors used by <strong>Lipinski's rule of five</strong>: MW ≤ 500,
+     logP ≤ 5, HBD ≤ 5, HBA ≤ 10, plus TPSA ≤ 140 Å² and rotatable bonds ≤ 10 as common
+     extensions. Use the table above to check whether a compound is likely to be orally active.</p>
+</div>
+{% endblock %}

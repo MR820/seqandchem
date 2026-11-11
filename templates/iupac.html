@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="page-title">IUPAC Name to Structure</h2>
+<p class="lead">Type a systematic IUPAC name and get the chemical structure back — SMILES,
+   InChI, InChIKey, molecular formula and a drawn structure image. Parsing is done by
+   <strong>OPSIN</strong>, with <strong>PubChem</strong> as a fallback for common and trivial names.</p>
+
+<div class="card">
+  <label>IUPAC name — one per line</label>
+  <textarea id="iupac-input" placeholder="e.g. 2-acetoxybenzoic acid"></textarea>
+  <div class="row">
+    <button class="ghost" data-example="iupac">Load example</button>
+  </div>
+  <div class="row">
+    <button class="btn" id="iupac-run">Resolve structure</button>
+    <span class="hint">Up to 20 names per run · lookups are not stored</span>
+  </div>
+  <div class="status" id="iupac-status"></div>
+</div>
+
+<div id="iupac-results"></div>
+
+<div class="prose">
+  <h2>How it works</h2>
+  <p>The name is first sent to <strong>OPSIN</strong> (Open Parser for Systematic IUPAC
+     Nomenclature), a rule-based parser from the University of Cambridge that reads systematic
+     nomenclature directly — no dictionary lookup. If OPSIN cannot interpret the name (common for
+     trivial names such as “aspirin” or “caffeine”), the browser queries
+     <strong>PubChem</strong> directly, which maintains a large curated name-to-structure index.</p>
+
+  <h2>What OPSIN handles well</h2>
+  <ul>
+    <li>Substitutive names — <code>2-chloro-4-nitrobenzoic acid</code></li>
+    <li>Fused ring systems — <code>quinoline</code>, <code>naphthalene</code></li>
+    <li>Stereochemistry — <code>(2R)-2-hydroxypropanoic acid</code></li>
+    <li>Esters, amides, salts and hydrates</li>
+    <li>Multiplicative prefixes — <code>di</code>, <code>tri</code>, <code>tetra</code>…</li>
+  </ul>
+
+  <h2>Limitations</h2>
+  <ul>
+    <li><strong>Trivial and trade names</strong> are not IUPAC names — OPSIN rejects them, so the
+        PubChem fallback takes over.</li>
+    <li><strong>Badly formed names</strong> fail in both sources; check the spelling and locants.</li>
+    <li><strong>Biochemical names</strong> (enzymes, proteins, polymers) have no single structure.</li>
+    <li>PubChem lookups run from your browser, so they require direct access to
+        <code>pubchem.ncbi.nlm.nih.gov</code>.</li>
+  </ul>
+
+  <h2>Frequently asked questions</h2>
+  <h3>Why does “aspirin” work but “2-acetoxybenzoic acid” also work?</h3>
+  <p>“Aspirin” is a trivial name — OPSIN rejects it, PubChem resolves it by name lookup.
+     “2-acetoxybenzoic acid” is systematic, so OPSIN parses it directly.</p>
+  <h3>Is the structure validated?</h3>
+  <p>Both sources return a parsed structure; the depiction you see is rendered from that SMILES
+     by OpenBabel, so if the SMILES is wrong the drawing will be wrong too. Always check the
+     structure against the name.</p>
+  <h3>Can I convert the result further?</h3>
+  <p>Yes — copy the SMILES into the <a href="/convert">format converter</a> or the
+     <a href="/3d">3D structure generator</a>.</p>
+</div>
+{% endblock %}

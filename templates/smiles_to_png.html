@@ -1,0 +1,22 @@
+{% extends "preset.html" %}
+{% block prose %}
+<div class="prose">
+  <h2>SMILES to PNG — molecule image generator</h2>
+  <p>Turn a SMILES string into a raster structure image you can drop into a slide, a report or a
+     database record. The drawing is laid out by OpenBabel and rendered as a 300 × 300 PNG.</p>
+
+  <h2>PNG or SVG?</h2>
+  <ul>
+    <li><strong>PNG</strong> — fixed resolution, universally supported, ideal for slides and chat.</li>
+    <li><strong>SVG</strong> — vector, infinitely scalable, ideal for papers, posters and print.
+        Use the <a href="/depict">2D structure generator</a> for SVG output.</li>
+  </ul>
+
+  <h2>Frequently asked questions</h2>
+  <h3>Why is the image small?</h3>
+  <p>The default canvas is 300 × 300 pixels. For a larger figure, use the SVG output and scale it,
+     or render at higher resolution with a local OpenBabel install.</p>
+  <h3>Can I get a transparent background?</h3>
+  <p>The PNG output has a white background. SVG output keeps a transparent background.</p>
+</div>
+{% endblock %}

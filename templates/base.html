@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}{{ title }}{% endblock %}</title>
+<meta name="description" content="{{ description }}">
+<link rel="canonical" href="{{ canonical }}">
+<meta name="robots" content="index,follow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="{{ title }}">
+<meta property="og:description" content="{{ description }}">
+<meta property="og:url" content="{{ canonical }}">
+<meta property="og:site_name" content="SeqChem">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="{{ title }}">
+<meta name="twitter:description" content="{{ description }}">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/style.css?v={{ v_css }}">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[
+{"@type":"ListItem","position":1,"name":"Home","item":"{{ home_url }}/"}{% if page_name %},
+{"@type":"ListItem","position":2,"name":"{{ page_name }}","item":"{{ canonical }}"}{% endif %}]}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"SeqChem","url":"{{ canonical }}","applicationCategory":"ScienceApplication","operatingSystem":"Any","description":"{{ description }}","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
+</script>
+<script data-goatcounter="https://stats.seqandchem.com/count" async src="https://stats.seqandchem.com/count.js"></script>
+</head>
+<body data-page="{{ page }}">
+
+<header>
+  <div class="header-inner">
+    <div class="logo">⚗</div>
+    <div>
+      <h1><a href="/">SeqChem</a></h1>
+      <p>Free online chemistry &amp; sequence tools</p>
+    </div>
+  </div>
+</header>
+
+<nav>
+  <div class="nav-inner">
+    <a href="/convert"      class="{{ 'active' if nav=='convert' }}">Convert</a>
+    <a href="/properties"   class="{{ 'active' if nav=='properties' }}">Properties</a>
+    <a href="/depict"       class="{{ 'active' if nav=='depict' }}">2D Depict</a>
+    <a href="/3d"           class="{{ 'active' if nav=='3d' }}">3D Structure</a>
+    <a href="/substructure" class="{{ 'active' if nav=='substructure' }}">Substructure</a>
+    <a href="/similarity"   class="{{ 'active' if nav=='similarity' }}">Similarity</a>
+    <a href="/lipinski"     class="{{ 'active' if nav=='lipinski' }}">Drug-likeness</a>
+    <a href="/iupac-to-structure" class="{{ 'active' if nav=='iupac' }}">Name→Structure</a>
+    <a href="/batch"        class="{{ 'active' if nav=='batch' }}">Batch</a>
+    <a href="/formula"      class="{{ 'active' if nav=='formula' }}">Formula</a>
+    <a href="/bio/"         class="{{ 'active' if nav=='bio' }}">Bio</a>
+    <a href="/guides/"      class="{{ 'active' if nav=='guides' }}">Guides</a>
+  </div>
+</nav>
+
+<main>
+{% block content %}{% endblock %}
+</main>
+
+<footer>
+  SeqChem · {{ credit }} · <a href="/">All tools</a> · <a href="/api">API</a> ·
+  <a href="/guides/">Guides</a> · <a href="mailto:devin2xing@gmail.com">Feedback</a>
+</footer>
+
+<script src="/app.js?v={{ v_js }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

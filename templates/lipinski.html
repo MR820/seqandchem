@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="page-title">Lipinski Rule of Five Calculator</h2>
+<p class="lead">Check whether a molecule is likely to be orally active. Enter a SMILES and the
+   calculator evaluates Lipinski's rule of five plus the Veber extension for polar surface area
+   and flexibility.</p>
+
+<div class="card">
+  <div class="grid">
+    <div>
+      <label>Input format</label>
+      <select id="lip-from" data-fmt data-dir="read" data-default="smi"></select>
+    </div>
+    <div></div>
+  </div>
+  <div style="margin-top:12px">
+    <label>Molecule data</label>
+    <textarea id="lip-input" placeholder="e.g. CC(=O)Oc1ccccc1C(=O)O"></textarea>
+    <div class="row">
+      <button class="ghost" data-example="lip">Load example</button>
+    </div>
+    <p class="hint">Multiple molecules are allowed — one per line.</p>
+  </div>
+  <div class="row">
+    <button class="btn" id="lip-run">Check drug-likeness</button>
+  </div>
+  <div class="status" id="lip-status"></div>
+</div>
+
+<div class="card" id="lip-result" style="display:none"></div>
+
+<div class="prose">
+  <h2>What is Lipinski's rule of five?</h2>
+  <p>Christopher Lipinski observed in 1997 that most orally administered drugs satisfy four
+     simple physicochemical limits. A compound that violates more than one of them is statistically
+     less likely to reach the market. The "five" comes from the fact that every threshold is a
+     multiple of five.</p>
+
+  <table>
+    <tr><th>Rule</th><th>Limit</th><th>Why it matters</th></tr>
+    <tr><td>Molecular weight</td><td>≤ 500 Da</td><td>Large molecules permeate membranes poorly</td></tr>
+    <tr><td>logP (lipophilicity)</td><td>≤ 5</td><td>Too lipophilic means poor aqueous solubility</td></tr>
+    <tr><td>Hydrogen bond donors</td><td>≤ 5</td><td>Each donor costs energy to desolvate</td></tr>
+    <tr><td>Hydrogen bond acceptors</td><td>≤ 10</td><td>Same, for acceptors</td></tr>
+  </table>
+
+  <h2>Veber rules</h2>
+  <p>Veber et al. (2002) added two more predictors of oral bioavailability, which this calculator
+     also reports:</p>
+  <ul>
+    <li><strong>TPSA ≤ 140 Å²</strong> — polar surface area above this usually means poor absorption</li>
+    <li><strong>Rotatable bonds ≤ 10</strong> — more flexibility means more conformational entropy cost</li>
+  </ul>
+
+  <h2>Frequently asked questions</h2>
+  <h3>Does passing the rules guarantee a drug?</h3>
+  <p>No. The rules are a cheap filter, not a prediction of efficacy or safety. Many approved drugs
+     violate one rule, and many rule-compliant compounds fail in trials.</p>
+  <h3>Are these rules applied to natural products?</h3>
+  <p>Not reliably. Natural products and PROTACs routinely violate the rule of five yet are still
+     biologically active — the rules were derived from synthetic oral drug libraries.</p>
+  <h3>Where do the numbers come from?</h3>
+  <p>All descriptors are calculated by OpenBabel from the structure alone — no external database
+     or lookup table is involved.</p>
+</div>
+{% endblock %}

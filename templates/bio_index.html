@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="page-title">FASTA / FASTQ Sequence Tools</h2>
+<p class="lead">Free online bioinformatics tools for DNA and RNA sequences: format conversion,
+   GC content analysis, reverse complement and six-frame translation.</p>
+
+<div class="tool-grid">
+  <a class="tool-card" href="/bio/fasta-to-fastq">
+    <div class="tool-icon">⇄</div>
+    <h3>FASTA to FASTQ</h3>
+    <p>Convert FASTA sequences to FASTQ by adding placeholder quality scores.</p>
+  </a>
+  <a class="tool-card" href="/bio/fastq-to-fasta">
+    <div class="tool-icon">⇄</div>
+    <h3>FASTQ to FASTA</h3>
+    <p>Strip quality scores from sequencing reads and keep only headers and sequences.</p>
+  </a>
+  <a class="tool-card" href="/bio/gc-content">
+    <div class="tool-icon">%</div>
+    <h3>GC Content &amp; Stats</h3>
+    <p>Sequence length, GC content, AT content, N count, GC skew and AT skew per record.</p>
+  </a>
+  <a class="tool-card" href="/bio/reverse-complement">
+    <div class="tool-icon">↺</div>
+    <h3>Reverse Complement</h3>
+    <p>Get the reverse complement of DNA sequences, with IUPAC ambiguity codes supported.</p>
+  </a>
+  <a class="tool-card" href="/bio/translate">
+    <div class="tool-icon">→</div>
+    <h3>DNA to Protein</h3>
+    <p>Translate nucleotide sequences into amino acids in all three reading frames.</p>
+  </a>
+</div>
+
+<div class="prose">
+  <h2>FASTA and FASTQ formats</h2>
+  <p><strong>FASTA</strong> is the simplest sequence format: a header line starting with
+     <code>&gt;</code> followed by the sequence. <strong>FASTQ</strong> adds a per-base quality
+     score, using four lines per record — header, sequence, a <code>+</code> separator line,
+     and a quality string of the same length encoded as ASCII characters.</p>
+
+  <h2>When to use which</h2>
+  <ul>
+    <li>Use <strong>FASTA</strong> for reference genomes, protein sequences and alignments.</li>
+    <li>Use <strong>FASTQ</strong> for raw sequencing reads — the quality scores are needed for
+        trimming and error correction.</li>
+  </ul>
+
+  <h2>Notes on this toolset</h2>
+  <ul>
+    <li>Everything runs server-side; nothing is stored or logged.</li>
+    <li>All tools accept multi-record files and preserve record order.</li>
+    <li>IUPAC ambiguity codes (N, R, Y, K, M, S, W, B, D, H, V) are handled by the reverse complement tool.</li>
+  </ul>
+</div>
+{% endblock %}

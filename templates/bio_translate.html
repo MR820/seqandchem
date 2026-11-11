@@ -1,0 +1,25 @@
+{% extends "bio_tool.html" %}
+{% block prose %}
+<div class="prose">
+  <h2>DNA to protein translation</h2>
+  <p>Ribosomes read nucleotides in triplets called codons, each coding for one amino acid.
+     With four possible bases there are 64 codons encoding 20 amino acids plus three stop
+     codons (TAA, TAG, TGA), which are shown as <code>*</code> in the output.</p>
+
+  <h2>Reading frames</h2>
+  <p>A sequence has three forward reading frames, depending on whether translation starts at
+     the first, second or third base. Choosing a frame changes the protein completely, so try
+     all three when the correct frame is unknown.</p>
+
+  <h2>Codon usage is not considered</h2>
+  <p>Translation uses the standard genetic code. Mitochondrial codes, where TGA can encode
+     tryptophan, are not applied.</p>
+
+  <h2>Frequently asked questions</h2>
+  <h3>What does X mean in the output?</h3>
+  <p><code>X</code> marks a codon containing an ambiguous base (such as N) that cannot be
+     resolved to a single amino acid.</p>
+  <h3>Does it handle RNA?</h3>
+  <p>Yes — U is treated as T.</p>
+</div>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "bio_tool.html" %}
+{% block prose %}
+<div class="prose">
+  <h2>What is GC content?</h2>
+  <p>GC content is the percentage of guanine and cytosine bases in a sequence. Because G–C pairs
+     share three hydrogen bonds while A–T pairs share two, GC-rich DNA is more thermally stable.
+     GC content is used to estimate melting temperature, predict PCR success and characterise
+     genomes — bacterial genomes typically sit between 20% and 80% GC.</p>
+
+  <h2>Other metrics reported</h2>
+  <ul>
+    <li><strong>Length</strong> — number of bases in the record.</li>
+    <li><strong>N count</strong> — ambiguous bases, usually assembly gaps.</li>
+    <li><strong>GC skew</strong> — (G−C)/(G+C), used to locate origins of replication.</li>
+    <li><strong>AT skew</strong> — (A−T)/(A+T), same idea for the other pair.</li>
+  </ul>
+
+  <h2>Frequently asked questions</h2>
+  <h3>Does it handle RNA?</h3>
+  <p>Yes — U is counted the same way as T for the AT statistic.</p>
+  <h3>Can I analyse a whole genome?</h3>
+  <p>Yes, as long as the pasted text stays under the input limit. For multi-FASTA files each
+     record is reported separately.</p>
+</div>
+{% endblock %}

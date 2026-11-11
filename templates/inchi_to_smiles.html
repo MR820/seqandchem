@@ -1,0 +1,26 @@
+{% extends "preset.html" %}
+{% block prose %}
+<div class="prose">
+  <h2>Convert InChI back to SMILES</h2>
+  <p>InChI is great for storing and comparing structures, but many toolkits, machine-learning
+     pipelines and cheminformatics scripts expect SMILES. This page converts an InChI string
+     into a standard SMILES representation using OpenBabel.</p>
+
+  <h2>When do you need this?</h2>
+  <ul>
+    <li>You downloaded a compound list from PubChem and need SMILES for a model.</li>
+    <li>Your database stores InChI but your viewer or editor only accepts SMILES.</li>
+    <li>You want to inspect or edit the structure in a drawing tool.</li>
+  </ul>
+
+  <h2>Notes</h2>
+  <p>InChI encodes connectivity, tautomers and stereochemistry together. When converting back to
+     SMILES, the result is one valid representation — it may differ textually from the original
+     SMILES but describes the same molecule.</p>
+
+  <h2>Frequently asked questions</h2>
+  <h3>Can I convert an InChIKey to SMILES?</h3>
+  <p>No. InChIKey is a one-way hash — you cannot recover the structure from it. You need the full
+     InChI string or the structure itself.</p>
+</div>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends "bio_tool.html" %}
+{% block prose %}
+<div class="prose">
+  <h2>What is a reverse complement?</h2>
+  <p>DNA is double-stranded: each strand is the reverse complement of the other. Given
+     <code>ATGGC</code> on one strand, the opposite strand reads <code>GCCAT</code> in the
+     5′→3′ direction. The reverse complement operation flips the sequence and swaps every base
+     for its partner (A↔T, G↔C).</p>
+
+  <h2>Where it is used</h2>
+  <ul>
+    <li>Designing reverse PCR primers</li>
+    <li>Checking whether a read maps to the forward or reverse strand</li>
+    <li>Analysing genes on the minus strand of a genome</li>
+  </ul>
+
+  <h2>IUPAC ambiguity codes</h2>
+  <p>Ambiguous bases are complemented correctly: R (A/G) ↔ Y (C/T), K (G/T) ↔ M (A/C),
+     S ↔ S, W ↔ W, B ↔ V, D ↔ H, and N stays N.</p>
+
+  <h2>Frequently asked questions</h2>
+  <h3>Does it reverse, complement, or both?</h3>
+  <p>Both — that is the definition of a reverse complement. If you only need the complement,
+     run the tool and reverse the result, or use a sequence editor.</p>
+</div>
+{% endblock %}

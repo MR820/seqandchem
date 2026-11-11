@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="page-title">Molecular Formula &amp; Weight Calculator</h2>
+<p class="lead">Calculate the molecular weight and elemental composition from a chemical formula,
+   or get the formula and weight from a SMILES string.</p>
+
+<div class="card">
+  <div class="row" style="margin-top:0">
+    <label class="chip"><input type="radio" name="fmode" value="formula" checked /> From formula</label>
+    <label class="chip"><input type="radio" name="fmode" value="structure" /> From structure</label>
+  </div>
+
+  <div id="f-formula-block" style="margin-top:14px">
+    <label>Chemical formula</label>
+    <input type="text" id="f-formula" value="C6H12O6" placeholder="e.g. C6H12O6, (NH4)2SO4, C9H8O4" />
+    <p class="hint">Supports brackets and multipliers: <code>(NH4)2SO4</code>, <code>Ca(OH)2</code></p>
+  </div>
+
+  <div id="f-structure-block" style="margin-top:14px;display:none">
+    <div class="grid">
+      <div>
+        <label>Input format</label>
+        <select id="f-from" data-fmt data-dir="read" data-default="smi"></select>
+      </div>
+      <div></div>
+    </div>
+    <div style="margin-top:12px">
+      <label>Molecule data</label>
+      <textarea id="f-input" placeholder="e.g. CC(=O)Oc1ccccc1C(=O)O"></textarea>
+    </div>
+  </div>
+
+  <div class="row">
+    <button class="btn" id="f-run">Calculate</button>
+  </div>
+  <div class="status" id="f-status"></div>
+</div>
+
+<div class="card" id="f-result" style="display:none"></div>
+
+<div class="prose">
+  <h2>How molecular weight is calculated</h2>
+  <p>The calculator sums the IUPAC standard atomic weights of every atom in the formula.
+     This is the <strong>average molecular weight</strong> — the value used for concentration
+     calculations (e.g. "dissolve 1 mmol in 1 mL"). The monoisotopic mass used in mass
+     spectrometry is slightly different because it uses the most abundant isotope of each element.</p>
+
+  <h2>Formula syntax</h2>
+  <ul>
+    <li><code>C6H12O6</code> — glucose</li>
+    <li><code>(NH4)2SO4</code> — ammonium sulfate, brackets multiplied out</li>
+    <li><code>Ca(OH)2</code> — calcium hydroxide</li>
+    <li>Element symbols are case sensitive: <code>Co</code> is cobalt, <code>CO</code> is carbon monoxide</li>
+  </ul>
+
+  <h2>Frequently asked questions</h2>
+  <h3>Why does the formula change after conversion?</h3>
+  <p>OpenBabel outputs the formula in <strong>Hill notation</strong>: carbon first, hydrogen
+     second, then all other elements alphabetically. <code>H8N2O4S</code> and
+     <code>(NH4)2SO4</code> describe the same compound.</p>
+  <h3>Does it account for charge or isotopes?</h3>
+  <p>No — the calculation treats every atom as its neutral, naturally abundant isotope.</p>
+</div>
+{% endblock %}

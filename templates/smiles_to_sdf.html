@@ -1,0 +1,27 @@
+{% extends "preset.html" %}
+{% block prose %}
+<div class="prose">
+  <h2>SMILES to SDF with 3D coordinates</h2>
+  <p>This converter turns a SMILES string into an SDF structure file. SDF is what most molecular
+     viewers, docking programs and modelling pipelines accept. When the
+     <em>3D coordinates</em> option is enabled, OpenBabel generates an initial geometry and
+     optimises it with a force field so the file contains a real 3D conformer rather than a flat
+     drawing.</p>
+
+  <h2>What you get</h2>
+  <ul>
+    <li>A valid V2000 SDF block with atom and bond tables</li>
+    <li>2D layout by default, 3D conformer when <em>3D coordinates</em> is checked</li>
+    <li>Explicit hydrogens when 3D coordinates are generated</li>
+  </ul>
+
+  <h2>Frequently asked questions</h2>
+  <h3>Is the 3D conformer the global minimum?</h3>
+  <p>No. OpenBabel performs a fast force-field optimisation (MMFF94 or UFF) from a generated
+     starting geometry. It produces a low-energy conformer, not a guaranteed global minimum, and
+     only one conformer — not an ensemble.</p>
+  <h3>Can I convert many SMILES at once?</h3>
+  <p>Yes. Put one SMILES per line and the output will contain one SDF record per molecule,
+     separated by <code>$$$$</code>.</p>
+</div>
+{% endblock %}

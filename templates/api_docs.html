@@ -1,0 +1,322 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 class="page-title">SeqChem API</h2>
+<p class="lead">A free JSON API over OpenBabel, OPSIN and a set of native sequence tools.
+   Convert between 190+ chemical formats, compute descriptors, draw structures, resolve IUPAC
+   names and process FASTA/FASTQ — no API key, no sign-up, CORS enabled.</p>
+
+<div class="card">
+  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr))">
+    <div><label>Base URL</label><div><code>https://seqandchem.com</code></div></div>
+    <div><label>Auth</label><div>None</div></div>
+    <div><label>Format</label><div>JSON (UTF-8)</div></div>
+    <div><label>Rate limit</label><div>120 / min per client</div></div>
+    <div><label>Max input</label><div>8 MB per request</div></div>
+    <div><label>Spec</label><div><a href="/api/openapi.json">OpenAPI 3.0</a></div></div>
+  </div>
+  <p class="hint" style="margin-bottom:0">Calls are free. Please do not hammer the service —
+     it is a single small server, and heavy endpoints are serialised.</p>
+</div>
+
+<div class="prose">
+
+<h2 id="quickstart">Quick start</h2>
+<p>Convert a SMILES string to InChI:</p>
+
+<pre><code>curl -s https://seqandchem.com/api/v1/convert \
+  -H 'Content-Type: application/json' \
+  -d '{"from":"smi","to":"inchi","data":"CC(=O)Oc1ccccc1C(=O)O"}'</code></pre>
+
+<p>Same call from Python:</p>
+<pre><code>import requests
+
+r = requests.post("https://seqandchem.com/api/v1/convert", json={
+    "from": "smi",
+    "to": "inchi",
+    "data": "CC(=O)Oc1ccccc1C(=O)O",
+})
+r.raise_for_status()
+print(r.json()["result"])
+# InChI=1S/C9H8O4/c1-6(10)13-8-5-3-2-4-7(8)9(11)12/h2-5H,1H3,(H,11,12)</code></pre>
+
+<p>And from the browser — CORS is enabled, so this works from any origin:</p>
+<pre><code>const res = await fetch("https://seqandchem.com/api/v1/properties", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ from: "smi", data: "CC(=O)Oc1ccccc1C(=O)O" }),
+});
+const data = await res.json();
+console.log(data.rows[0].props.MW);   // 180.159</code></pre>
+
+<h2 id="formats">Format identifiers</h2>
+<p>Every format is referred to by its OpenBabel id: <code>smi</code>, <code>can</code>,
+   <code>inchi</code>, <code>inchikey</code>, <code>mol</code>, <code>sdf</code>,
+   <code>mol2</code>, <code>pdb</code>, <code>xyz</code>, <code>cml</code>, <code>smi</code>,
+   <code>png</code>, <code>svg</code>, <code>pdf</code> and roughly 180 more. Get the full list
+   with <a href="#ep-formats"><code>GET /api/v1/formats</code></a> — it also tells you which
+   formats can be read and which can be written.</p>
+<pre><code>curl -s https://seqandchem.com/api/v1/formats | python3 -m json.tool | head -20</code></pre>
+
+<h2 id="endpoints">Endpoints</h2>
+<p>All paths below are relative to <code>https://seqandchem.com</code>. Every POST endpoint
+   accepts a JSON body and returns JSON.</p>
+
+<table>
+  <thead><tr><th>Method</th><th>Path</th><th>Purpose</th></tr></thead>
+  <tbody>
+    <tr><td>GET</td><td><a href="#ep-formats"><code>/api/v1/formats</code></a></td><td>List supported formats</td></tr>
+    <tr><td>GET</td><td><a href="#ep-example"><code>/api/v1/example</code></a></td><td>Example molecule in any format</td></tr>
+    <tr><td>POST</td><td><a href="#ep-convert"><code>/api/v1/convert</code></a></td><td>Convert between formats</td></tr>
+    <tr><td>POST</td><td><a href="#ep-properties"><code>/api/v1/properties</code></a></td><td>Molecular descriptors</td></tr>
+    <tr><td>POST</td><td><a href="#ep-depict"><code>/api/v1/depict</code></a></td><td>2D structure as SVG</td></tr>
+    <tr><td>POST</td><td><a href="#ep-gen3d"><code>/api/v1/gen3d</code></a></td><td>3D conformer as SDF</td></tr>
+    <tr><td>POST</td><td><a href="#ep-substructure"><code>/api/v1/substructure</code></a></td><td>SMARTS substructure filter</td></tr>
+    <tr><td>POST</td><td><a href="#ep-fingerprint"><code>/api/v1/fingerprint</code></a></td><td>FP2/FP3/FP4/MACCS fingerprint</td></tr>
+    <tr><td>POST</td><td><a href="#ep-similarity"><code>/api/v1/similarity</code></a></td><td>Tanimoto similarity</td></tr>
+    <tr><td>POST</td><td><a href="#ep-iupac"><code>/api/v1/iupac</code></a></td><td>IUPAC name → structure</td></tr>
+    <tr><td>POST</td><td><a href="#ep-batch"><code>/api/v1/batch</code></a></td><td>Bulk file conversion</td></tr>
+    <tr><td>POST</td><td><a href="#ep-formula"><code>/api/v1/formula</code></a></td><td>Formula ↔ structure</td></tr>
+    <tr><td>POST</td><td><a href="#ep-bio"><code>/api/v1/bio</code></a></td><td>FASTA / FASTQ operations</td></tr>
+  </tbody>
+</table>
+
+<h3 id="ep-formats"><code>GET /api/v1/formats</code></h3>
+<p>Lists every format with a description and whether it can be read, written, or both.</p>
+<table>
+  <thead><tr><th>Query</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody><tr><td><code>dir</code></td><td>string</td><td>Optional filter: <code>read</code> or <code>write</code></td></tr></tbody>
+</table>
+<pre><code>{
+  "ok": true,
+  "items": [
+    {"id": "smi", "desc": "SMILES format", "read": true, "write": true},
+    {"id": "inchi", "desc": "InChI format", "read": true, "write": true}
+  ]
+}</code></pre>
+
+<h3 id="ep-example"><code>GET /api/v1/example</code></h3>
+<p>Returns aspirin in the requested format. Useful to check what a format looks like before
+   writing a parser.</p>
+<table>
+  <thead><tr><th>Query</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody><tr><td><code>format</code></td><td>string</td><td>Format id, default <code>smi</code></td></tr></tbody>
+</table>
+<pre><code>{"ok": true, "format": "mol", "data": " aspirin\n ..."}</code></pre>
+
+<h3 id="ep-convert"><code>POST /api/v1/convert</code></h3>
+<p>Converts one or more records between any two readable/writable formats. Text output comes back
+   in <code>result</code>; binary output (PNG, PDF, STL) comes back base64-encoded in
+   <code>data_url</code>.</p>
+<table>
+  <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td><code>data</code></td><td>string</td><td><strong>Required.</strong> Molecule data in the source format</td></tr>
+    <tr><td><code>from</code></td><td>string</td><td>Input format id, default <code>smi</code></td></tr>
+    <tr><td><code>to</code></td><td>string</td><td>Output format id, default <code>mol</code></td></tr>
+    <tr><td><code>opts</code></td><td>string[]</td><td>Optional OpenBabel flags: <code>--gen3d</code>, <code>--canonical</code>,
+        <code>--addhydrogens</code>, <code>--deletehydrogens</code>, <code>--unique</code>, <code>--separate</code></td></tr>
+  </tbody>
+</table>
+<pre><code>{
+  "ok": true,
+  "binary": false,
+  "result": "InChI=1S/C9H8O4/c1-6(10)13-8-5-3-2-4-7(8)9(11)12/h2-5H,1H3,(H,11,12)",
+  "mime": "text/plain",
+  "is_image": false,
+  "log": "1 molecule converted"
+}</code></pre>
+<p>Requesting a 3D format (<code>sdf</code>, <code>mol2</code>, <code>xyz</code>,
+   <code>pdb</code>) adds <code>--gen3d</code> automatically if you do not pass it.</p>
+
+<h3 id="ep-properties"><code>POST /api/v1/properties</code></h3>
+<p>Computes descriptors for every record in <code>data</code>. One row per molecule.</p>
+<table>
+  <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td><code>data</code></td><td>string</td><td><strong>Required.</strong> One or more molecules</td></tr>
+    <tr><td><code>from</code></td><td>string</td><td>Input format id, default <code>smi</code></td></tr>
+  </tbody>
+</table>
+<pre><code>{
+  "ok": true,
+  "rows": [{
+    "smiles": "CC(=O)Oc1ccccc1C(=O)O",
+    "props": {
+      "formula": "C9H8O4", "MW": "180.159", "logP": "1.3101",
+      "TPSA": "63.6", "HBD": "1", "HBA1": "4", "rotors": "3",
+      "atoms": "21", "bonds": "21", "MR": "44.691",
+      "cansmi": "CC(=O)Oc1ccccc1C(=O)O",
+      "InChI": "InChI=1S/C9H8O4/c1-6(10)...",
+      "InChIKey": "BSYNRYMUTXBXSQ-UHFFFAOYSA-N"
+    }
+  }],
+  "labels": {"formula": "Formula", "MW": "Molecular weight"}
+}</code></pre>
+
+<h3 id="ep-depict"><code>POST /api/v1/depict</code></h3>
+<p>Renders a 2D depiction and returns the raw SVG markup in <code>svg</code>. The SVG is
+   self-contained — embed it directly in a page.</p>
+<table>
+  <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td><code>data</code></td><td>string</td><td><strong>Required.</strong> Molecules to draw</td></tr>
+    <tr><td><code>from</code></td><td>string</td><td>Input format id, default <code>smi</code></td></tr>
+  </tbody>
+</table>
+<pre><code>{"ok": true, "svg": "&lt;svg xmlns=\"http://www.w3.org/2000/svg\" ...&gt;&lt;/svg&gt;"}</code></pre>
+
+<h3 id="ep-gen3d"><code>POST /api/v1/gen3d</code></h3>
+<p>Generates a force-field optimised 3D conformer and returns an SDF block. This is a heavy
+   operation: it is serialised across the whole server, so under load you may get
+   <code>429</code> with a retry hint.</p>
+<table>
+  <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td><code>data</code></td><td>string</td><td><strong>Required.</strong> Molecules</td></tr>
+    <tr><td><code>from</code></td><td>string</td><td>Input format id, default <code>smi</code></td></tr>
+  </tbody>
+</table>
+<pre><code>{"ok": true, "result": " aspirin\n     RDKit          3D\n..."}</code></pre>
+
+<h3 id="ep-substructure"><code>POST /api/v1/substructure</code></h3>
+<p>Filters molecules by a SMARTS pattern and returns the matching ones.</p>
+<table>
+  <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td><code>data</code></td><td>string</td><td><strong>Required.</strong> Molecules to search</td></tr>
+    <tr><td><code>smarts</code></td><td>string</td><td><strong>Required.</strong> SMARTS pattern, max 500 chars</td></tr>
+    <tr><td><code>from</code></td><td>string</td><td>Input format id, default <code>smi</code></td></tr>
+  </tbody>
+</table>
+<pre><code>{"ok": true, "count": 2, "matches": ["CC(=O)Oc1ccccc1C(=O)O", "CC(=O)Nc1ccc(O)cc1"]}</code></pre>
+
+<h3 id="ep-fingerprint"><code>POST /api/v1/fingerprint</code></h3>
+<p>Returns the raw fingerprint bit string for each molecule.</p>
+<table>
+  <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td><code>data</code></td><td>string</td><td><strong>Required.</strong> Molecules</td></tr>
+    <tr><td><code>fp</code></td><td>string</td><td><code>FP2</code> (default), <code>FP3</code>, <code>FP4</code>,
+        <code>MACCS</code>, <code>ECFP2</code>, <code>ECFP4</code>, <code>ECFP6</code></td></tr>
+    <tr><td><code>from</code></td><td>string</td><td>Input format id, default <code>smi</code></td></tr>
+  </tbody>
+</table>
+<pre><code>{"ok": true, "result": "00000000 00000000 00000001 ...", "words": 18}</code></pre>
+
+<h3 id="ep-similarity"><code>POST /api/v1/similarity</code></h3>
+<p>Tanimoto coefficient between two molecules.</p>
+<table>
+  <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td><code>a</code></td><td>string</td><td><strong>Required.</strong> First molecule</td></tr>
+    <tr><td><code>b</code></td><td>string</td><td><strong>Required.</strong> Second molecule</td></tr>
+    <tr><td><code>fp</code></td><td>string</td><td><code>FP2</code> (default), <code>FP3</code>, <code>FP4</code>, <code>MACCS</code></td></tr>
+    <tr><td><code>from</code></td><td>string</td><td>Input format id, default <code>smi</code></td></tr>
+  </tbody>
+</table>
+<pre><code>{"ok": true, "tanimoto": 0.4815, "bits_a": 54, "bits_b": 52, "common": 25, "union": 81}</code></pre>
+
+<h3 id="ep-iupac"><code>POST /api/v1/iupac</code></h3>
+<p>Parses an IUPAC name with OPSIN (Cambridge) and returns the structure identifiers.</p>
+<table>
+  <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody><tr><td><code>name</code></td><td>string</td><td><strong>Required.</strong> IUPAC name, max 300 chars</td></tr></tbody>
+</table>
+<pre><code>{
+  "ok": true,
+  "resolved": true,
+  "source": "opsin",
+  "smiles": "CC(=O)Oc1ccccc1C(=O)O",
+  "inchi": "InChI=1S/C9H8O4/c1-6(10)...",
+  "inchikey": "BSYNRYMUTXBXSQ-UHFFFAOYSA-N"
+}</code></pre>
+<p>If the name cannot be interpreted you get <code>ok: true, resolved: false</code> with a
+   <code>message</code> — this is not an error, just a miss.</p>
+
+<h3 id="ep-batch"><code>POST /api/v1/batch</code></h3>
+<p>Bulk conversion of a whole file. Returns <code>result</code> for text formats; for image
+   formats it returns a per-molecule preview list and, when there is more than one record, a
+   ZIP as a <code>zip_url</code> data URL. Heavy endpoint — serialised.</p>
+<table>
+  <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td><code>data</code></td><td>string</td><td><strong>Required.</strong> Multi-record file</td></tr>
+    <tr><td><code>from</code></td><td>string</td><td>Input format id, default <code>sdf</code></td></tr>
+    <tr><td><code>to</code></td><td>string</td><td>Output format id, default <code>smi</code></td></tr>
+    <tr><td><code>opts</code></td><td>string[]</td><td><code>--canonical</code>, <code>--unique</code>,
+        <code>--deletehydrogens</code>, <code>--addhydrogens</code></td></tr>
+  </tbody>
+</table>
+<pre><code>{"ok": true, "binary": false, "result": "CC(=O)Oc1ccccc1C(=O)O\n...", "converted": 250}</code></pre>
+
+<h3 id="ep-formula"><code>POST /api/v1/formula</code></h3>
+<p>Two modes: parse a formula string, or compute formula and weight from a structure.</p>
+<table>
+  <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td><code>mode</code></td><td>string</td><td><code>formula</code> (default) or <code>structure</code></td></tr>
+    <tr><td><code>formula</code></td><td>string</td><td>Used when mode is <code>formula</code>, e.g. <code>C9H8O4</code></td></tr>
+    <tr><td><code>data</code></td><td>string</td><td>Used when mode is <code>structure</code></td></tr>
+    <tr><td><code>from</code></td><td>string</td><td>Input format id for structure mode</td></tr>
+  </tbody>
+</table>
+<pre><code>{"ok": true, "formula": "C9H8O4", "mw": 180.159,
+ "composition": {"C": 9, "H": 8, "O": 4}, "atoms": 21}</code></pre>
+
+<h3 id="ep-bio"><code>POST /api/v1/bio</code></h3>
+<p>Sequence operations, all implemented natively in Python.</p>
+<table>
+  <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td><code>op</code></td><td>string</td><td><strong>Required.</strong> <code>fasta2fastq</code>,
+        <code>fastq2fasta</code>, <code>revcomp</code>, <code>translate</code>, <code>stats</code></td></tr>
+    <tr><td><code>data</code></td><td>string</td><td><strong>Required.</strong> FASTA, FASTQ or a bare sequence</td></tr>
+    <tr><td><code>frame</code></td><td>integer</td><td>Reading frame for <code>translate</code>, 0–2</td></tr>
+  </tbody>
+</table>
+<pre><code>{"ok": true, "result": "ATGGCC...", "count": 3}</code></pre>
+
+<h2 id="errors">Errors</h2>
+<p>Failures always return the same shape, with an HTTP status of 400, 422 or 429:</p>
+<pre><code>{"ok": false, "error": "Conversion failed", "detail": "1 molecule converted"}</code></pre>
+<table>
+  <thead><tr><th>Status</th><th>Meaning</th></tr></thead>
+  <tbody>
+    <tr><td><code>400</code></td><td>Bad request — missing field, unknown format, input too large</td></tr>
+    <tr><td><code>422</code></td><td>OpenBabel or OPSIN could not process the input</td></tr>
+    <tr><td><code>429</code></td><td>Rate limit or a heavy job already running; see <code>Retry-After</code></td></tr>
+    <tr><td><code>502</code></td><td>Upstream name-resolution service unavailable</td></tr>
+  </tbody>
+</table>
+
+<h2 id="limits">Limits and fair use</h2>
+<ul>
+  <li><strong>120 requests per minute per client</strong>, 300 per minute across the whole service.</li>
+  <li><strong>8 MB</strong> maximum input per request.</li>
+  <li>3D generation and batch conversion are <strong>serialised</strong> — one at a time, across all users. Plan for a few seconds per molecule.</li>
+  <li>If you need sustained bulk throughput, generate 3D conformers locally with OpenBabel or RDKit; this API is meant for interactive and small-batch use.</li>
+</ul>
+
+<h2 id="attribution">Attribution</h2>
+<p>The service is free to use. Chemistry is powered by <strong>OpenBabel 3.1.1</strong> and name
+   parsing by <strong>OPSIN</strong>; if you publish something built on this API, a link back to
+   <a href="https://seqandchem.com">seqandchem.com</a> is appreciated but not required.</p>
+<p>Machine-readable specification: <a href="/api/openapi.json">/api/openapi.json</a> — import it
+   into Postman, Insomnia, or any OpenAPI client generator.</p>
+<p>Questions, bug reports or a use case the API does not cover:
+   <a href="mailto:devin2xing@gmail.com">devin2xing@gmail.com</a>.</p>
+
+</div>
+
+<div class="card">
+  <h3 style="margin:0 0 10px;font-size:15px">Related</h3>
+  <div class="row" style="gap:8px">
+    <a class="ghost-link" href="/convert">Web converter</a>
+    <a class="ghost-link" href="/properties">Property calculator</a>
+    <a class="ghost-link" href="/depict">2D depiction</a>
+    <a class="ghost-link" href="/guides/smiles-inchi-inchikey">SMILES vs InChI</a>
+    <a class="ghost-link" href="/">All tools</a>
+  </div>
+</div>
+{% endblock %}

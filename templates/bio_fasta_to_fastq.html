@@ -1,0 +1,22 @@
+{% extends "bio_tool.html" %}
+{% block prose %}
+<div class="prose">
+  <h2>Why convert FASTA to FASTQ?</h2>
+  <p>Some pipelines and tools insist on FASTQ input even when quality data is irrelevant — for
+     example when running a read mapper on reference sequences, or when testing a pipeline
+     before real data is available. This converter adds a uniform quality score to every base
+     so the file is valid FASTQ.</p>
+
+  <h2>What quality score is used?</h2>
+  <p>By default every base gets <code>I</code>, which is Phred score 40 in the standard Sanger
+     encoding — the highest quality a typical sequencer reports. Treat these as placeholder
+     values, not real measurements.</p>
+
+  <h2>Frequently asked questions</h2>
+  <h3>Are my sequences modified?</h3>
+  <p>No. Sequence letters are kept exactly as they appear; line wrapping is normalised and
+     quality strings are generated to match each sequence length.</p>
+  <h3>Can I convert many records at once?</h3>
+  <p>Yes — paste a multi-record FASTA file and every record is converted, in order.</p>
+</div>
+{% endblock %}
