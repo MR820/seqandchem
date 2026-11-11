@@ -1,0 +1,35 @@
+templates/preset.html
+  s_165826812145e1::t_2fe83af2863537 22-23
+static/app.js
+  s_165826812145e1::t_87edaac60120c0 126-131,136-140,143-144
+  s_165826812145e1::t_f66b2195e72fbc 141-142
+templates/convert.html
+  s_165826812145e1::t_2480bf74400c67 23-24
+app.py
+  s_165826812145e1::t_093ec1c2e17b9e 36-37,201,206-207,1135,1150-1155,1176
+  s_165826812145e1::t_51b5f03737a5b8 1430
+templates/batch.html
+  s_165826812145e1::t_954f993f14aff2 63-65
+templates/api_docs.html
+  s_165826812145e1::t_a06483fa3da890 15,240-241,297-299
+deploy/chemtools.service
+  s_165826812145e1::t_d32a5575c2c781 10,13
+deploy/nginx.conf
+  s_165826812145e1::t_a674ca75bad802 30,46-47
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2ce2d0a944f8e3c0222181a4936a1740c7570fb3",
+  "prompts": {},
+  "sessions": {
+    "s_165826812145e1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "38c4da09-d30d-49e4-b5f9-dae3537ee1ec",
+        "model": "deepseek-v4.1-flash-1017"
+      },
+      "human_author": "xingzhiwei <xingzhiwei@xunlei.com>"
+    }
+  }
+}
