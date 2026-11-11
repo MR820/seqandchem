@@ -1,0 +1,29 @@
+app.py
+  s_165826812145e1::t_e9641039b469fe 807-808,899,940,959,984,1015,1042,1138-1139,1237
+static/style.css
+  s_165826812145e1::t_a6de26b56c3773 88
+  s_165826812145e1::t_2394c30142ce9c 30-31,35
+  s_165826812145e1::t_38b0c82139fd42 86-87
+  s_165826812145e1::t_120ac173d20fa4 89
+README.md
+  s_165826812145e1::t_e627fa5d253b03 13-14
+  s_165826812145e1::t_a4488bb27d61b7 77-94
+templates/api_docs.html
+  s_165826812145e1::t_8facdc6a4a076a 10
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e34b4832348deb085ba66e8fecae2589317b2c97",
+  "prompts": {},
+  "sessions": {
+    "s_165826812145e1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "38c4da09-d30d-49e4-b5f9-dae3537ee1ec",
+        "model": "deepseek-v4.1-flash-1017"
+      },
+      "human_author": "xingzhiwei <xingzhiwei@xunlei.com>"
+    }
+  }
+}
