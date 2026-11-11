@@ -35,6 +35,8 @@ OBABEL = "obabel"
 TIMEOUT = 60
 MAX_INPUT = 8 * 1024 * 1024  # 8MB for single-molecule endpoints
 MAX_BATCH_INPUT = 64 * 1024 * 1024  # 64MB for /api/batch
+MAX_BATCH_RECORDS = 5000           # records per batch run (any output format)
+MAX_BATCH_IMAGES = 500             # records per run when the output is an image
 
 app = Flask(__name__, static_folder=None)
 Compress(app)
@@ -203,13 +205,26 @@ def payload(max_bytes=MAX_INPUT):
     text = data.get("data", "")
     if not isinstance(text, str):
         text = ""
-    if len(text.encode("utf-8", "ignore")) > max_bytes:
-        raise ValueError(f"Input too large ({max_bytes // 1048576}MB limit)")
+    size = len(text.encode("utf-8", "ignore"))
+    if size > max_bytes:
+        raise ValueError(f"Input too large: {size / 1048576:.1f} MB "
+                         f"(limit {max_bytes // 1048576} MB)")
     return data, text
 
 
 def err(message, code=400, detail=""):
     return jsonify({"ok": False, "error": message, "detail": detail}), code
+
+
+def _obabel_error(frm, errtext):
+    """Turn an OpenBabel stderr dump into something a user can act on."""
+    raw = errtext.strip()[:2000] or "No output"
+    low = raw.lower()
+    if "cannot read" in low or "error in reading file" in low or "parse error" in low:
+        return err(f"Could not read the input as {frm.upper()}", 422,
+                   "The data does not look like that format — check the input format "
+                   f"selector matches the file. OpenBabel said: {raw[:600]}")
+    return err("Conversion failed", 422, raw)
 
 
 # ────────────────────────────────────────────── 路由
@@ -830,7 +845,7 @@ def api_convert():
         timeout=180 if to in THREE_D_FORMATS else TIMEOUT,
     )
     if rc != 0 or not out:
-        return err("Conversion failed", 422, errtext.strip()[:2000] or "No output")
+        return _obabel_error(frm, errtext)
 
     # Build an SDF preview for 3D formats (3Dmol cannot render stl/obj meshes)
     preview_sdf = None
@@ -1147,12 +1162,33 @@ def api_batch():
     allowed = {"--canonical", "--unique", "--deletehydrogens", "--addhydrogens"}
     safe = [o for o in opts if o.split("=")[0] in allowed]
 
+    # 明确的批量上限：先数记录数再跑 OpenBabel，避免大文件跑到一半才失败
+    count = len(split_records(text, frm))
+    is_image = to in MIME_BY_FORMAT
+    limit = MAX_BATCH_IMAGES if is_image else MAX_BATCH_RECORDS
+    if count > limit:
+        what = "image output" if is_image else "records"
+        hint = ("Each image is rendered in a separate pass — convert in smaller batches, "
+                "or output SDF/SMILES instead.") if is_image else \
+               "Split the file into several smaller batches and run them separately."
+        return err(f"Batch limit exceeded: {count} records, maximum {limit} per run "
+                   f"({what})", 400, hint)
+
+    if not HEAVY_SLOTS.acquire(timeout=HEAVY_WAIT_SECONDS):
+        return err("Server is busy converting another large file", 429,
+                   f"Large jobs run one at a time. Please retry in about "
+                   f"{HEAVY_WAIT_SECONDS} seconds.",
+                   )
+
     rc, out, errtext = run_obabel(
         [f"-i{frm}", f"-o{to}"] + safe, text.encode("utf-8"), timeout=1500
     )
-    if rc != 0 or not out:
-        return err("Conversion failed", 422, errtext.strip()[:2000] or "No output")
-    return _batch_response(frm, to, text, out, errtext, safe)
+    try:
+        if rc != 0 or not out:
+            return _obabel_error(frm, errtext)
+        return _batch_response(frm, to, text, out, errtext, safe)
+    finally:
+        HEAVY_SLOTS.release()
 
 
 def _batch_response(frm, to, text, out, errtext, safe):
@@ -1427,7 +1463,7 @@ def _openapi_spec():
             request_body=body({"name": {"type": "string"}}, ["name"]))},
         "/api/v1/batch": {"post": op(
             "batch", "Bulk conversion",
-            "Converts a whole file. No record-count limit; 64 MB maximum input.",
+            "Converts a whole file. Limits: 64 MB input, 5000 records (500 for image output).",
             request_body=body({"data": data_prop, "from": from_prop,
                                "to": to_prop, "opts": opts_prop}, ["data"]))},
         "/api/v1/formula": {"post": op(
@@ -1456,7 +1492,8 @@ def _openapi_spec():
             "description": "Free JSON API for chemical format conversion, molecular descriptors, "
                            "2D depiction, 3D conformer generation, substructure and similarity "
                            "search, IUPAC name resolution and FASTA/FASTQ operations. "
-                           "No API key required. Please keep requests to a reasonable rate.",
+                           "No API key required. Limits: 8 MB per request (64 MB batch), "
+                           "120 requests/minute per client.",
             "license": {"name": "Free to use with attribution",
                         "url": base + "/api"},
             "contact": {"url": base + "/api", "email": "devin2xing@gmail.com"},

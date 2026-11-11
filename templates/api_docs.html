@@ -237,8 +237,8 @@ console.log(data.rows[0].props.MW);   // 180.159</code></pre>
 <h3 id="ep-batch"><code>POST /api/v1/batch</code></h3>
 <p>Bulk conversion of a whole file. Returns <code>result</code> for text formats; for image
    formats it returns a per-molecule preview list and, when there is more than one record, a
-   ZIP as a <code>zip_url</code> data URL. There is no record-count limit: the entire file is
-   converted in a single run (64 MB maximum input).</p>
+   ZIP as a <code>zip_url</code> data URL. Limits: 64 MB input, 5,000 records per run
+   (500 for image output).</p>
 <table>
   <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
   <tbody>
@@ -295,7 +295,9 @@ console.log(data.rows[0].props.MW);   // 180.159</code></pre>
 <ul>
   <li><strong>120 requests per minute per client</strong>, 300 per minute across the whole service.</li>
   <li><strong>8 MB</strong> maximum input per request; <strong>64 MB</strong> for <code>/api/v1/batch</code>.</li>
-  <li>Batch conversion is <strong>not limited</strong> by record count — the whole file is processed in one run.</li>
+  <li><strong>5,000 records</strong> per batch run, or <strong>500</strong> when the output is an image
+      (PNG, SVG, PDF…). Requests over the limit return <code>400</code> with the actual count and the
+      maximum.</li>
   <li>3D conformer generation is <strong>serialised</strong> — one at a time across all users. Plan for a few seconds per molecule.</li>
   <li>If you need sustained bulk throughput, generate 3D conformers locally with OpenBabel or RDKit; this API is meant for interactive and small-batch use.</li>
 </ul>

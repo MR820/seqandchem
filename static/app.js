@@ -123,22 +123,33 @@
   }
 
   function bindFiles() {
-    // Any <input type="file"> works: it fills the textarea named by data-target.
+    // Any <input type="file"> works: it fills the field(s) named by data-target.
+    // A comma-separated target list fills one line per field (used by Similarity).
     // Older ids are kept as fallbacks so existing markup keeps working.
     const legacy = { "batch-file": "#batch-input", "bio-file": "#bio-input" };
     $$('input[type="file"]').forEach((file) => {
-      const target = file.dataset.target || legacy[file.id];
-      if (!target || !$(target)) return;
+      const raw = file.dataset.target || legacy[file.id];
+      if (!raw) return;
+      const targets = raw.split(",").map((t) => t.trim()).filter((t) => t && $(t));
+      if (!targets.length) return;
       file.addEventListener("change", () => {
         const picked = file.files[0];
         if (!picked) return;
         const reader = new FileReader();
         reader.onload = () => {
-          $(target).value = reader.result;
-          const status = $(target.replace("-input", "-status"));
+          const text = String(reader.result || "");
+          if (targets.length === 1) {
+            $(targets[0]).value = text;
+          } else {
+            const lines = text.split(/\r?\n/).filter((l) => l.trim());
+            targets.forEach((t, i) => {
+              if (lines[i] !== undefined) $(t).value = lines[i].trim();
+            });
+          }
+          const status = $(file.dataset.status || targets[0].replace("-input", "-status"));
           if (status) {
-            status.className = "status ok";
             const kb = picked.size < 1024 ? `${picked.size} B` : `${Math.round(picked.size / 1024)} KB`;
+            status.className = "status ok";
             status.textContent = `Loaded ${picked.name} (${kb})`;
           }
         };

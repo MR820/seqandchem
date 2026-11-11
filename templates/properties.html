@@ -17,6 +17,8 @@
     <label>Molecule data</label>
     <textarea id="prop-input" placeholder="e.g. CC(=O)Oc1ccccc1C(=O)O"></textarea>
     <div class="row">
+<input type="file" id="prop-file" data-target="#prop-input" style="font-size:13px"
+             accept=".smi,.can,.sdf,.sd,.mol,.mdl,.mol2,.pdb,.xyz,.cml,.inchi,.txt,.csv" />
       <button class="ghost" data-example="prop">Load example</button>
     </div>
     <p class="hint">Multiple molecules are allowed — one per line or a multi-record SDF.</p>
