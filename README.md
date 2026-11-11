@@ -10,6 +10,8 @@ usage metering.
 - API documentation: **<https://seqandchem.com/api>**
 - OpenAPI spec: **<https://seqandchem.com/api/openapi.json>**
 
+![SeqChem home page](docs/screenshots/home.png)
+
 ---
 
 ## What it does
@@ -71,6 +73,24 @@ Endpoints: `/api/v1/formats`, `/api/v1/example`, `/api/v1/convert`, `/api/v1/pro
 Full reference with request/response examples: <https://seqandchem.com/api>
 
 ---
+
+## Screenshots
+
+**Format conversion** — SMILES in, 3D-optimised SDF and an interactive preview out.
+
+![Format converter with 3D preview](docs/screenshots/convert.png)
+
+**2D depiction** — vector SVG structures, ready for papers and slides.
+
+![2D structure depiction](docs/screenshots/depict.png)
+
+**3D conformer** — generated with OpenBabel, rendered in the browser with 3Dmol.js.
+
+![Interactive 3D structure](docs/screenshots/structure-3d.png)
+
+**Public API** — documented, versioned, CORS-enabled, no key.
+
+![API documentation](docs/screenshots/api.png)
 
 ## Stack
 

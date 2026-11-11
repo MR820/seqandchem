@@ -804,8 +804,8 @@ def api_convert():
     except ValueError as exc:
         return err(str(exc))
 
-    frm = data.get("from", "smi")
-    to = data.get("to", "mol")
+    frm = (data.get("from") or "").strip() or "smi"
+    to = (data.get("to") or "").strip() or "mol"
     opts = [o for o in (data.get("opts") or []) if isinstance(o, str)][:10]
 
     if not valid_format(frm) or not valid_format(to):
@@ -896,7 +896,7 @@ def api_properties():
     except ValueError as exc:
         return err(str(exc))
 
-    frm = data.get("from", "smi")
+    frm = (data.get("from") or "").strip() or "smi"
     if not valid_format(frm):
         return err("Unsupported input format")
     if not text.strip():
@@ -937,7 +937,7 @@ def api_depict():
     except ValueError as exc:
         return err(str(exc))
 
-    frm = data.get("from", "smi")
+    frm = (data.get("from") or "").strip() or "smi"
     if not valid_format(frm) or not text.strip():
         return err("Please enter valid molecule data")
 
@@ -956,7 +956,7 @@ def api_gen3d():
     except ValueError as exc:
         return err(str(exc))
 
-    frm = data.get("from", "smi")
+    frm = (data.get("from") or "").strip() or "smi"
     if not valid_format(frm) or not text.strip():
         return err("Please enter valid molecule data")
 
@@ -981,7 +981,7 @@ def api_substructure():
     except ValueError as exc:
         return err(str(exc))
 
-    frm = data.get("from", "smi")
+    frm = (data.get("from") or "").strip() or "smi"
     smarts = (data.get("smarts") or "").strip()
     if not valid_format(frm):
         return err("Unsupported input format")
@@ -1012,7 +1012,7 @@ def api_fingerprint():
     except ValueError as exc:
         return err(str(exc))
 
-    frm = data.get("from", "smi")
+    frm = (data.get("from") or "").strip() or "smi"
     fp = data.get("fp", "FP2")
     if fp not in {"FP2", "FP3", "FP4", "MACCS", "ECFP2", "ECFP4", "ECFP6"}:
         return err("Unsupported fingerprint type")
@@ -1039,7 +1039,7 @@ def api_similarity():
 
     a = (data.get("a") or "").strip()
     b = (data.get("b") or "").strip()
-    frm = data.get("from", "smi")
+    frm = (data.get("from") or "").strip() or "smi"
     fp = data.get("fp", "FP2")
     if not a or not b:
         return err("Both molecules are required")
@@ -1135,8 +1135,8 @@ def api_batch():
     except ValueError as exc:
         return err(str(exc))
 
-    frm = data.get("from", "sdf")
-    to = data.get("to", "smi")
+    frm = (data.get("from") or "").strip() or "sdf"
+    to = (data.get("to") or "").strip() or "smi"
     if not valid_format(frm) or not valid_format(to):
         return err("Unsupported format")
     if not text.strip():
@@ -1234,7 +1234,7 @@ def api_formula():
 
     if mode == "structure":
         text = (data.get("data") or "").strip()
-        frm = data.get("from", "smi")
+        frm = (data.get("from") or "").strip() or "smi"
         if not text:
             return err("Please enter molecule data")
         if not valid_format(frm):

@@ -27,12 +27,12 @@ nav{
   position:sticky;top:0;z-index:20;
 }
 .nav-inner{
-  max-width:1080px;margin:0 auto;display:flex;gap:2px;padding:0 24px;
-  overflow-x:auto;scrollbar-width:none;
+  max-width:1080px;margin:0 auto;display:flex;gap:0;padding:0 16px;
+  flex-wrap:wrap;justify-content:center;overflow-x:auto;scrollbar-width:none;
 }
 .nav-inner::-webkit-scrollbar{display:none}
 .nav-inner a{
-  padding:12px 14px;font-size:14px;color:var(--muted);white-space:nowrap;
+  padding:11px 11px;font-size:13.5px;color:var(--muted);white-space:nowrap;
   border-bottom:2px solid transparent;
 }
 .nav-inner a:hover{color:var(--primary);text-decoration:none}
@@ -83,6 +83,10 @@ pre{
 table{width:100%;border-collapse:collapse;font-size:14px}
 th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--border)}
 th{color:var(--muted);font-weight:500;font-size:13px}
+/* wide result tables: compact cells so more columns fit before scrolling */
+.card table{font-size:13px}
+.card th,.card td{padding:7px 8px}
+.card td{overflow-wrap:break-word}
 .svg-box{background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px;display:grid;place-items:center;min-height:200px}
 .svg-box svg{max-width:100%;height:auto}
 .badge{display:inline-block;background:var(--primary-soft);color:var(--primary);border-radius:6px;padding:2px 8px;font-size:12px;font-weight:600}
