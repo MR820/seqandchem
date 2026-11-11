@@ -1,0 +1,22 @@
+LICENSE
+  s_165826812145e1::t_d3de336cb4cb1d 190
+  s_165826812145e1::t_b36ec18ab82c3f 1-189,191-202
+README.md
+  s_165826812145e1::t_f0c439c8b6c917 127-131,133-137
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "168bbc26bcef672fe35ac345e2af62d9c1bc21d4",
+  "prompts": {},
+  "sessions": {
+    "s_165826812145e1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "38c4da09-d30d-49e4-b5f9-dae3537ee1ec",
+        "model": "deepseek-v4.1-flash-1017"
+      },
+      "human_author": "xingzhiwei <xingzhiwei@xunlei.com>"
+    }
+  }
+}
