@@ -124,7 +124,14 @@ The only analytics is GoatCounter — cookie-free, no personal data, no cross-si
 
 ## Credits
 
-- **OpenBabel** — GPL-2.0, the chemistry engine behind every conversion and descriptor
-- **OPSIN** — University of Cambridge, IUPAC name parsing
-- **3Dmol.js** — BSD-3-Clause, in-browser 3D rendering
+- **OpenBabel** — GPL-2.0, the chemistry engine behind every conversion and descriptor. Used as an
+  external command-line dependency; it is not vendored into this repository.
+- **OPSIN** — University of Cambridge, IUPAC name parsing, called over HTTP
+- **3Dmol.js** — BSD-3-Clause, in-browser 3D rendering. Bundled at `static/3dmol-min.js` and
+  remains under its own BSD-3-Clause licence.
 - **PubChem PUG REST** — fallback for trivial names and structure lookup
+
+## Licence
+
+Apache License 2.0 — see [LICENSE](LICENSE). This covers this repository's own source code;
+third-party components keep their original licences as noted above.
