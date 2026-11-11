@@ -123,14 +123,25 @@
   }
 
   function bindFiles() {
-    [["#batch-file", "#batch-input"], ["#bio-file", "#bio-input"]].forEach(([f, t]) => {
-      const file = $(f);
-      if (!file) return;
+    // Any <input type="file"> works: it fills the textarea named by data-target.
+    // Older ids are kept as fallbacks so existing markup keeps working.
+    const legacy = { "batch-file": "#batch-input", "bio-file": "#bio-input" };
+    $$('input[type="file"]').forEach((file) => {
+      const target = file.dataset.target || legacy[file.id];
+      if (!target || !$(target)) return;
       file.addEventListener("change", () => {
         const picked = file.files[0];
         if (!picked) return;
         const reader = new FileReader();
-        reader.onload = () => { $(t).value = reader.result; };
+        reader.onload = () => {
+          $(target).value = reader.result;
+          const status = $(target.replace("-input", "-status"));
+          if (status) {
+            status.className = "status ok";
+            const kb = picked.size < 1024 ? `${picked.size} B` : `${Math.round(picked.size / 1024)} KB`;
+            status.textContent = `Loaded ${picked.name} (${kb})`;
+          }
+        };
         reader.readAsText(picked);
       });
     });

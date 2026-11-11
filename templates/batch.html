@@ -60,8 +60,9 @@
 
   <h2>Frequently asked questions</h2>
   <h3>How large can the file be?</h3>
-  <p>Up to 8 MB of text, which is roughly 20,000–50,000 SDF records depending on molecule size.
-     Conversion runs with a 5-minute server-side timeout.</p>
+  <p>Up to 64 MB of text — roughly 150,000–400,000 SDF records depending on molecule size.
+     There is no cap on the number of records, and conversion runs with a 25-minute
+     server-side timeout.</p>
   <h3>What if some records fail?</h3>
   <p>OpenBabel skips records it cannot parse and reports how many were converted. The output
      keeps the successful ones in their original order.</p>

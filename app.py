@@ -33,7 +33,8 @@ from presets import PRESETS
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 OBABEL = "obabel"
 TIMEOUT = 60
-MAX_INPUT = 8 * 1024 * 1024  # 8MB
+MAX_INPUT = 8 * 1024 * 1024  # 8MB for single-molecule endpoints
+MAX_BATCH_INPUT = 64 * 1024 * 1024  # 64MB for /api/batch
 
 app = Flask(__name__, static_folder=None)
 Compress(app)
@@ -197,13 +198,13 @@ def run_obabel(args, data=b"", timeout=TIMEOUT):
         return 1, b"", "Execution failed: %s" % exc
 
 
-def payload():
+def payload(max_bytes=MAX_INPUT):
     data = request.get_json(silent=True) or {}
     text = data.get("data", "")
     if not isinstance(text, str):
         text = ""
-    if len(text.encode("utf-8", "ignore")) > MAX_INPUT:
-        raise ValueError("Input too large (8MB limit)")
+    if len(text.encode("utf-8", "ignore")) > max_bytes:
+        raise ValueError(f"Input too large ({max_bytes // 1048576}MB limit)")
     return data, text
 
 
@@ -1131,7 +1132,7 @@ def split_records(text: str, frm: str):
 @app.post("/api/batch")
 def api_batch():
     try:
-        data, text = payload()
+        data, text = payload(MAX_BATCH_INPUT)
     except ValueError as exc:
         return err(str(exc))
 
@@ -1146,17 +1147,12 @@ def api_batch():
     allowed = {"--canonical", "--unique", "--deletehydrogens", "--addhydrogens"}
     safe = [o for o in opts if o.split("=")[0] in allowed]
 
-    if not HEAVY_SLOTS.acquire(timeout=HEAVY_WAIT_SECONDS):
-        return heavy_busy()
-    try:
-        rc, out, errtext = run_obabel(
-            [f"-i{frm}", f"-o{to}"] + safe, text.encode("utf-8"), timeout=300
-        )
-        if rc != 0 or not out:
-            return err("Conversion failed", 422, errtext.strip()[:2000] or "No output")
-        return _batch_response(frm, to, text, out, errtext, safe)
-    finally:
-        HEAVY_SLOTS.release()
+    rc, out, errtext = run_obabel(
+        [f"-i{frm}", f"-o{to}"] + safe, text.encode("utf-8"), timeout=1500
+    )
+    if rc != 0 or not out:
+        return err("Conversion failed", 422, errtext.strip()[:2000] or "No output")
+    return _batch_response(frm, to, text, out, errtext, safe)
 
 
 def _batch_response(frm, to, text, out, errtext, safe):
@@ -1177,7 +1173,7 @@ def _batch_response(frm, to, text, out, errtext, safe):
             })
 
         # 多条记录：逐条转换后打包成 ZIP
-        records = all_records[:50]
+        records = all_records
         images, failed = [], 0
         for rec in records:
             rc1, out1, _ = run_obabel(
@@ -1431,7 +1427,7 @@ def _openapi_spec():
             request_body=body({"name": {"type": "string"}}, ["name"]))},
         "/api/v1/batch": {"post": op(
             "batch", "Bulk conversion",
-            "Converts a whole file. Heavy endpoint — serialised across the server.",
+            "Converts a whole file. No record-count limit; 64 MB maximum input.",
             request_body=body({"data": data_prop, "from": from_prop,
                                "to": to_prop, "opts": opts_prop}, ["data"]))},
         "/api/v1/formula": {"post": op(

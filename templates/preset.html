@@ -19,6 +19,8 @@
     <label>Molecule data (paste or upload a file)</label>
     <textarea id="conv-input" placeholder="{{ placeholder }}"></textarea>
     <div class="row">
+      <input type="file" id="conv-file" data-target="#conv-input" style="font-size:13px"
+             accept=".smi,.can,.sdf,.sd,.mol,.mdl,.mol2,.pdb,.xyz,.cml,.inchi,.txt,.csv" />
       <button class="ghost" data-example="conv">Load example</button>
     </div>
   </div>

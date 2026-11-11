@@ -12,7 +12,7 @@
     <div><label>Auth</label><div>None</div></div>
     <div><label>Format</label><div>JSON (UTF-8)</div></div>
     <div><label>Rate limit</label><div>120 / min per client</div></div>
-    <div><label>Max input</label><div>8 MB per request</div></div>
+    <div><label>Max input</label><div>8 MB · 64 MB batch</div></div>
     <div><label>Spec</label><div><a href="/api/openapi.json">OpenAPI 3.0</a></div></div>
   </div>
   <p class="hint" style="margin-bottom:0">Calls are free. Please do not hammer the service —
@@ -237,7 +237,8 @@ console.log(data.rows[0].props.MW);   // 180.159</code></pre>
 <h3 id="ep-batch"><code>POST /api/v1/batch</code></h3>
 <p>Bulk conversion of a whole file. Returns <code>result</code> for text formats; for image
    formats it returns a per-molecule preview list and, when there is more than one record, a
-   ZIP as a <code>zip_url</code> data URL. Heavy endpoint — serialised.</p>
+   ZIP as a <code>zip_url</code> data URL. There is no record-count limit: the entire file is
+   converted in a single run (64 MB maximum input).</p>
 <table>
   <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
   <tbody>
@@ -293,8 +294,9 @@ console.log(data.rows[0].props.MW);   // 180.159</code></pre>
 <h2 id="limits">Limits and fair use</h2>
 <ul>
   <li><strong>120 requests per minute per client</strong>, 300 per minute across the whole service.</li>
-  <li><strong>8 MB</strong> maximum input per request.</li>
-  <li>3D generation and batch conversion are <strong>serialised</strong> — one at a time, across all users. Plan for a few seconds per molecule.</li>
+  <li><strong>8 MB</strong> maximum input per request; <strong>64 MB</strong> for <code>/api/v1/batch</code>.</li>
+  <li>Batch conversion is <strong>not limited</strong> by record count — the whole file is processed in one run.</li>
+  <li>3D conformer generation is <strong>serialised</strong> — one at a time across all users. Plan for a few seconds per molecule.</li>
   <li>If you need sustained bulk throughput, generate 3D conformers locally with OpenBabel or RDKit; this API is meant for interactive and small-batch use.</li>
 </ul>
 
