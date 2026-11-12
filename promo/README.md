@@ -12,6 +12,13 @@ Patches are in `promo/awesome-lists/`; each is a single-line insertion in the ri
 | [hsiaoyi0504/awesome-cheminformatics](https://github.com/hsiaoyi0504/awesome-cheminformatics) | 896 | Web APIs | SeqChem API — REST + OpenAPI |
 | [danielecook/Awesome-Bioinformatics](https://github.com/danielecook/Awesome-Bioinformatics) | 4361 | Sequence Processing | SeqChem — FASTA/FASTQ web tools |
 
+Opened 2026-11-12, one added line each:
+
+- https://github.com/brandonhimpfen/awesome-chemistry/pull/41
+- https://github.com/yboulaamane/awesome-drug-discovery/pull/31
+- https://github.com/hsiaoyi0504/awesome-cheminformatics/pull/96
+- https://github.com/danielecook/Awesome-Bioinformatics/pull/191
+
 Each list was checked first: the entry matches that section's existing formatting (`-` vs `*`,
 en dash vs hyphen, bold names) and sits next to entries of the same kind (other web tools or
 REST APIs). Nothing was added to a list that does not already cover this category.
