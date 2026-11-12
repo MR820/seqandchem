@@ -1,0 +1,45 @@
+app.py
+  s_98b9f922a3cf6e::t_ebbb1dfc3a6c9f 75
+  s_98b9f922a3cf6e::t_20f0c8a58065af 1345-1351,1353-1355,1360
+  s_98b9f922a3cf6e::t_b59b2e407f1d83 17-20
+  s_98b9f922a3cf6e::t_b23bfcf94c132e 90,103,109-114
+  s_98b9f922a3cf6e::t_3486fe436c23ca 1142-1145,1147-1148,1154
+  s_98b9f922a3cf6e::t_5bfca6e2b37158 73-74,76-80,83-89,91-102,104-108,115-126
+static/app.js
+  s_98b9f922a3cf6e::t_b92d2697099256 364
+  s_98b9f922a3cf6e::t_5b8c6e8bfbbb47 32-40
+  s_98b9f922a3cf6e::t_31373796bc389f 808
+  s_98b9f922a3cf6e::t_61786a5c5e142a 550
+  s_98b9f922a3cf6e::t_75e8edba3934cf 300
+  s_98b9f922a3cf6e::t_3729837594c117 570
+  s_98b9f922a3cf6e::t_2c23e969ee4a4e 617-624
+  s_98b9f922a3cf6e::t_0c4a963662b1eb 275
+  s_98b9f922a3cf6e::t_d24b6f473cab71 518
+  s_98b9f922a3cf6e::t_6dab48eda6acf4 736
+  s_98b9f922a3cf6e::t_acde825768d425 383
+  s_98b9f922a3cf6e::t_d7c7690b7bb274 466
+  s_98b9f922a3cf6e::t_97bf0f4bcaf214 831
+  s_98b9f922a3cf6e::t_12a9dea332b57c 856
+  s_98b9f922a3cf6e::t_3253799b1c80df 773,780
+  s_98b9f922a3cf6e::t_f34c9fb8e5b084 316
+  s_98b9f922a3cf6e::t_20478bced0b310 341
+  s_98b9f922a3cf6e::t_bfcfd449bef8c0 794
+deploy/chemtools.service
+  s_98b9f922a3cf6e::t_78ad61c213b1c8 10
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e2af67085789a28ce85e044eef9e96645cf7cecf",
+  "prompts": {},
+  "sessions": {
+    "s_98b9f922a3cf6e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2e0f25b9-5505-4b58-88c1-1bb68d47b286",
+        "model": "deepseek-flash"
+      },
+      "human_author": "xingzhiwei <xingzhiwei@xunlei.com>"
+    }
+  }
+}
