@@ -1,0 +1,33 @@
+deploy/nginx.conf
+  s_98b9f922a3cf6e::t_94685b7026b0b1 54-65
+  s_98b9f922a3cf6e::t_8de191e02fa312 13,21-22
+  s_98b9f922a3cf6e::t_cae68a5e5dc3e8 32-35
+deploy/chemtools.service
+  s_98b9f922a3cf6e::t_44d04843cdf370 10,16-21
+app.py
+  s_98b9f922a3cf6e::t_ffbd3661e46fb0 292
+  s_98b9f922a3cf6e::t_0df8fe242eed8b 874-876,879
+  s_98b9f922a3cf6e::t_9d16e4b6693000 493-494
+  s_98b9f922a3cf6e::t_4500fedaef568c 285,287
+  s_98b9f922a3cf6e::t_0f638d0de355f5 648
+templates/base.html
+  s_98b9f922a3cf6e::t_54bf7641bfcc2c 15-19,22
+deploy/nginx-main.conf
+  s_98b9f922a3cf6e::t_c15de27a608315 13-15
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3f2f0f33bb2e02401c4a1d74a331a7670662a041",
+  "prompts": {},
+  "sessions": {
+    "s_98b9f922a3cf6e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2e0f25b9-5505-4b58-88c1-1bb68d47b286",
+        "model": "deepseek-flash"
+      },
+      "human_author": "xingzhiwei <xingzhiwei@xunlei.com>"
+    }
+  }
+}
