@@ -282,15 +282,14 @@ PAGE_META = {
     "index": {
         "page": "home",
         "template": "index.html",
-        "title": "SeqChem — Free Chemistry & Bioinformatics Tools (SMILES, FASTA)",
+        "title": "SeqChem — Free Chemistry & Bioinformatics Tools",
         "description": "Free online chemistry and bioinformatics tools: convert SMILES, InChI, "
-                       "MOL, SDF and PDB, calculate molecular properties, draw structures, generate "
-                       "3D conformers and process FASTA/FASTQ sequences.",
+                       "MOL and SDF, compute properties, draw structures and process FASTA/FASTQ.",
     },
     "convert": {
         "page": "convert",
         "template": "convert.html",
-        "title": "Chemical File Format Converter — SMILES, InChI, MOL, SDF, PDB",
+        "title": "Chemical Format Converter — SMILES, InChI, MOL, SDF, PDB",
         "description": "Convert chemical file formats online: SMILES to InChI, SDF to SMILES, "
                        "MOL to PDB, SMILES to 3D SDF and 190+ more formats, free and without registration.",
     },
@@ -491,9 +490,8 @@ PAGE_META["embed"] = {
 PAGE_META["api"] = {
     "page": "api", "nav": "", "template": "api_docs.html",
     "title": "Free Chemistry API — JSON Converter, Descriptors, Depiction",
-    "description": "Free public JSON API for cheminformatics: convert 190+ chemical formats, "
-                   "compute descriptors, draw structures, parse IUPAC names and process "
-                   "FASTA/FASTQ. No API key, CORS enabled, OpenAPI spec included.",
+    "description": "Free JSON API: convert 190+ chemical formats, compute descriptors, draw "
+                   "structures, parse IUPAC names and process FASTA/FASTQ. No API key, OpenAPI spec.",
 }
 
 
@@ -647,7 +645,7 @@ BIO_PAGES = {
 PAGE_META.update({
     "batch": {
         "page": "batch", "template": "batch.html",
-        "title": "Batch Chemical Format Converter — Convert Hundreds of Molecules",
+        "title": "Batch Chemical Converter — Convert Hundreds of Molecules",
         "description": "Convert SDF, SMILES or MOL files in bulk. Upload a compound library and "
                        "get the whole file converted to another chemical format in one run.",
     },
@@ -873,11 +871,12 @@ def sitemap():
         ("/embed", "0.7", "monthly"),
     ]
     entries += [(f"/{slug}", "0.7", "monthly") for slug in PRESETS]
-    import datetime
-    today = datetime.date.today().isoformat()
+    # Static date: bump this when page content actually changes. A dynamic
+    # "today" on every request makes lastmod meaningless to crawlers.
+    lastmod = "2026-11-12"
     body = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
     for path, prio, freq in entries:
-        body += (f"  <url><loc>{base}{path}</loc><lastmod>{today}</lastmod>"
+        body += (f"  <url><loc>{base}{path}</loc><lastmod>{lastmod}</lastmod>"
                  f"<priority>{prio}</priority><changefreq>{freq}</changefreq></url>\n")
     body += "</urlset>\n"
     return Response(body, mimetype="application/xml")

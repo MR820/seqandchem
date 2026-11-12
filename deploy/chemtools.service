@@ -7,12 +7,18 @@ Environment=BASE_URL=https://seqandchem.com
 Type=simple
 User=chemtools
 WorkingDirectory=/opt/chemtools
-ExecStart=/opt/chemtools/venv/bin/gunicorn -w 2 -b 127.0.0.1:8080 --timeout 900 --access-logfile - app:app
+ExecStart=/opt/chemtools/venv/bin/gunicorn -w 2 -b 127.0.0.1:8080 --timeout 900 --access-logfile - --no-control-socket app:app
 Restart=always
 RestartSec=3
 MemoryMax=900M
 NoNewPrivileges=true
 PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+PrivateDevices=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+LockPersonality=true
+RestrictSUIDSGID=true
 
 [Install]
 WantedBy=multi-user.target
