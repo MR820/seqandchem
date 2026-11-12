@@ -1,0 +1,20 @@
+promo/open_prs.py
+  s_165826812145e1::t_40eb7fb054423d 166-178
+  s_165826812145e1::t_85b891d948b28f 144-159
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0a7bc79fedc36c63166ec52d998bfa815a144d7c",
+  "prompts": {},
+  "sessions": {
+    "s_165826812145e1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "38c4da09-d30d-49e4-b5f9-dae3537ee1ec",
+        "model": "deepseek-v4.1-flash-1017"
+      },
+      "human_author": "xingzhiwei <xingzhiwei@xunlei.com>"
+    }
+  }
+}
