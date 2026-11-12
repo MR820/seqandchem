@@ -1,0 +1,35 @@
+app.py
+  s_98b9f922a3cf6e::t_bbc050ed5b5e22 1656-1660
+  s_98b9f922a3cf6e::t_15396da7982276 1675
+templates/api_docs.html
+  s_98b9f922a3cf6e::t_0e6b1ac18c2812 314-315
+  s_98b9f922a3cf6e::t_29097ddaf9a77b 251-253
+deploy/backup.sh
+  s_98b9f922a3cf6e::t_8d259124e56b6c 40
+packages/python/README.md
+  s_98b9f922a3cf6e::t_7173c489ed32e1 27-29
+deploy/nginx.conf
+  s_98b9f922a3cf6e::t_101981973b9c96 18-32
+  s_98b9f922a3cf6e::t_1d273443ad0182 17,82-98,103-135
+  s_98b9f922a3cf6e::t_1b4378b866f78e 99-102
+deploy/nginx-main.conf
+  s_98b9f922a3cf6e::t_5f2b7030c0a90f 50
+deploy/README.md
+  s_98b9f922a3cf6e::t_60990226cf693b 96-105
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "25333a15c730c772fd404d20bd4346a7953f7a83",
+  "prompts": {},
+  "sessions": {
+    "s_98b9f922a3cf6e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2e0f25b9-5505-4b58-88c1-1bb68d47b286",
+        "model": "deepseek-flash"
+      },
+      "human_author": "xingzhiwei <xingzhiwei@xunlei.com>"
+    }
+  }
+}
