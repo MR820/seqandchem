@@ -1,0 +1,38 @@
+promo/README.md
+  s_165826812145e1::t_cc2222d645ddd5 1-50
+promo/awesome-lists/danielecook__Awesome-Bioinformatics.patch
+  s_165826812145e1::t_3252bba4405fcc 1-10
+promo/open_prs.py
+  s_165826812145e1::t_4a3cb85c7f9a35 1-116,131-184
+  s_165826812145e1::t_eba706a23040c4 117-130
+promo/awesome-lists/hsiaoyi0504__awesome-cheminformatics.patch
+  s_165826812145e1::t_3252bba4405fcc 1-10
+promo/awesome-lists/brandonhimpfen__awesome-chemistry.patch
+  s_165826812145e1::t_3252bba4405fcc 1-10
+promo/awesome-lists/yboulaamane__awesome-drug-discovery.patch
+  s_165826812145e1::t_3252bba4405fcc 1-10
+promo/pr-bodies/yboulaamane__awesome-drug-discovery.md
+  s_165826812145e1::t_2b4e3635054017 1-4
+promo/pr-bodies/brandonhimpfen__awesome-chemistry.md
+  s_165826812145e1::t_2b4e3635054017 1-5
+promo/pr-bodies/hsiaoyi0504__awesome-cheminformatics.md
+  s_165826812145e1::t_2b4e3635054017 1-6
+promo/pr-bodies/danielecook__Awesome-Bioinformatics.md
+  s_165826812145e1::t_2b4e3635054017 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f74cbf52445fc431cc20c8cad23c2e55fb225b0d",
+  "prompts": {},
+  "sessions": {
+    "s_165826812145e1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "38c4da09-d30d-49e4-b5f9-dae3537ee1ec",
+        "model": "deepseek-v4.1-flash-1017"
+      },
+      "human_author": "xingzhiwei <xingzhiwei@xunlei.com>"
+    }
+  }
+}
