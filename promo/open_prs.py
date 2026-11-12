@@ -141,22 +141,41 @@ def process(tok, t, dry):
             print("  ! fork never appeared")
             return False
 
-    st, rd = call(tok, "GET", f"/repos/{GH_USER}/{name}/contents/README.md?ref={base}")
+    # The contents API does not create a branch for you: point one at the
+    # default branch's head first, then commit onto it.
+    st, ref = call(tok, "GET", f"/repos/{GH_USER}/{name}/git/ref/heads/{BRANCH}")
+    if st != 200:
+        st, base_ref = call(tok, "GET", f"/repos/{GH_USER}/{name}/git/ref/heads/{base}")
+        if st != 200:
+            print(f"  ! cannot read {base}: {st}")
+            return False
+        st, created = call(tok, "POST", f"/repos/{GH_USER}/{name}/git/refs", {
+            "ref": f"refs/heads/{BRANCH}", "sha": base_ref["object"]["sha"],
+        })
+        if st not in (201, 422):
+            print(f"  ! branch create failed: {st} {str(created)[:150]}")
+            return False
+
+    st, rd = call(tok, "GET", f"/repos/{GH_USER}/{name}/contents/README.md?ref={BRANCH}")
     if st != 200:
         print(f"  ! README missing: {st}")
         return False
     original = base64.b64decode(rd["content"]).decode("utf-8")
     updated = insert_entry(original, t["heading"], t["entry"])
 
-    st, put = call(tok, "PUT", f"/repos/{GH_USER}/{name}/contents/README.md", {
-        "message": f"Add SeqChem to {t['heading'].lstrip('# ')}",
-        "content": base64.b64encode(updated.encode("utf-8")).decode("ascii"),
-        "sha": rd["sha"],
-        "branch": BRANCH,
-    })
-    if st not in (200, 201) and "already exists" not in json.dumps(put):
-        print(f"  ! commit failed: {st} {str(put)[:150]}")
-        return False
+    if updated == original:
+        print("  entry already present, skipping commit")
+    else:
+        st, put = call(tok, "PUT", f"/repos/{GH_USER}/{name}/contents/README.md", {
+            "message": f"Add SeqChem to {t['heading'].lstrip('# ')}",
+            "content": base64.b64encode(updated.encode("utf-8")).decode("ascii"),
+            "sha": rd["sha"],
+            "branch": BRANCH,
+        })
+        if st not in (200, 201):
+            print(f"  ! commit failed: {st} {str(put)[:150]}")
+            return False
+        print("  committed")
 
     st, pr = call(tok, "POST", f"/repos/{repo}/pulls", {
         "title": t["title"], "head": f"{GH_USER}:{BRANCH}", "base": base, "body": body_for(repo),
