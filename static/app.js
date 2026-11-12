@@ -29,6 +29,15 @@
     return r.json();
   }
 
+  /* 工具使用事件：GoatCounter 自定义事件，analytics 失败绝不影响工具本身 */
+  function trackEvent(name) {
+    try {
+      if (window.goatcounter && typeof window.goatcounter.count === "function") {
+        window.goatcounter.count({ path: "event/" + name, title: name, event: true });
+      }
+    } catch (e) { /* ignore */ }
+  }
+
   async function loadFormats() {
     try {
       const r = await fetch("/api/formats");
@@ -263,6 +272,7 @@
     }
     showConvResult(j);
     setStatus("#conv-status", "Done" + (j.log ? " · " + j.log : ""), "ok");
+    trackEvent("convert");
   }
 
   /* ── 页面：属性 ── */
@@ -287,6 +297,7 @@
     $("#prop-result").style.display = "block";
     $("#prop-result").innerHTML = `<div style="overflow:auto"><table>${head}${body}</table></div>`;
     setStatus("#prop-status", "Done", "ok");
+    trackEvent("properties");
   }
 
   /* ── 页面：结构图 ── */
@@ -302,6 +313,7 @@
     lastSvg = j.svg;
     $("#depict-out").innerHTML = j.svg;
     setStatus("#depict-status", "Done", "ok");
+    trackEvent("depict");
   }
 
   /* ── 页面：3D ── */
@@ -326,6 +338,7 @@
     }
     lastSdf = j.result;
     setStatus("#mol3d-status", "Done", "ok");
+    trackEvent("3d");
   }
 
   /* ── 页面：子结构 ── */
@@ -348,6 +361,7 @@
       `<div><span class="badge">Matches: ${j.count}</span></div>` +
       (list || '<p style="color:var(--muted)">No match</p>');
     setStatus("#sub-status", "Done", "ok");
+    trackEvent("substructure");
   }
 
   /* ── 页面：相似度 ── */
@@ -366,6 +380,7 @@
       `<label>Tanimoto similarity</label><div class="metric">${j.tanimoto.toFixed(4)}</div>` +
       `<div class="hint">bits A: ${j.bits_a} · bits B: ${j.bits_b} · common: ${j.common} · union: ${j.union}</div>`;
     setStatus("#sim-status", "Done", "ok");
+    trackEvent("similarity");
   }
 
   /* ── 页面：Lipinski ── */
@@ -448,6 +463,7 @@
     $("#lip-result").style.display = "block";
     $("#lip-result").innerHTML = html;
     setStatus("#lip-status", "Done", "ok");
+    trackEvent("lipinski");
   }
 
   /* ── 页面：批量转换 ── */
@@ -499,6 +515,7 @@
       out.textContent = j.result || "";
     }
     setStatus("#batch-status", "Done · " + j.converted + " molecule(s) converted", "ok");
+    trackEvent("batch");
   }
 
   /* ── 页面：分子式 ── */
@@ -530,6 +547,7 @@
         `<label>Molecular weight</label><div class="metric" style="margin-bottom:16px">${j.mw.toFixed(3)} g/mol</div>` +
         `<table><tr><th>Element</th><th>Atoms</th><th>Mass (g/mol)</th><th>Mass %</th></tr>${rows}</table>`;
       setStatus("#f-status", "Done", "ok");
+      trackEvent("formula");
       return;
     }
 
@@ -549,6 +567,7 @@
     result.innerHTML =
       `<table><tr><th>SMILES</th><th>Formula</th><th>Molecular weight</th></tr>${rows}</table>`;
     setStatus("#f-status", "Done", "ok");
+    trackEvent("formula");
   }
 
   /* ── 页面：FASTA / FASTQ ── */
@@ -595,6 +614,14 @@
 
     const extra = j.count !== undefined ? " · " + j.count + " record(s)" : "";
     setStatus("#bio-status", "Done" + extra, "ok");
+    const bioEvents = {
+      fasta2fastq: "bio/fasta-to-fastq",
+      fastq2fasta: "bio/fastq-to-fasta",
+      revcomp: "bio/reverse-complement",
+      translate: "bio/translate",
+      stats: "bio/gc-content",
+    };
+    trackEvent(bioEvents[op] || "bio");
   }
 
 
@@ -706,6 +733,7 @@
       ? `Done · all ${names.length} resolved`
       : `Done · ${ok} of ${names.length} resolved · ${failed} not found (see the cards below)`;
     setStatus("#iupac-status", msg, ok ? (failed ? "ok" : "ok") : "err");
+    if (ok > 0) trackEvent("iupac");
   }
 
   /* ── 初始化 ── */
@@ -742,12 +770,14 @@
           a.href = convBinary.dataUrl;
           a.download = "output." + convBinary.ext;
           a.click();
+          trackEvent("download/convert");
           return;
         }
         const text = $("#conv-out").textContent || "";
         if (!text) return;
         const ext = $("#conv-to").value === "svg" ? "svg" : "txt";
         downloadBlob(text, "text/plain;charset=utf-8", "output." + ext);
+        trackEvent("download/convert");
       });
       window.addEventListener("resize", () => { if (viewerConv) viewerConv.resize(); });
     }
@@ -761,6 +791,7 @@
       $("#depict-download").addEventListener("click", () => {
         if (!lastSvg) return;
         downloadBlob(lastSvg, "image/svg+xml", "molecule.svg");
+        trackEvent("download/depict");
       });
     }
 
@@ -774,6 +805,7 @@
       $("#mol3d-download").addEventListener("click", () => {
         if (!lastSdf) return;
         downloadBlob(lastSdf, "chemical/x-mdl-sdfile", "molecule.sdf");
+        trackEvent("download/3d");
       });
       window.addEventListener("resize", () => { if (viewer3d) viewer3d.resize(); });
     }
@@ -796,6 +828,7 @@
         const text = $("#batch-out").textContent || "";
         if (!text) return;
         downloadBlob(text, "text/plain;charset=utf-8", "converted." + ($("#batch-to").value || "txt"));
+        trackEvent("download/batch");
       });
     }
 
@@ -820,6 +853,7 @@
         const text = $("#bio-out").textContent || "";
         if (!text) return;
         downloadBlob(text, "text/plain;charset=utf-8", "output.txt");
+        trackEvent("download/bio");
       });
     }
   }

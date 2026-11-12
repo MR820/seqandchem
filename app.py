@@ -14,6 +14,10 @@ import re
 import subprocess
 import threading
 import time
+try:
+    import fcntl
+except ImportError:  # pragma: no cover - Windows fallback
+    fcntl = None
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -66,13 +70,60 @@ TWO_D_SOURCES = {"smi", "can", "inchi", "inchikey", "txt", "smi"}
 
 EXAMPLE_SMILES = "CC(=O)Oc1ccccc1C(=O)O"
 
-# 高负载任务（3D 生成 / 批量）的并发闸门：每进程 1 个，2 个 worker = 全局最多 2 个
-HEAVY_SLOTS = threading.BoundedSemaphore(1)
-HEAVY_WAIT_SECONDS = 30
+# 高负载任务（3D 生成 / 批量）的全局队列。
+# 用文件锁跨 gunicorn worker/线程串行化，最多同时跑 1 个重任务；
+# 其它请求排队等待，超过 HEAVY_WAIT_SECONDS 才返回 429。
+DATA_DIR = os.path.join(BASE_DIR, "data")
+os.makedirs(DATA_DIR, exist_ok=True)
+HEAVY_LOCK_PATH = os.path.join(DATA_DIR, "heavy.lock")
+HEAVY_WAIT_SECONDS = int(os.environ.get("HEAVY_WAIT_SECONDS", "60"))
+_HEAVY_FALLBACK = threading.BoundedSemaphore(1)
 
 
-def heavy_busy():
-    return jsonify({"ok": False, "error": "Server is busy with other heavy jobs, please retry in a moment"}), 429
+def _heavy_acquire(timeout):
+    """Acquire the cross-process heavy slot. Returns a handle or None on timeout."""
+    if fcntl is None:
+        return _HEAVY_FALLBACK if _HEAVY_FALLBACK.acquire(timeout=timeout) else None
+    try:
+        fd = os.open(HEAVY_LOCK_PATH, os.O_CREAT | os.O_RDWR, 0o600)
+    except OSError:
+        return _HEAVY_FALLBACK if _HEAVY_FALLBACK.acquire(timeout=timeout) else None
+    deadline = time.monotonic() + timeout
+    while True:
+        try:
+            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            return fd
+        except BlockingIOError:
+            if time.monotonic() >= deadline:
+                os.close(fd)
+                return None
+            time.sleep(0.1)
+        except OSError:
+            os.close(fd)
+            return _HEAVY_FALLBACK if _HEAVY_FALLBACK.acquire(timeout=timeout) else None
+
+
+def _heavy_release(handle):
+    if handle is None:
+        return
+    if isinstance(handle, int):
+        try:
+            fcntl.flock(handle, fcntl.LOCK_UN)
+        finally:
+            os.close(handle)
+    else:
+        _HEAVY_FALLBACK.release()
+
+
+def heavy_busy(message="Server is busy with other heavy jobs, please retry in a moment",
+               detail=""):
+    resp = jsonify({"ok": False, "error": message,
+                    "detail": detail or
+                    f"Large jobs run one at a time. Please retry in about "
+                    f"{HEAVY_WAIT_SECONDS} seconds."})
+    resp.status_code = 429
+    resp.headers["Retry-After"] = str(HEAVY_WAIT_SECONDS)
+    return resp
 
 
 # ────────────────────────────────────────────── 公开 API：CORS + 限流
@@ -1088,14 +1139,19 @@ def api_gen3d():
     if not valid_format(frm) or not text.strip():
         return err("Please enter valid molecule data")
 
-    if not HEAVY_SLOTS.acquire(timeout=HEAVY_WAIT_SECONDS):
+    wait_start = time.monotonic()
+    slot = _heavy_acquire(HEAVY_WAIT_SECONDS)
+    waited = time.monotonic() - wait_start
+    if slot is None:
         return heavy_busy()
+    if waited >= 1:
+        app.logger.info("gen3d queued %.1fs from %s", waited, request.remote_addr)
     try:
         rc, out, errtext = run_obabel(
             [f"-i{frm}", "-osdf", "--gen3d"], text.encode("utf-8"), timeout=120
         )
     finally:
-        HEAVY_SLOTS.release()
+        _heavy_release(slot)
     if rc != 0 or not out:
         return err("3D generation failed", 422, errtext.strip()[:2000] or "No output")
 
@@ -1286,21 +1342,22 @@ def api_batch():
         return err(f"Batch limit exceeded: {count} records, maximum {limit} per run "
                    f"({what})", 400, hint)
 
-    if not HEAVY_SLOTS.acquire(timeout=HEAVY_WAIT_SECONDS):
-        return err("Server is busy converting another large file", 429,
-                   f"Large jobs run one at a time. Please retry in about "
-                   f"{HEAVY_WAIT_SECONDS} seconds.",
-                   )
-
-    rc, out, errtext = run_obabel(
-        [f"-i{frm}", f"-o{to}"] + safe, text.encode("utf-8"), timeout=1500
-    )
+    wait_start = time.monotonic()
+    slot = _heavy_acquire(HEAVY_WAIT_SECONDS)
+    waited = time.monotonic() - wait_start
+    if slot is None:
+        return heavy_busy("Server is busy converting another large file")
+    if waited >= 1:
+        app.logger.info("batch queued %.1fs from %s", waited, request.remote_addr)
     try:
+        rc, out, errtext = run_obabel(
+            [f"-i{frm}", f"-o{to}"] + safe, text.encode("utf-8"), timeout=1500
+        )
         if rc != 0 or not out:
             return _obabel_error(frm, errtext)
         return _batch_response(frm, to, text, out, errtext, safe)
     finally:
-        HEAVY_SLOTS.release()
+        _heavy_release(slot)
 
 
 def _batch_response(frm, to, text, out, errtext, safe):
