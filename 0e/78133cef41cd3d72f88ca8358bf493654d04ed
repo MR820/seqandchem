@@ -1,0 +1,21 @@
+deploy/nginx-main.conf
+  s_98b9f922a3cf6e::t_b19d122eb766b8 16,19-42
+deploy/README.md
+  s_98b9f922a3cf6e::t_fc4579e4a5f094 76-92
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0e78133cef41cd3d72f88ca8358bf493654d04ed",
+  "prompts": {},
+  "sessions": {
+    "s_98b9f922a3cf6e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2e0f25b9-5505-4b58-88c1-1bb68d47b286",
+        "model": "deepseek-flash"
+      },
+      "human_author": "xingzhiwei <xingzhiwei@xunlei.com>"
+    }
+  }
+}
