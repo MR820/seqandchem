@@ -1,0 +1,23 @@
+deploy/nginx-main.conf
+  s_165826812145e1::t_a1e0f56751b4fd 1-44
+deploy/nginx.conf
+  s_165826812145e1::t_a1e0f56751b4fd 18-19
+deploy/README.md
+  s_165826812145e1::t_4c1f0c51256e70 9,52-73
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "76359ec0a841630164e6c444fc86d73040660286",
+  "prompts": {},
+  "sessions": {
+    "s_165826812145e1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "38c4da09-d30d-49e4-b5f9-dae3537ee1ec",
+        "model": "deepseek-v4.1-flash-1017"
+      },
+      "human_author": "xingzhiwei <xingzhiwei@xunlei.com>"
+    }
+  }
+}
