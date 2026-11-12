@@ -24,6 +24,9 @@ print(c.convert("CC(=O)Oc1ccccc1C(=O)O", to="inchi")["result"])
 props = c.properties("CC(=O)Oc1ccccc1C(=O)O")[0]["props"]
 print(props["MW"], props["logP"], props["InChIKey"])
 
+# Long batch jobs: bypass the CDN's 100-second timeout
+# c = Client(base_url="https://api.seqandchem.com")
+
 # 2D structure as SVG, ready to embed in a notebook or a web page
 svg = c.depict("CC(=O)Oc1ccccc1C(=O)O")
 

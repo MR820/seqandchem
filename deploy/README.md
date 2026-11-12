@@ -93,3 +93,13 @@ Cloudflare nameservers: `coby.ns.cloudflare.com`, `walk.ns.cloudflare.com`.
 
 The origin's `/etc/resolv.conf` uses `1.1.1.1` and `9.9.9.9`; the host network blocks
 `8.8.8.8`, which caused intermittent DNS failures. It is included in the daily backup.
+
+## Direct API subdomain
+
+`api.seqandchem.com` is a **DNS-only** record (no Cloudflare proxy) that serves only `/api/*` and
+`/health` from the same gunicorn app. It exists because Cloudflare's free plan times out proxied
+origin responses after 100 seconds, while `/api/v1/batch` can run longer. Certbot issues a separate
+Let's Encrypt certificate for it; the main site, `www` and `stats` stay proxied.
+
+Long batch clients can call `https://api.seqandchem.com/api/v1/batch` to bypass the CDN timeout.
+The subdomain sends `X-Robots-Tag: noindex` and returns 404 for non-API paths.
