@@ -90,3 +90,6 @@ Cloudflare-side settings:
 - update the trusted ranges from <https://www.cloudflare.com/ips/> when Cloudflare changes them
 
 Cloudflare nameservers: `coby.ns.cloudflare.com`, `walk.ns.cloudflare.com`.
+
+The origin's `/etc/resolv.conf` uses `1.1.1.1` and `9.9.9.9`; the host network blocks
+`8.8.8.8`, which caused intermittent DNS failures. It is included in the daily backup.

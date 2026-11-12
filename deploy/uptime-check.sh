@@ -57,8 +57,16 @@ if [ -f "$STATE" ]; then
     read -r prev_ts prev_status < "$STATE" || true
 fi
 
-code=$(curl -sS -o /dev/null -w '%{http_code}' -m 10 "$URL" 2>/dev/null || echo 000)
-rt=$(curl -sS -o /dev/null -w '%{time_total}' -m 10 "$URL" 2>/dev/null || echo 0)
+probe() {
+    curl -sS -o /dev/null -w '%{http_code} %{time_total}' -m 15 "$URL" 2>/dev/null
+}
+out=$(probe) || out="000 0"
+code=${out%% *}; rt=${out##* }
+if [ "$code" != "200" ]; then
+    sleep 2
+    out=$(probe) || out="000 0"
+    code=${out%% *}; rt=${out##* }
+fi
 svc_app=$(systemctl is-active chemtools 2>/dev/null || echo inactive)
 svc_web=$(systemctl is-active nginx 2>/dev/null || echo inactive)
 svc_gc=$(systemctl is-active goatcounter 2>/dev/null || echo inactive)
