@@ -61,7 +61,7 @@ so search engines credit seqandchem.com rather than treating it as duplicate con
 |---|---|
 | SMILES vs InChI vs InChIKey | https://dev.to/_0a63a9baa4fb1573c27f8/smiles-vs-inchi-vs-inchikey-differences-explained-2026-28an |
 | Lipinski rule of five | https://dev.to/_0a63a9baa4fb1573c27f8/lipinski-rule-of-five-explained-with-worked-examples-50hc |
-| FASTA vs FASTQ | https://dev.to/_0a63a9baa4fb1573c27f8/fasta-vs-fastq-format-differences-examples-and-conversion |
+| FASTA vs FASTQ | https://dev.to/_0a63a9baa4fb1573c27f8/fasta-vs-fastq-format-differences-examples-and-conversion-2i7d |
 
 `promo/publish_devto.py` rebuilds the markdown from `guides.py` and posts it. dev.to allows roughly
 one article every five minutes, so publish with `--only <slug>` when re-running.
