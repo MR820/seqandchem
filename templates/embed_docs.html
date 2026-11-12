@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 class="page-title">Embed a converter on your site</h2>
+<p class="lead">Drop a working chemical format converter into any page with one line of HTML.
+   Free, no API key, no account, no tracking of your readers.</p>
+
+<div class="card">
+  <h3 style="margin:0 0 10px;font-size:15px">Live preview</h3>
+  <iframe src="/embed/convert?from=smi&to=inchi&title=SMILES+to+InChI"
+          style="width:100%;height:330px;border:1px solid #e5e7eb;border-radius:10px"
+          title="SeqChem converter"></iframe>
+  <p class="hint">This is the real widget — type a SMILES string and press Convert.</p>
+</div>
+
+<div class="prose">
+  <h2>Copy this</h2>
+  <p>A SMILES → InChI converter, 330&nbsp;px tall:</p>
+<pre><code>&lt;iframe src="https://seqandchem.com/embed/convert?from=smi&amp;to=inchi"
+        style="width:100%;height:330px;border:1px solid #e5e7eb;border-radius:10px"
+        title="SMILES to InChI converter"&gt;&lt;/iframe&gt;</code></pre>
+
+  <p>A SMILES → MOL converter, with a format picker:</p>
+<pre><code>&lt;iframe src="https://seqandchem.com/embed/convert?from=smi&amp;to=mol"
+        style="width:100%;height:360px;border:1px solid #e5e7eb;border-radius:10px"
+        title="SMILES to MOL converter"&gt;&lt;/iframe&gt;</code></pre>
+
+  <h2>Options</h2>
+  <table>
+    <thead><tr><th>Parameter</th><th>Default</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><code>from</code></td><td><code>smi</code></td><td>Input format id — <code>smi</code>,
+          <code>inchi</code>, <code>mol</code>, <code>sdf</code>, <code>pdb</code>, <code>xyz</code>,
+          <code>cml</code>, <code>mol2</code></td></tr>
+      <tr><td><code>to</code></td><td><code>mol</code></td><td>Preselected output format</td></tr>
+      <tr><td><code>title</code></td><td>auto</td><td>Heading shown in the widget</td></tr>
+    </tbody>
+  </table>
+  <p>Output formats available in the picker: SMILES (canonical), InChI, InChIKey, MOL, SDF,
+     MOL2, PDB, XYZ, CML, SVG and PNG.</p>
+
+  <h2>Notes</h2>
+  <ul>
+    <li>The widget is a plain <code>&lt;iframe&gt;</code> — it works in WordPress, Ghost, Hugo,
+        Notion embeds, Jekyll, plain HTML, anywhere that allows raw HTML.</li>
+    <li>Conversion runs on our server through the same API the site uses. Nothing is stored.</li>
+    <li>Please keep the small “Powered by SeqChem” link — it is the only thing we ask in return.
+        Removing it will not break the widget.</li>
+    <li>If you want a different size, format pair or theme, email
+        <a href="mailto:devin2xing@gmail.com">devin2xing@gmail.com</a> and we will add a preset.</li>
+  </ul>
+</div>
+
+<div class="card">
+  <h3 style="margin:0 0 10px;font-size:15px">Related</h3>
+  <div class="row" style="gap:8px">
+    <a class="ghost-link" href="/api">API documentation</a>
+    <a class="ghost-link" href="/api/openapi.json">OpenAPI spec</a>
+    <a class="ghost-link" href="/convert">Full converter</a>
+    <a class="ghost-link" href="/">All tools</a>
+  </div>
+</div>
+{% endblock %}

@@ -130,6 +130,15 @@ def _api_rate_limit():
 
 
 @app.after_request
+def _frame_headers(resp):
+    if request.path.startswith("/embed/"):
+        resp.headers.setdefault("Content-Security-Policy", "frame-ancestors https: http: 'self'")
+    elif not request.path.startswith("/api/"):
+        resp.headers.setdefault("X-Frame-Options", "SAMEORIGIN")
+    return resp
+
+
+@app.after_request
 def _api_cors(resp):
     if request.path.startswith("/api/") or request.path == "/health":
         resp.headers.setdefault("Access-Control-Allow-Origin", "*")
@@ -472,6 +481,13 @@ PAGE_META["convert"]["converters"] = (
     + [_preset_link(s) for s in PRESETS]
 )
 
+PAGE_META["embed"] = {
+    "page": "embed", "nav": "", "template": "embed_docs.html",
+    "title": "Embed a Chemistry Converter — Free iframe Widget",
+    "description": "Drop a working SMILES / InChI / MOL / SDF converter into your own site with one "
+                   "iframe line. Free, no API key, no tracking of your readers.",
+}
+
 PAGE_META["api"] = {
     "page": "api", "nav": "", "template": "api_docs.html",
     "title": "Free Chemistry API — JSON Converter, Descriptors, Depiction",
@@ -719,6 +735,100 @@ def page_guides_index():
                                    for g in GUIDES.values()])
 
 
+# ---------------------------------------------------------------- 可嵌入组件
+EMBED_TARGETS = ["can", "inchi", "inchikey", "mol", "sdf", "mol2", "pdb", "xyz", "cml", "svg", "png"]
+EMBED_LABELS = {
+    "can": "SMILES (canonical)", "inchi": "InChI", "inchikey": "InChIKey",
+    "mol": "MOL", "sdf": "SDF", "mol2": "MOL2", "pdb": "PDB", "xyz": "XYZ",
+    "cml": "CML", "svg": "SVG image", "png": "PNG image",
+}
+
+
+@app.get("/embed")
+def page_embed():
+    return _render("embed")
+
+
+@app.get("/embed/convert")
+def page_embed_convert():
+    frm = (request.args.get("from") or "").strip() or "smi"
+    to = (request.args.get("to") or "").strip() or "mol"
+    if not valid_format(frm):
+        frm = "smi"
+    if to not in EMBED_TARGETS:
+        to = "mol"
+    title = (request.args.get("title") or "").strip()[:80]
+    if not title:
+        title = f"{FMT_LABEL.get(frm, frm.upper())} → {EMBED_LABELS.get(to, to.upper())}"
+    return render_template(
+        "embed_widget.html", title=title, from_fmt=frm, to_fmt=to,
+        to_options=[{"id": f, "label": EMBED_LABELS[f]} for f in EMBED_TARGETS],
+        placeholder="e.g. CC(=O)Oc1ccccc1C(=O)O",
+        home_url=_base_url(),
+    )
+
+
+@app.get("/llms.txt")
+def llms_txt():
+    """Summary for LLM crawlers and agent tooling (https://llmstxt.org)."""
+    base = _base_url()
+    out = [
+        "# SeqChem",
+        "",
+        "> Free online chemistry and bioinformatics tools. Convert between 190+ chemical formats, "
+        "compute molecular descriptors, draw 2D structures, generate 3D conformers, run SMARTS "
+        "substructure and Tanimoto similarity searches, resolve IUPAC names, and process "
+        "FASTA/FASTQ sequences. No account, no paywall. Everything runs server-side through "
+        "OpenBabel; the sequence tools are implemented in Python.",
+        "",
+        "## Core tools",
+    ]
+    core = [
+        ("/convert", "Format converter", "Any OpenBabel-readable format to any writable one."),
+        ("/properties", "Molecular properties", "Formula, MW, logP, TPSA, HBD, HBA, rotatable bonds, InChI, InChIKey."),
+        ("/depict", "2D depiction", "Render a SMILES or InChI as a scalable SVG structure."),
+        ("/3d", "3D structure", "Generate a force-field optimised conformer and view it in the browser."),
+        ("/substructure", "Substructure search", "Filter a molecule list by a SMARTS pattern."),
+        ("/similarity", "Molecular similarity", "Tanimoto coefficient over FP2, FP3, FP4 or MACCS."),
+        ("/lipinski", "Drug-likeness", "Lipinski rule of five plus Veber criteria."),
+        ("/batch", "Batch converter", "Whole compound libraries, up to 5,000 records per run."),
+        ("/formula", "Formula calculator", "Molecular weight and composition from a formula or a structure."),
+        ("/iupac-to-structure", "IUPAC name to structure", "OPSIN parsing with SMILES, InChI and InChIKey output."),
+    ]
+    for path, name, desc in core:
+        out.append(f"- [{name}]({base}{path}): {desc}")
+
+    out += ["", "## One-click converters"]
+    for slug, cfg in PRESETS.items():
+        label = f'{_fmt_label(cfg["from_fmt"])} to {_fmt_label(cfg["to_fmt"])}'
+        out.append(f"- [{label}]({base}/{slug})")
+
+    out += ["", "## Sequence tools"]
+    for key, cfg in BIO_PAGES.items():
+        name = cfg["title"].split("—")[0].strip()
+        out.append(f"- [{name}]({base}{cfg['path']})")
+
+    out += ["", "## Guides"]
+    for key, g in GUIDES.items():
+        out.append(f"- [{g['h1']}]({base}{g['path']})")
+
+    out += [
+        "",
+        "## API",
+        f"- [API documentation]({base}/api): JSON endpoints for conversion, descriptors, depiction, "
+        "3D generation, substructure, similarity, IUPAC names, batch and FASTA/FASTQ.",
+        f"- [OpenAPI 3.0 spec]({base}/api/openapi.json)",
+        f"- [Embeddable converter]({base}/embed): one-line iframe widget",
+        "",
+        "## Notes",
+        "- All endpoints are free and keyless; fair use is 120 requests/minute per client.",
+        "- Batch limit: 64 MB input, 5,000 records (500 when the output is an image).",
+        "- Chemistry engine: OpenBabel 3.1.1. Name parsing: OPSIN. 3D rendering: 3Dmol.js.",
+        "",
+    ]
+    return Response("\n".join(out), mimetype="text/plain")
+
+
 @app.get("/robots.txt")
 def robots():
     base = _base_url()
@@ -758,6 +868,7 @@ def sitemap():
         ("/guides/lipinski-rule-of-five", "0.8", "monthly"),
         ("/guides/fasta-vs-fastq", "0.8", "monthly"),
         ("/api", "0.8", "monthly"),
+        ("/embed", "0.7", "monthly"),
     ]
     entries += [(f"/{slug}", "0.7", "monthly") for slug in PRESETS]
     import datetime

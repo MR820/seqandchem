@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>{{ title }}</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+     color:#111827;background:#fff;padding:14px;font-size:14px}
+h1{font-size:14px;font-weight:600;margin-bottom:10px;color:#374151}
+textarea{width:100%;min-height:74px;padding:10px;border:1px solid #d1d5db;border-radius:8px;
+         font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;resize:vertical}
+textarea:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+.row{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap}
+button{background:#2563eb;color:#fff;border:0;border-radius:8px;padding:8px 16px;
+       font-size:13px;font-weight:600;cursor:pointer}
+button:hover{background:#1d4ed8}
+button:disabled{opacity:.6;cursor:default}
+select{padding:7px 10px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;background:#fff}
+pre{margin-top:10px;background:#0f172a;color:#e2e8f0;padding:10px;border-radius:8px;
+    font-size:12px;line-height:1.5;max-height:220px;overflow:auto;white-space:pre-wrap;
+    word-break:break-all;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+img.out{max-width:100%;border:1px solid #e5e7eb;border-radius:8px;margin-top:10px;background:#fff}
+.msg{font-size:12px;margin-top:8px;color:#6b7280;min-height:16px}
+.msg.err{color:#dc2626}
+.foot{margin-top:10px;padding-top:8px;border-top:1px solid #f3f4f6;font-size:11px;color:#9ca3af}
+.foot a{color:#6b7280;text-decoration:none}
+.foot a:hover{color:#2563eb;text-decoration:underline}
+</style>
+</head>
+<body>
+<h1>{{ title }}</h1>
+<textarea id="w-in" placeholder="{{ placeholder }}"></textarea>
+<div class="row">
+  <select id="w-to">
+    {% for f in to_options %}<option value="{{ f.id }}"{% if f.id == to_fmt %} selected{% endif %}>{{ f.label }}</option>{% endfor %}
+  </select>
+  <button id="w-run">Convert</button>
+</div>
+<div class="msg" id="w-msg"></div>
+<pre id="w-out" style="display:none"></pre>
+<img class="out" id="w-img" style="display:none" alt="converted structure">
+<div class="foot">Powered by <a href="{{ home_url }}/?utm_source=embed&utm_medium=widget"
+     target="_blank" rel="noopener">SeqChem</a> — free chemistry tools</div>
+<script>
+(function () {
+  var from = {{ from_fmt|tojson }};
+  var run = document.getElementById('w-run');
+  var input = document.getElementById('w-in');
+  var out = document.getElementById('w-out');
+  var img = document.getElementById('w-img');
+  var msg = document.getElementById('w-msg');
+  var sel = document.getElementById('w-to');
+
+  function say(t, err) { msg.textContent = t || ''; msg.className = 'msg' + (err ? ' err' : ''); }
+
+  run.addEventListener('click', async function () {
+    var data = input.value.trim();
+    if (!data) { say('Paste a molecule first.', true); return; }
+    run.disabled = true; say('Converting…');
+    out.style.display = 'none'; img.style.display = 'none';
+    try {
+      var r = await fetch('{{ home_url }}/api/v1/convert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ from: from, to: sel.value, data: data })
+      });
+      var j = await r.json();
+      if (!j.ok) { say(j.error || 'Conversion failed', true); return; }
+      if (j.binary) {
+        img.src = j.data_url; img.style.display = 'block';
+        say('Done — ' + (j.size ? Math.round(j.size / 1024) + ' KB' : 'image'));
+      } else {
+        out.textContent = j.result || ''; out.style.display = 'block';
+        say('Done');
+      }
+    } catch (e) {
+      say('Network error — try again', true);
+    } finally {
+      run.disabled = false;
+    }
+  });
+})();
+</script>
+</body>
+</html>
