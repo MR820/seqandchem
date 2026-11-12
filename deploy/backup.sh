@@ -24,6 +24,7 @@ tar -czf "$TMP/config.tar.gz" --ignore-failed-read \
     /etc/nginx/nginx.conf \
     /etc/nginx/sites-available/seqchem \
     /etc/nginx/sites-available/stats \
+    /etc/resolv.conf \
     /etc/systemd/system/chemtools.service \
     /etc/systemd/system/goatcounter.service \
     /opt/seqchem-monitor \
