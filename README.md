@@ -1,5 +1,7 @@
 # SeqChem
 
+**English** | [简体中文](README.zh-CN.md) | [Español](README.es.md) | [Português (Brasil)](README.pt-BR.md)
+
 **Free online chemistry and bioinformatics tools — <https://seqandchem.com>**
 
 SeqChem is a small, dependency-light web application that puts OpenBabel, OPSIN and a set of native
