@@ -1,0 +1,23 @@
+deploy/uptime-check.sh
+  s_98b9f922a3cf6e::t_3db9defce6a24b 1-95
+deploy/backup.sh
+  s_98b9f922a3cf6e::t_3db9defce6a24b 1-55
+deploy/README.md
+  s_98b9f922a3cf6e::t_89f66542051a1d 7-8,11-12
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9843daf3e0bd75a948e5b7538b84ca91433bd04e",
+  "prompts": {},
+  "sessions": {
+    "s_98b9f922a3cf6e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2e0f25b9-5505-4b58-88c1-1bb68d47b286",
+        "model": "unknown"
+      },
+      "human_author": "xingzhiwei <xingzhiwei@xunlei.com>"
+    }
+  }
+}
