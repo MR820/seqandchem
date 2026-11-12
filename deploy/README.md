@@ -73,3 +73,20 @@ at `127.0.0.1:12100` — a local stream listener that accepts the header and for
 Result: nginx access logs, `fail2ban`-style analysis and the app's per-IP rate limiter all see the
 real client address. GeoIP is still unavailable — GoatCounter needs a MaxMind database
 (`-geodb`) for country data.
+
+## Cloudflare CDN
+
+Production is fronted by Cloudflare (`seqandchem.com`, `www`, `stats`). `nginx-main.conf`:
+
+- trusts the published Cloudflare IPv4/IPv6 ranges
+- uses `CF-Connecting-IP` as `real_ip_header`
+- direct traffic still arrives through the PROXY protocol and is unaffected
+
+Cloudflare-side settings:
+
+- SSL/TLS: Full (strict), Always Use HTTPS
+- Brotli and HTTP/3 on; Rocket Loader off
+- Cache Rule: bypass `/api/*`, `/count`, `/count.js`, `/user/*`, `/health`
+- update the trusted ranges from <https://www.cloudflare.com/ips/> when Cloudflare changes them
+
+Cloudflare nameservers: `coby.ns.cloudflare.com`, `walk.ns.cloudflare.com`.
