@@ -37,6 +37,7 @@ tar -czf "$TMP/config.tar.gz" --ignore-failed-read \
     /opt/chemtools/static \
     /etc/letsencrypt/renewal/seqandchem.com.conf \
     /etc/letsencrypt/renewal/stats.seqandchem.com.conf \
+    /etc/letsencrypt/renewal/api.seqandchem.com.conf \
     /etc/logrotate.d/seqchem-monitor \
     -C "$TMP" root-crontab.txt \
     2>/dev/null

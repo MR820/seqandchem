@@ -1653,6 +1653,11 @@ def _openapi_spec():
                                "frame": {"type": "integer", "default": 0}}, ["op", "data"]))},
     }
 
+    servers = [{"url": base, "description": "CDN endpoint (100s origin timeout)"}]
+    if base == "https://seqandchem.com":
+        servers.append({"url": "https://api.seqandchem.com",
+                        "description": "Direct origin for long-running batch jobs"})
+
     return {
         "openapi": "3.0.3",
         "info": {
@@ -1667,7 +1672,7 @@ def _openapi_spec():
                         "url": base + "/api"},
             "contact": {"url": base + "/api", "email": "devin2xing@gmail.com"},
         },
-        "servers": [{"url": base}],
+        "servers": servers,
         "tags": [
             {"name": "meta", "description": "Discovery and example data"},
             {"name": "chemistry", "description": "Structure conversion and analysis"},

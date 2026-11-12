@@ -248,6 +248,9 @@ console.log(data.rows[0].props.MW);   // 180.159</code></pre>
    formats it returns a per-molecule preview list and, when there is more than one record, a
    ZIP as a <code>zip_url</code> data URL. Limits: 64 MB input, 5,000 records per run
    (500 for image output).</p>
+<p><strong>Long-running jobs:</strong> the normal CDN endpoint has a 100-second origin timeout.
+   For batches that may take longer, send the same request to
+   <code>https://api.seqandchem.com/api/v1/batch</code> (direct origin, no CDN).</p>
 <table>
   <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
   <tbody>
@@ -308,6 +311,8 @@ console.log(data.rows[0].props.MW);   // 180.159</code></pre>
       (PNG, SVG, PDF…). Requests over the limit return <code>400</code> with the actual count and the
       maximum.</li>
   <li>3D conformer generation is <strong>serialised</strong> — one at a time across all users. Plan for a few seconds per molecule.</li>
+  <li>The CDN endpoint (<code>https://seqandchem.com</code>) times out after 100 seconds. For long
+      batch jobs use <code>https://api.seqandchem.com</code>, which goes directly to the origin.</li>
   <li>If you need sustained bulk throughput, generate 3D conformers locally with OpenBabel or RDKit; this API is meant for interactive and small-batch use.</li>
 </ul>
 
