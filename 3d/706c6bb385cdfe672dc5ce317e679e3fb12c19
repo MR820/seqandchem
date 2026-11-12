@@ -1,0 +1,21 @@
+promo/publish_devto.py
+  s_165826812145e1::t_63a2543400a62c 1-107
+promo/README.md
+  s_165826812145e1::t_825c73da1f0765 55-68
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3d706c6bb385cdfe672dc5ce317e679e3fb12c19",
+  "prompts": {},
+  "sessions": {
+    "s_165826812145e1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "38c4da09-d30d-49e4-b5f9-dae3537ee1ec",
+        "model": "deepseek-v4.1-flash-1017"
+      },
+      "human_author": "xingzhiwei <xingzhiwei@xunlei.com>"
+    }
+  }
+}
