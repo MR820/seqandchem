@@ -505,7 +505,9 @@ def _render(key):
     meta = dict(PAGE_META[key])
     template = meta.pop("template")
     meta.setdefault("nav", key if key in NAV_KEYS else "")
-    path = "" if key == "index" else "/" + key
+    # Use the URL actually being served: page keys and route paths differ for
+    # iupac ("iupac" -> /iupac-to-structure) and bio ("bio" -> /bio/).
+    path = "" if key == "index" else request.path
     page_name = "" if key == "index" else meta["title"].split("—")[0].strip()
     return render_template(template, canonical=_base_url() + path,
                            home_url=_base_url(), page_name=page_name,
