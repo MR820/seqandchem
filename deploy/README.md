@@ -4,10 +4,12 @@ Production runs on a single Debian/Ubuntu host.
 
 | File | Goes to | Notes |
 |---|---|---|
-| `chemtools.service` | `/etc/systemd/system/` | gunicorn, 2 workers, `127.0.0.1:8080`, 400 MB memory cap |
-| `nginx.conf` | `/etc/nginx/sites-available/seqchem` | TLS termination, proxies to gunicorn |
+| `chemtools.service` | `/etc/systemd/system/` | gunicorn, 2 workers, `127.0.0.1:8080`, 900 MB memory cap |
+| `nginx.conf` | `/etc/nginx/sites-available/seqchem` | TLS termination, headers, proxies to gunicorn |
 | `nginx-main.conf` | `/etc/nginx/nginx.conf` | stream layer: SNI routing on 443 + PROXY protocol |
 | `daily-report.sh` | `/opt/seqchem-monitor/` | cron `0 1 * * *`; needs `feishu.env` alongside |
+| `backup.sh` | `/opt/seqchem-monitor/` | cron `30 1 * * *`; SQLite + configs, newest 7 in `/var/backups/seqchem` |
+| `uptime-check.sh` | `/opt/seqchem-monitor/` | cron `*/5 * * * *`; HTTP + service check, Feishu on state change |
 
 ## First-time setup
 
