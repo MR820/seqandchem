@@ -6,6 +6,7 @@ Production runs on a single Debian/Ubuntu host.
 |---|---|---|
 | `chemtools.service` | `/etc/systemd/system/` | gunicorn, 2 workers, `127.0.0.1:8080`, 400 MB memory cap |
 | `nginx.conf` | `/etc/nginx/sites-available/seqchem` | TLS termination, proxies to gunicorn |
+| `nginx-main.conf` | `/etc/nginx/nginx.conf` | stream layer: SNI routing on 443 + PROXY protocol |
 | `daily-report.sh` | `/opt/seqchem-monitor/` | cron `0 1 * * *`; needs `feishu.env` alongside |
 
 ## First-time setup
@@ -48,3 +49,25 @@ FEISHU_APP_ID=...
 FEISHU_APP_SECRET=...
 FEISHU_OPEN_ID=...
 ```
+
+## Real client IPs
+
+TLS is routed by SNI in an nginx `stream` block, so without help every request reaches the HTTP
+layer as `127.0.0.1`. `nginx-main.conf` fixes that with the PROXY protocol:
+
+- the `stream` server listening on 443 has `proxy_protocol on;`
+- every HTTP listener that receives that traffic must opt in:
+  `listen 127.0.0.1:8444 ssl http2 proxy_protocol;`
+- `set_real_ip_from 127.0.0.1;` + `real_ip_header proxy_protocol;` in the `http` block turns the
+  header back into `$remote_addr`
+
+**Any new vhost behind the stream layer must add `proxy_protocol` to its `listen` line**, or it
+will answer with `400 Bad Request`.
+
+The xboard node does not speak PROXY protocol (it resets the connection), so its SNI entry points
+at `127.0.0.1:12100` — a local stream listener that accepts the header and forwards plain TCP to
+`127.0.0.1:12005`.
+
+Result: nginx access logs, `fail2ban`-style analysis and the app's per-IP rate limiter all see the
+real client address. GeoIP is still unavailable — GoatCounter needs a MaxMind database
+(`-geodb`) for country data.
