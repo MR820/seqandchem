@@ -1,0 +1,36 @@
+templates/api_docs.html
+  s_165826812145e1::t_513da38fc05f43 43-51,331
+packages/python/src/seqchem/__main__.py
+  s_165826812145e1::t_8c8066e72373a0 1-90
+packages/python/README.md
+  s_165826812145e1::t_59c28841bd01db 1-88
+packages/python/LICENSE
+  s_165826812145e1::t_9a3c6783410d20 1-202
+packages/python/pyproject.toml
+  s_165826812145e1::t_e098f7e7e2431d 1,3-10,13-42
+  s_165826812145e1::t_403e8a93c41a85 2,11-12
+packages/python/src/seqchem/client.py
+  s_165826812145e1::t_6b5006be9c4495 1-200
+.gitignore
+  s_165826812145e1::t_513da38fc05f43 12-14
+packages/python/src/seqchem/__init__.py
+  s_165826812145e1::t_8c8066e72373a0 1-10
+promo/README.md
+  s_165826812145e1::t_a802670a8b8bcf 48-50
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c9420796a667fdda164a3e9a6e543fdcef9c4b35",
+  "prompts": {},
+  "sessions": {
+    "s_165826812145e1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "38c4da09-d30d-49e4-b5f9-dae3537ee1ec",
+        "model": "deepseek-v4.1-flash-1017"
+      },
+      "human_author": "xingzhiwei <xingzhiwei@xunlei.com>"
+    }
+  }
+}
