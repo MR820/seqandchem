@@ -9,3 +9,6 @@ env/
 .DS_Store
 .pytest_cache/
 data/
+packages/python/dist/
+packages/python/build/
+*.egg-info/

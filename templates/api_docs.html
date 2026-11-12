@@ -40,6 +40,15 @@ r.raise_for_status()
 print(r.json()["result"])
 # InChI=1S/C9H8O4/c1-6(10)13-8-5-3-2-4-7(8)9(11)12/h2-5H,1H3,(H,11,12)</code></pre>
 
+<p>Or use the official client — standard library only, no dependencies:</p>
+<pre><code>pip install seqchem</code></pre>
+<pre><code>from seqchem import Client
+
+c = Client()
+print(c.convert("CC(=O)Oc1ccccc1C(=O)O", to="inchi")["result"])
+print(c.properties("CCO")[0]["props"]["MW"])      # 46.069
+print(c.similarity("CCO", "CCCO"))                # Tanimoto</code></pre>
+
 <p>And from the browser — CORS is enabled, so this works from any origin:</p>
 <pre><code>const res = await fetch("https://seqandchem.com/api/v1/properties", {
   method: "POST",
@@ -319,6 +328,7 @@ console.log(data.rows[0].props.MW);   // 180.159</code></pre>
     <a class="ghost-link" href="/convert">Web converter</a>
     <a class="ghost-link" href="/properties">Property calculator</a>
     <a class="ghost-link" href="/depict">2D depiction</a>
+    <a class="ghost-link" href="https://pypi.org/project/seqchem/">Python client</a>
     <a class="ghost-link" href="/embed">Embeddable widget</a>
     <a class="ghost-link" href="/guides/smiles-inchi-inchikey">SMILES vs InChI</a>
     <a class="ghost-link" href="/">All tools</a>

@@ -45,8 +45,9 @@ Nothing else is touched.
 
 ## Other channels
 
-- **PyPI package** — a `seqchem` Python client (needs a PyPI token) gives a project page that links
-  back here and is genuinely installable.
+- **PyPI package** — [`seqchem`](https://pypi.org/project/seqchem/) is published: a dependency-free
+  Python client whose project page links back to the site. Source lives in `packages/python/`.
+  Release with `python -m build && twine upload dist/*`.
 - **Embeddable widget** — `/embed` is live; a one-line iframe gives site owners a reason to link
   without anyone asking them to.
 - **llms.txt** — `/llms.txt` is live for agent tooling and LLM crawlers.
