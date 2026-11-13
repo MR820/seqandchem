@@ -10,6 +10,7 @@ Production runs on a single Debian/Ubuntu host.
 | `daily-report.sh` | `/opt/seqchem-monitor/` | cron `0 1 * * *`; needs `feishu.env` alongside |
 | `backup.sh` | `/opt/seqchem-monitor/` | cron `30 1 * * *`; SQLite + configs, newest 7 in `/var/backups/seqchem` |
 | `uptime-check.sh` | `/opt/seqchem-monitor/` | cron `*/5 * * * *`; main site + api `/health` + services, Feishu on state change |
+| `seo-weekly.py` | `/opt/seqchem-monitor/` | cron `0 2 * * 1`; GSC + Bing + GoatCounter → Feishu; needs `gsc-service-account.json` and `bing-webmaster.env` |
 
 ## First-time setup
 
@@ -103,3 +104,26 @@ Let's Encrypt certificate for it; the main site, `www` and `stats` stay proxied.
 
 Long batch clients can call `https://api.seqandchem.com/api/v1/batch` to bypass the CDN timeout.
 The subdomain sends `X-Robots-Tag: noindex` and returns 404 for non-API paths.
+
+## Weekly SEO report
+
+`seo-weekly.py` runs Mondays at 02:00 UTC and pushes a Feishu summary with:
+
+- Google Search Console: URL Inspection for the sitemap URLs, 28-day queries/pages
+- Bing Webmaster: sitemap status, queries, crawl issues, submission quota
+- GoatCounter: last-7-day PV/UV, top pages and tool events
+
+Credentials live outside the repo, both mode 600:
+
+```
+/opt/seqchem-monitor/gsc-service-account.json   # GSC Full user on sc-domain:seqandchem.com
+/opt/seqchem-monitor/bing-webmaster.env         # BING_WEBMASTER_API_KEY=...
+```
+
+Dependencies are installed in `/opt/seqchem-monitor/venv`. Run manually with:
+
+```bash
+/opt/seqchem-monitor/venv/bin/python /opt/seqchem-monitor/seo-weekly.py
+# dry run, no Feishu message:
+DRY_RUN=1 /opt/seqchem-monitor/venv/bin/python /opt/seqchem-monitor/seo-weekly.py
+```
