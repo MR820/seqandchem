@@ -7,6 +7,7 @@ source /opt/seqchem-monitor/feishu.env
 
 STATE=/var/lib/seqchem-uptime.state
 URL="${1:-https://seqandchem.com/}"
+API_URL="${API_URL:-https://api.seqandchem.com/health}"
 ALERT_EVERY=3600   # repeat while still down: once per hour
 
 log() { echo "$(date '+%F %T') $*"; }
@@ -44,7 +45,7 @@ if [ "${1:-}" = "--test" ]; then
     send_feishu "✅ SeqChem 告警链路测试
 
 这是一条测试消息，说明服务器可以主动推送到你的飞书。
-监控项：https://seqandchem.com/ 每 5 分钟检查一次。"
+监控项：主站 https://seqandchem.com/ + api.seqandchem.com/health，每 5 分钟检查一次。"
     exit $?
 fi
 
@@ -58,43 +59,49 @@ if [ -f "$STATE" ]; then
 fi
 
 probe() {
-    curl -sS -o /dev/null -w '%{http_code} %{time_total}' -m 15 "$URL" 2>/dev/null
+    curl -sS -o /dev/null -w '%{http_code} %{time_total}' -m 15 "$1" 2>/dev/null
 }
-out=$(probe) || out="000 0"
-code=${out%% *}; rt=${out##* }
-if [ "$code" != "200" ]; then
-    sleep 2
-    out=$(probe) || out="000 0"
+check() {
+    local out code rt
+    out=$(probe "$1") || out="000 0"
     code=${out%% *}; rt=${out##* }
-fi
+    if [ "$code" != "200" ]; then
+        sleep 2
+        out=$(probe "$1") || out="000 0"
+        code=${out%% *}; rt=${out##* }
+    fi
+    printf '%s %s\n' "$code" "$rt"
+}
+read -r code rt < <(check "$URL")
+read -r api_code api_rt < <(check "$API_URL")
 svc_app=$(systemctl is-active chemtools 2>/dev/null || echo inactive)
 svc_web=$(systemctl is-active nginx 2>/dev/null || echo inactive)
 svc_gc=$(systemctl is-active goatcounter 2>/dev/null || echo inactive)
 now=$(date +%s)
 
-if [ "$code" = "200" ] && [ "$svc_app" = "active" ] && [ "$svc_web" = "active" ] && [ "$svc_gc" = "active" ]; then
+if [ "$code" = "200" ] && [ "$api_code" = "200" ] && [ "$svc_app" = "active" ] && [ "$svc_web" = "active" ] && [ "$svc_gc" = "active" ]; then
     if [ "$prev_status" = "fail" ]; then
         send_feishu "✅ SeqChem 已恢复
 
-URL: $URL
-HTTP: $code (${rt}s)
+主站: $URL → $code (${rt}s)
+API:  $API_URL → $api_code (${api_rt}s)
 服务: chemtools=$svc_app nginx=$svc_web goatcounter=$svc_gc
 时间: $(date '+%F %T %Z')"
         echo "$now ok" > "$STATE"
-        log "RECOVERED http=$code"
+        log "RECOVERED main=$code api=$api_code"
     else
         [ "$prev_status" != "ok" ] && echo "$now ok" > "$STATE"
-        log "OK http=$code rt=${rt}s"
+        log "OK main=$code api=$api_code rt=${rt}s/${api_rt}s"
     fi
     exit 0
 fi
 
-log "FAIL http=$code app=$svc_app web=$svc_web gc=$svc_gc"
+log "FAIL main=$code api=$api_code app=$svc_app web=$svc_web gc=$svc_gc"
 if [ "$prev_status" != "fail" ] || [ $((now - prev_ts)) -ge "$ALERT_EVERY" ]; then
     send_feishu "🚨 SeqChem 告警
 
-URL: $URL
-HTTP: $code (${rt}s)
+主站: $URL → $code (${rt}s)
+API:  $API_URL → $api_code (${api_rt}s)
 服务: chemtools=$svc_app nginx=$svc_web goatcounter=$svc_gc
 时间: $(date '+%F %T %Z')
 将每 5 分钟重试，1 小时提醒一次。"

@@ -9,7 +9,7 @@ Production runs on a single Debian/Ubuntu host.
 | `nginx-main.conf` | `/etc/nginx/nginx.conf` | stream layer: SNI routing on 443 + PROXY protocol |
 | `daily-report.sh` | `/opt/seqchem-monitor/` | cron `0 1 * * *`; needs `feishu.env` alongside |
 | `backup.sh` | `/opt/seqchem-monitor/` | cron `30 1 * * *`; SQLite + configs, newest 7 in `/var/backups/seqchem` |
-| `uptime-check.sh` | `/opt/seqchem-monitor/` | cron `*/5 * * * *`; HTTP + service check, Feishu on state change |
+| `uptime-check.sh` | `/opt/seqchem-monitor/` | cron `*/5 * * * *`; main site + api `/health` + services, Feishu on state change |
 
 ## First-time setup
 
