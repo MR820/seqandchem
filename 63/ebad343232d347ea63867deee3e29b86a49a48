@@ -1,0 +1,20 @@
+app.py
+  s_98b9f922a3cf6e::t_037870f3dfa6b8 754-771
+  s_98b9f922a3cf6e::t_972dcd83ca6231 27-28
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "63ebad343232d347ea63867deee3e29b86a49a48",
+  "prompts": {},
+  "sessions": {
+    "s_98b9f922a3cf6e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2e0f25b9-5505-4b58-88c1-1bb68d47b286",
+        "model": "deepseek-flash"
+      },
+      "human_author": "xingzhiwei <xingzhiwei@xunlei.com>"
+    }
+  }
+}
