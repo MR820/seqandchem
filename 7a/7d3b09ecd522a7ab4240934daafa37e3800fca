@@ -1,0 +1,23 @@
+deploy/uptime-check.sh
+  s_98b9f922a3cf6e::t_77d3f70716fc09 62,64-66,68-76,82,86-87,91,94,99,103-104
+  s_98b9f922a3cf6e::t_f4120d6b6373ec 10
+  s_98b9f922a3cf6e::t_ef8bfd9b411ca5 48
+deploy/README.md
+  s_98b9f922a3cf6e::t_e9fe09b5d00301 12
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7a7d3b09ecd522a7ab4240934daafa37e3800fca",
+  "prompts": {},
+  "sessions": {
+    "s_98b9f922a3cf6e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2e0f25b9-5505-4b58-88c1-1bb68d47b286",
+        "model": "deepseek-flash"
+      },
+      "human_author": "xingzhiwei <xingzhiwei@xunlei.com>"
+    }
+  }
+}
