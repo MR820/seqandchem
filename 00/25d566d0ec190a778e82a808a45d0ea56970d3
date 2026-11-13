@@ -1,0 +1,22 @@
+templates/bio_translate.html
+  s_98b9f922a3cf6e::t_49b7d6f1923620 9-39
+app.py
+  s_98b9f922a3cf6e::t_624aea17c2e32b 949-951
+  s_98b9f922a3cf6e::t_1a3f1c49b261da 686-688,691
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0025d566d0ec190a778e82a808a45d0ea56970d3",
+  "prompts": {},
+  "sessions": {
+    "s_98b9f922a3cf6e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2e0f25b9-5505-4b58-88c1-1bb68d47b286",
+        "model": "deepseek-flash"
+      },
+      "human_author": "xingzhiwei <xingzhiwei@xunlei.com>"
+    }
+  }
+}
