@@ -1,0 +1,22 @@
+deploy/README.md
+  s_98b9f922a3cf6e::t_e318a564a1b0fe 107-129
+  s_98b9f922a3cf6e::t_605ff6820036f2 13
+deploy/seo-weekly.py
+  s_98b9f922a3cf6e::t_9772737af7d944 1-232
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "11903e30b3771c67223a6fa582672c19d8919cf6",
+  "prompts": {},
+  "sessions": {
+    "s_98b9f922a3cf6e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2e0f25b9-5505-4b58-88c1-1bb68d47b286",
+        "model": "deepseek-flash"
+      },
+      "human_author": "xingzhiwei <xingzhiwei@xunlei.com>"
+    }
+  }
+}
