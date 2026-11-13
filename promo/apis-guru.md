@@ -15,7 +15,7 @@ web form instead (see `CONTRIBUTING.md` in `API-guru/openapi-directory`):
 | Format of the definition | **OpenAPI/Swagger** |
 | Is the definition official? | **Yes, by API owner** |
 | API Name | `SeqChem` |
-| API Logo URL | `https://seqandchem.com/favicon.svg` (square SVG; a 512×512 PNG is acceptable if preferred) |
+| API Logo URL | `https://seqandchem.com/logo-512.png` (512×512 PNG; square SVG fallback: `/favicon.svg`) |
 | Category | **Tools** (`tools`) |
 
 There is no contact field in the form. If a follow-up email is needed, use the GitHub issue
