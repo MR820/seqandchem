@@ -43,6 +43,26 @@ python3 promo/open_prs.py --apply     # fork, commit, open the PRs
 It reads a token from `~/.config/seqchem/github_token` and needs the `public_repo` scope.
 Nothing else is touched.
 
+## bio.tools
+
+`seqchem` is not listed yet (2026-11-13), and the ID is available. Prepared fields, EDAM terms and
+six function entries are in:
+
+- [`bio-tools.md`](bio-tools.md) — copy/paste field sheet
+- [`bio-tools.json`](bio-tools.json) — structured draft for reference
+
+Submit at <https://bio.tools/register> after signing up at <https://bio.tools/signup>.
+
+## APIs.guru
+
+`seqandchem.com` is not in the collection. APIs.guru requires the **web form**, not a PR to
+`openapi-directory`:
+
+- <https://apis.guru/add-api/>
+
+Ready-to-use form values, category and logo are in [`apis-guru.md`](apis-guru.md). The OpenAPI
+definition URL is <https://seqandchem.com/api/openapi.json>.
+
 ## Other channels
 
 - **PyPI package** — [`seqchem`](https://pypi.org/project/seqchem/) is published: a dependency-free
