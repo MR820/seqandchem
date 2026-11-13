@@ -24,7 +24,8 @@ import urllib.request
 import zipfile
 from functools import lru_cache
 
-from flask import Flask, Response, abort, jsonify, render_template, request, send_from_directory
+from flask import (Flask, Response, abort, jsonify, redirect, render_template,
+                   request, send_from_directory)
 from flask_compress import Compress
 
 from bio import (fasta_to_fastq, fastq_to_fasta, parse_fasta, parse_fastq,
@@ -748,6 +749,24 @@ def page_formula():
 @app.get("/iupac-to-structure")
 def page_iupac():
     return _render("iupac")
+
+
+def _legacy_iupac_redirect():
+    target = "/iupac-to-structure"
+    if request.query_string:
+        target += "?" + request.query_string.decode()
+    return redirect(target, code=301)
+
+
+@app.get("/iupac")
+@app.get("/iupac/")
+def page_iupac_legacy():
+    return _legacy_iupac_redirect()
+
+
+@app.get("/iupac-to-structure/")
+def page_iupac_trailing():
+    return _legacy_iupac_redirect()
 
 
 @app.get("/bio/")
