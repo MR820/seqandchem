@@ -1,0 +1,19 @@
+promo/apis-guru.md
+  s_98b9f922a3cf6e::t_516b6bd7b476d0 18
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "cf5d264a5ff0c4e6ad45b413c2b90cf6b0feaafb",
+  "prompts": {},
+  "sessions": {
+    "s_98b9f922a3cf6e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2e0f25b9-5505-4b58-88c1-1bb68d47b286",
+        "model": "deepseek-flash"
+      },
+      "human_author": "xingzhiwei <xingzhiwei@xunlei.com>"
+    }
+  }
+}
