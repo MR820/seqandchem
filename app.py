@@ -683,12 +683,12 @@ BIO_PAGES = {
     },
     "bio-translate": {
         "path": "/bio/translate", "op": "translate", "template": "bio_translate.html",
-        "title": "DNA to Protein Translation — Codon Translator",
-        "description": "Translate DNA or RNA sequences to amino acids in all three reading frames "
-                       "using the standard genetic code. Free online codon translator.",
+        "title": "DNA to Protein Translation — Codon Chart & Translator",
+        "description": "Translate DNA or RNA sequences to amino acids in all three reading frames. "
+                       "Includes a full codon chart and codon table for the standard genetic code.",
         "h1": "DNA to Protein Translation",
         "lead": "Translate nucleotide sequences into amino acid chains using the standard genetic "
-                "code. Choose the reading frame to try the three forward frames.",
+                "code, and look up any triplet in the codon chart below.",
         "input_label": "DNA or RNA sequence", "action": "Translate", "show_frame": True,
         "placeholder": ">seq1\nATGGCCATTGTAATGGGCCGCTGAAAGGGTGCCCGATAG",
     },
@@ -946,7 +946,9 @@ def sitemap():
     lastmod = "2026-11-12"
     body = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
     for path, prio, freq in entries:
-        body += (f"  <url><loc>{base}{path}</loc><lastmod>{lastmod}</lastmod>"
+        # Per-page date for content that changed after the initial launch.
+        lm = "2026-11-13" if path == "/bio/translate" else lastmod
+        body += (f"  <url><loc>{base}{path}</loc><lastmod>{lm}</lastmod>"
                  f"<priority>{prio}</priority><changefreq>{freq}</changefreq></url>\n")
     body += "</urlset>\n"
     return Response(body, mimetype="application/xml")
