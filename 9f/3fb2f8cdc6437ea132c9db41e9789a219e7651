@@ -1,0 +1,25 @@
+promo/bio-tools.json
+  s_98b9f922a3cf6e::t_84d77776f093ec 1-479
+promo/bio-tools.md
+  s_98b9f922a3cf6e::t_343843027420c9 1-96
+promo/apis-guru.md
+  s_98b9f922a3cf6e::t_69032fdb155fc1 1-58
+promo/README.md
+  s_98b9f922a3cf6e::t_da108e2ed6e40e 46-65
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9f3fb2f8cdc6437ea132c9db41e9789a219e7651",
+  "prompts": {},
+  "sessions": {
+    "s_98b9f922a3cf6e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2e0f25b9-5505-4b58-88c1-1bb68d47b286",
+        "model": "deepseek-flash"
+      },
+      "human_author": "xingzhiwei <xingzhiwei@xunlei.com>"
+    }
+  }
+}
