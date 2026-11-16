@@ -1,0 +1,21 @@
+README.md
+  s_98b9f922a3cf6e::t_b5ec525a0406a3 141-142,151-153
+deploy/README.md
+  s_98b9f922a3cf6e::t_d27b7017849f33 59-63
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5618dbc14bfc7ec108462108c85a0705503f97e5",
+  "prompts": {},
+  "sessions": {
+    "s_98b9f922a3cf6e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2e0f25b9-5505-4b58-88c1-1bb68d47b286",
+        "model": "deepseek-flash"
+      },
+      "human_author": "xingzhiwei <xingzhiwei@xunlei.com>"
+    }
+  }
+}
