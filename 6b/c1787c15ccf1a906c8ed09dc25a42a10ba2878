@@ -1,0 +1,44 @@
+.github/workflows/ci.yml
+  s_98b9f922a3cf6e::t_f4f5f0235bb7fa 1-25
+.github/workflows/uptime.yml
+  s_98b9f922a3cf6e::t_76dd907b70d33c 1-48
+tests/test_formula.py
+  s_98b9f922a3cf6e::t_cb52880809e0bc 1-20,22-27
+  s_98b9f922a3cf6e::t_ac24a400b15caf 21
+tests/test_seo_content.py
+  s_98b9f922a3cf6e::t_ddb497daf5b845 1-9
+README.md
+  s_98b9f922a3cf6e::t_56b6995f82ee89 157-160
+  s_98b9f922a3cf6e::t_c2c4ca15539daa 151-153
+  s_98b9f922a3cf6e::t_28c86893276bba 133-143
+pytest.ini
+  s_98b9f922a3cf6e::t_d8b9a1e6cced7d 1-3
+tests/test_bio.py
+  s_98b9f922a3cf6e::t_ac24a400b15caf 33
+  s_98b9f922a3cf6e::t_5ed5ff99dedf8a 1-32,34-41
+requirements-dev.txt
+  s_98b9f922a3cf6e::t_62ca963001057d 1
+deploy/README.md
+  s_98b9f922a3cf6e::t_5618ecec25c6fb 57-65
+tests/test_app.py
+  s_98b9f922a3cf6e::t_99af32728236f7 1-48,50-87
+  s_98b9f922a3cf6e::t_ac24a400b15caf 49
+tests/conftest.py
+  s_98b9f922a3cf6e::t_1afd85c5565d68 1-6
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6bc1787c15ccf1a906c8ed09dc25a42a10ba2878",
+  "prompts": {},
+  "sessions": {
+    "s_98b9f922a3cf6e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2e0f25b9-5505-4b58-88c1-1bb68d47b286",
+        "model": "deepseek-flash"
+      },
+      "human_author": "xingzhiwei <xingzhiwei@xunlei.com>"
+    }
+  }
+}
