@@ -144,7 +144,7 @@
 
       const btn = document.createElement("span");
       btn.className = "file-picker-btn";
-      btn.textContent = "Choose file";
+      btn.textContent = "Upload file";
       const name = document.createElement("span");
       name.className = "file-picker-name";
       name.textContent = "No file selected";
