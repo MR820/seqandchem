@@ -11,6 +11,7 @@ Production runs on a single Debian/Ubuntu host.
 | `backup.sh` | `/opt/seqchem-monitor/` | cron `30 1 * * *`; SQLite + configs, newest 7 in `/var/backups/seqchem` |
 | `uptime-check.sh` | `/opt/seqchem-monitor/` | cron `*/5 * * * *`; main site + api `/health` + services, Feishu on state change |
 | `seo-weekly.py` | `/opt/seqchem-monitor/` | cron `0 2 * * 1`; GSC + Bing + GoatCounter → Feishu; needs `gsc-service-account.json` and `bing-webmaster.env` |
+| `feedback-digest.py` | `/opt/seqchem-monitor/` | cron `15 1 * * *`; yesterday's feedback → Feishu, only when count > 0 |
 
 ## First-time setup
 
@@ -143,3 +144,7 @@ sqlite3 -header -column /opt/chemtools/data/feedback.sqlite3 \
 
 The endpoint has a 2,000-character limit, a hidden honeypot field and an in-memory limit of
 10 messages per client per hour.
+
+`feedback-digest.py` runs at 01:15 UTC (09:15 Asia/Shanghai) and pushes yesterday's messages to
+Feishu. It stays silent when there are zero new messages. Each message is normalised to one line
+and truncated to 300 characters; at most five are included per digest.
