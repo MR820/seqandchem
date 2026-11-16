@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Weekly SEO report: GSC index/performance + Bing + GoatCounter -> Feishu."""
+"""Weekly SEO report: GSC + Bing + GoatCounter -> Feishu interactive card."""
 import datetime
 import json
 import os
@@ -18,8 +18,11 @@ GSC_KEY = os.environ.get("GSC_KEY", "/opt/seqchem-monitor/gsc-service-account.js
 GC_DB = os.environ.get("GC_DB", "/opt/goatcounter/goatcounter-data/db.sqlite3")
 FEISHU_ENV = os.environ.get("FEISHU_ENV", "/opt/seqchem-monitor/feishu.env")
 BING_ENV = os.environ.get("BING_ENV", "/opt/seqchem-monitor/bing-webmaster.env")
+HISTORY = os.environ.get("SEO_HISTORY", "/opt/seqchem-monitor/seo-history.json")
 DRY_RUN = os.environ.get("DRY_RUN") == "1"
 INSPECT_LIMIT = int(os.environ.get("INSPECT_LIMIT", "49"))
+
+SPARK = "▁▂▃▄▅▆▇█"
 
 
 def load_env(path):
@@ -35,17 +38,70 @@ def load_env(path):
         pass
 
 
+def spark(values):
+    if not values:
+        return "—"
+    lo, hi = min(values), max(values)
+    if hi == lo:
+        return SPARK[0] * len(values)
+    return "".join(SPARK[round((v - lo) / (hi - lo) * (len(SPARK) - 1))] for v in values)
+
+
+def bars(rows, width=10):
+    if not rows:
+        return "—"
+    top = max(c for _, c in rows) or 1
+    out = []
+    for path, count in rows:
+        label = path if len(path) <= 30 else path[:29] + "…"
+        out.append(f"{label}  {'█' * max(1, round(count / top * width))} {count}")
+    return "\n".join(out)
+
+
+def progress(done, total, width=18):
+    total = max(1, total)
+    done = max(0, min(done, total))
+    filled = round(done / total * width)
+    return "█" * filled + "░" * (width - filled)
+
+
+def load_history():
+    try:
+        with open(HISTORY, encoding="utf-8") as fh:
+            value = json.load(fh)
+            return value if isinstance(value, list) else []
+    except (OSError, json.JSONDecodeError):
+        return []
+
+
+def save_history(entry):
+    history = [h for h in load_history() if h.get("date") != entry.get("date")]
+    history.append(entry)
+    history = history[-12:]
+    with open(HISTORY, "w", encoding="utf-8") as fh:
+        json.dump(history, fh, ensure_ascii=False, indent=2)
+    os.chmod(HISTORY, 0o600)
+    return history
+
+
 load_env(FEISHU_ENV)
 load_env(BING_ENV)
 
-lines = []
+today = datetime.date.today()
+data = {
+    "date": today.isoformat(),
+    "total": 0, "indexed": 0, "discovered": 0, "unknown": 0,
+    "issues": [], "canonical": [],
+    "impressions": 0, "clicks": 0,
+    "queries": [], "pages": [],
+    "gsc_end": "",
+    "daily_impressions": [], "daily_clicks": [],
+    "sitemap": {},
+    "bing": {},
+    "pv": 0, "uv": 0, "top": [], "events": [],
+    "daily_pv": [], "daily_uv": [],
+}
 errors = []
-
-
-def section(title):
-    lines.append("")
-    lines.append(title)
-
 
 # ---------- GSC ----------
 try:
@@ -58,80 +114,68 @@ try:
     sitemaps = session.get(
         f"https://searchconsole.googleapis.com/webmasters/v3/sites/{enc}/sitemaps", timeout=30
     ).json().get("sitemap", [])
+    sm = sitemaps[0] if sitemaps else {}
+    data["sitemap"] = {
+        "path": sm.get("path", ""),
+        "errors": sm.get("errors", "?"),
+        "warnings": sm.get("warnings", "?"),
+        "downloaded": sm.get("lastDownloaded", "?"),
+    }
 
-    today = datetime.date.today()
     end = today - datetime.timedelta(days=3)
     start = end - datetime.timedelta(days=27)
+    data["gsc_end"] = end.isoformat()
     analytics_url = (
         f"https://searchconsole.googleapis.com/webmasters/v3/sites/{enc}/searchAnalytics/query"
     )
-    queries = session.post(
-        analytics_url,
-        json={"startDate": start.isoformat(), "endDate": end.isoformat(),
-              "dimensions": ["query"], "rowLimit": 10},
-        timeout=30,
-    ).json().get("rows", [])
-    pages = session.post(
-        analytics_url,
-        json={"startDate": start.isoformat(), "endDate": end.isoformat(),
-              "dimensions": ["page"], "rowLimit": 10},
-        timeout=30,
-    ).json().get("rows", [])
 
-    sm = sitemaps[0] if sitemaps else {}
-    section("Google Search Console")
-    lines.append(
-        f"Sitemap: {sm.get('path', 'n/a')} · errors={sm.get('errors', '?')} "
-        f"· warnings={sm.get('warnings', '?')} · downloaded={sm.get('lastDownloaded', '?')}"
-    )
+    def analytics(dimensions, limit):
+        return session.post(
+            analytics_url,
+            json={"startDate": start.isoformat(), "endDate": end.isoformat(),
+                  "dimensions": dimensions, "rowLimit": limit},
+            timeout=30,
+        ).json().get("rows", [])
 
-    # Inspect every sitemap URL (limit for dry runs)
+    data["queries"] = analytics(["query"], 10)
+    data["pages"] = analytics(["page"], 10)
+    daily = analytics(["date"], 30)
+    daily_map = {row.get("keys", [""])[0]: row for row in daily}
+    dates = [(start + datetime.timedelta(days=offset)).isoformat() for offset in range(28)]
+    data["daily_impressions"] = [
+        int(daily_map.get(day, {}).get("impressions", 0)) for day in dates
+    ]
+    data["daily_clicks"] = [int(daily_map.get(day, {}).get("clicks", 0)) for day in dates]
+    data["impressions"] = sum(data["daily_impressions"])
+    data["clicks"] = sum(data["daily_clicks"])
+
     xml = requests.get("https://seqandchem.com/sitemap.xml", timeout=20).text
     urls = re.findall(r"<loc>([^<]+)</loc>", xml)
+    data["total"] = len(urls[:INSPECT_LIMIT])
     counts = Counter()
-    issues = []
-    canonical = []
     inspect_url = "https://searchconsole.googleapis.com/v1/urlInspection/index:inspect"
-    for u in urls[:INSPECT_LIMIT]:
-        body = {"inspectionUrl": u, "siteUrl": SITE, "languageCode": "en-US"}
+    for index, url in enumerate(urls[:INSPECT_LIMIT]):
+        body = {"inspectionUrl": url, "siteUrl": SITE, "languageCode": "en-US"}
         r = session.post(inspect_url, json=body, timeout=30)
         if not r.ok:
-            errors.append(f"inspect {u}: {r.status_code}")
+            errors.append(f"inspect {url}: {r.status_code}")
             continue
         idx = (r.json().get("inspectionResult") or {}).get("indexStatusResult") or {}
         cov = idx.get("coverageState") or idx.get("verdict") or "unknown"
         counts[cov] += 1
         if cov != "Submitted and indexed":
-            issues.append(f"{u} ({cov})")
+            data["issues"].append(f"{url.replace('https://seqandchem.com', '') or '/'} ({cov})")
         gc, uc = idx.get("googleCanonical"), idx.get("userCanonical")
-        if gc and uc and gc != uc:
-            canonical.append(f"{u}: google={gc} user={uc}")
-        time.sleep(0.1)
-    lines.append(
-        f"Indexed: {counts.get('Submitted and indexed', 0)}/{len(urls[:INSPECT_LIMIT])} "
-        f"· discovered: {counts.get('Discovered - currently not indexed', 0)} "
-        f"· unknown: {counts.get('URL is unknown to Google', 0)}"
-    )
-    if queries:
-        top = queries[0]
-        lines.append(
-            f"28d: impressions={sum(q.get('impressions', 0) for q in queries)} "
-            f"clicks={sum(q.get('clicks', 0) for q in queries)} "
-            f"· top query: {top.get('keys', ['?'])[0]} "
-            f"(imp={top.get('impressions', 0)}, pos={round(top.get('position', 0), 1)})"
-        )
-    else:
-        lines.append("28d: no search analytics rows yet")
-    if pages:
-        top_page = pages[0]
-        lines.append(
-            f"Top page: {top_page.get('keys', ['?'])[0]} "
-            f"(imp={top_page.get('impressions', 0)}, clicks={top_page.get('clicks', 0)})"
-        )
-    if issues:
-        lines.append("Unindexed priority: " + " · ".join(issues[:5]))
-    if canonical:
-        lines.append("Canonical mismatch: " + " · ".join(canonical[:3]))
+        if gc and uc and gc.rstrip("/") != uc.rstrip("/"):
+            data["canonical"].append(
+                f"{url.replace('https://seqandchem.com', '') or '/'}: "
+                f"google={gc} user={uc}"
+            )
+        if index < INSPECT_LIMIT - 1:
+            time.sleep(0.1)
+    data["indexed"] = counts.get("Submitted and indexed", 0)
+    data["discovered"] = counts.get("Discovered - currently not indexed", 0)
+    data["unknown"] = counts.get("URL is unknown to Google", 0)
 except Exception as exc:
     errors.append(f"GSC: {exc}")
 
@@ -154,17 +198,16 @@ try:
     crawl = bing("GetCrawlIssues") or []
     quota = bing("GetUrlSubmissionQuota") or {}
     feed = feeds[0] if feeds else {}
-    section("Bing Webmaster")
-    lines.append(
-        f"Sitemap: {feed.get('Status', '?')} · URLs={feed.get('UrlCount', '?')} "
-        f"· lastCrawled={feed.get('LastCrawled', '?')}"
-    )
-    lines.append(
-        f"Queries={len(qstats)} · traffic rows={len(traffic)} · crawl issues={len(crawl)} "
-        f"· quota={quota.get('DailyQuota', '?')}/{quota.get('MonthlyQuota', '?')}"
-    )
-    if qstats:
-        lines.append(f"Top Bing query: {qstats[0].get('Query', '?')}")
+    data["bing"] = {
+        "status": feed.get("Status", "?"),
+        "urls": feed.get("UrlCount", "?"),
+        "last_crawled": feed.get("LastCrawled", "?"),
+        "queries": len(qstats),
+        "traffic": len(traffic),
+        "crawl": len(crawl),
+        "quota": f"{quota.get('DailyQuota', '?')}/{quota.get('MonthlyQuota', '?')}",
+        "top_query": qstats[0].get("Query", "") if qstats else "",
+    }
 except Exception as exc:
     errors.append(f"Bing: {exc}")
 
@@ -172,38 +215,166 @@ except Exception as exc:
 try:
     conn = sqlite3.connect(GC_DB)
     cur = conn.cursor()
-    pv, uv = cur.execute(
+    data["pv"], data["uv"] = cur.execute(
         "select count(*), count(distinct session) from hits "
         "where created_at >= datetime('now','-7 days')"
     ).fetchone()
-    top = cur.execute(
+    data["top"] = cur.execute(
         "select p.path, count(*) c from hits h join paths p on p.path_id=h.path_id "
         "where h.created_at >= datetime('now','-7 days') group by p.path order by c desc limit 5"
     ).fetchall()
-    events = cur.execute(
+    data["events"] = cur.execute(
         "select p.path, count(*) c from hits h join paths p on p.path_id=h.path_id "
         "where h.created_at >= datetime('now','-7 days') and p.event=1 "
         "group by p.path order by c desc limit 5"
     ).fetchall()
+    daily_gc = dict(
+        (d, (pv, uv)) for d, pv, uv in cur.execute(
+            "select date(created_at), count(*), count(distinct session) from hits "
+            "where created_at >= datetime('now','-6 days') group by 1"
+        ).fetchall()
+    )
+    dates = [(today - datetime.timedelta(days=offset)).isoformat() for offset in range(6, -1, -1)]
+    data["daily_pv"] = [daily_gc.get(d, (0, 0))[0] for d in dates]
+    data["daily_uv"] = [daily_gc.get(d, (0, 0))[1] for d in dates]
     conn.close()
-    section("GoatCounter 7d")
-    lines.append(f"PV={pv} · UV={uv}")
-    if top:
-        lines.append("Top: " + " · ".join(f"{p} ({c})" for p, c in top))
-    if events:
-        lines.append("Events: " + " · ".join(f"{p} ({c})" for p, c in events))
 except Exception as exc:
     errors.append(f"GoatCounter: {exc}")
 
-# ---------- Send ----------
-lines.insert(0, f"📊 SeqChem SEO 周报 · {datetime.date.today().isoformat()}")
+# ---------- History / previous week ----------
+history = load_history()
+previous = next((h for h in reversed(history) if h.get("date", "") < data["date"]), None)
+if not DRY_RUN and not any(error.startswith("GSC:") for error in errors):
+    history = save_history({
+        "date": data["date"],
+        "indexed": data["indexed"],
+        "total": data["total"],
+        "impressions": data["impressions"],
+        "clicks": data["clicks"],
+        "pv": data["pv"],
+        "uv": data["uv"],
+    })
+
+# ---------- Text log ----------
+lines = [
+    f"📊 SeqChem SEO 周报 · {data['date']}",
+    "",
+    f"Google 收录: {data['indexed']}/{data['total']} "
+    f"· discovered={data['discovered']} · unknown={data['unknown']}",
+    f"GSC 28d: 展示={data['impressions']} · 点击={data['clicks']}",
+]
+if data["queries"]:
+    q = data["queries"][0]
+    lines.append(
+        f"Top query: {q.get('keys', ['?'])[0]} "
+        f"(imp={q.get('impressions', 0)}, pos={round(q.get('position', 0), 1)})"
+    )
+if data["pages"]:
+    p = data["pages"][0]
+    lines.append(f"Top page: {p.get('keys', ['?'])[0]} (imp={p.get('impressions', 0)})")
+lines += [
+    f"Bing: sitemap={data['bing'].get('status', '?')} "
+    f"URLs={data['bing'].get('urls', '?')} quota={data['bing'].get('quota', '?')}",
+    f"GoatCounter 7d: PV={data['pv']} · UV={data['uv']}",
+]
+if data["events"]:
+    lines.append("Events: " + " · ".join(f"{p} ({c})" for p, c in data["events"]))
 if errors:
-    lines.append("")
     lines.append("⚠️ " + " · ".join(errors[:4]))
 text = "\n".join(lines)
 print(text)
 
+# ---------- Feishu card ----------
+def build_card(data, errors):
+    delta = ""
+    if previous:
+        diff = data["indexed"] - previous.get("indexed", 0)
+        if diff:
+            delta = f" ({diff:+d})"
+    kpi = [
+        {"is_short": True, "text": {"tag": "lark_md",
+         "content": f"**Google 收录**\n**{data['indexed']}/{data['total']}**{delta}"}},
+        {"is_short": True, "text": {"tag": "lark_md",
+         "content": f"**GSC 28 天**\n**{data['impressions']}** 展示 · **{data['clicks']}** 点击"}},
+        {"is_short": True, "text": {"tag": "lark_md",
+         "content": f"**GoatCounter 7 天**\n**{data['pv']}** PV · **{data['uv']}** UV"}},
+        {"is_short": True, "text": {"tag": "lark_md",
+         "content": f"**Bing**\nSitemap {data['bing'].get('status', '?')} · "
+                    f"quota {data['bing'].get('quota', '?')}"}},
+    ]
+
+    recent_impressions = data["daily_impressions"][-7:]
+    recent_clicks = data["daily_clicks"][-7:]
+    period = f"（至 {data['gsc_end']}）" if data["gsc_end"] else ""
+
+    elements = [
+        {"tag": "div", "fields": kpi},
+        {"tag": "div", "text": {"tag": "lark_md",
+         "content": f"**收录进度**  {progress(data['indexed'], data['total'])}  "
+                    f"{data['indexed']}/{data['total']}\n"
+                    f"discovered {data['discovered']} · unknown {data['unknown']}"}},
+        {"tag": "hr"},
+        {"tag": "div", "text": {"tag": "lark_md",
+         "content": f"**Google · 近 7 天趋势**{period}\n"
+                    f"展示 {sum(recent_impressions)}  {spark(recent_impressions)}\n"
+                    f"点击 {sum(recent_clicks)}  {spark(recent_clicks)}"}},
+    ]
+
+    if data["queries"]:
+        q = data["queries"][0]
+        elements.append({"tag": "div", "text": {"tag": "lark_md",
+            "content": f"**Top query**  {q.get('keys', ['?'])[0]}\n"
+                       f"imp {q.get('impressions', 0)} · pos {round(q.get('position', 0), 1)}"}})
+    if data["pages"]:
+        p = data["pages"][0]
+        page_path = urllib.parse.urlparse(p.get("keys", [""])[0]).path or "/"
+        elements.append({"tag": "div", "text": {"tag": "lark_md",
+            "content": f"**Top page**  {page_path}\n"
+                       f"imp {p.get('impressions', 0)} · clicks {p.get('clicks', 0)}"}})
+    if data["issues"]:
+        elements.append({"tag": "div", "text": {"tag": "lark_md",
+            "content": "**优先未收录**\n" + "\n".join("• " + x for x in data["issues"][:5])}})
+    if data["canonical"]:
+        elements.append({"tag": "div", "text": {"tag": "lark_md",
+            "content": "**Canonical 提示**\n" + "\n".join("• " + x for x in data["canonical"][:3])}})
+
+    elements += [
+        {"tag": "hr"},
+        {"tag": "div", "text": {"tag": "lark_md",
+         "content": f"**Bing**\nSitemap {data['bing'].get('status', '?')} · "
+                    f"URLs {data['bing'].get('urls', '?')} · "
+                    f"queries {data['bing'].get('queries', 0)} · "
+                    f"crawl issues {data['bing'].get('crawl', 0)}"}},
+        {"tag": "div", "text": {"tag": "lark_md",
+         "content": f"**GoatCounter · 7 天**\nPV {data['pv']} · UV {data['uv']}\n"
+                    f"PV 趋势  {spark(data['daily_pv'])}\nUV 趋势  {spark(data['daily_uv'])}\n\n"
+                    f"**Top 页面**\n{bars(data['top'], width=14)}"}},
+    ]
+    if data["events"]:
+        elements.append({"tag": "div", "text": {"tag": "lark_md",
+            "content": "**工具事件**\n" + " · ".join(f"{p} ({c})" for p, c in data["events"])}})
+    if len(history) >= 2:
+        elements.append({"tag": "div", "text": {"tag": "lark_md",
+            "content": "**周度收录趋势**  " + spark([h.get("indexed", 0) for h in history])}})
+    if errors:
+        elements.append({"tag": "note", "elements": [
+            {"tag": "plain_text", "content": "⚠️ " + " · ".join(errors[:4])}]})
+
+    return {
+        "config": {"wide_screen_mode": True},
+        "header": {
+            "template": "red" if errors else "blue",
+            "title": {"tag": "plain_text", "content": f"📊 SeqChem SEO 周报 · {data['date']}"},
+        },
+        "elements": elements,
+    }
+
+
+card = build_card(data, errors)
+
 if DRY_RUN:
+    print("\n--- FEISHU CARD ---")
+    print(json.dumps(card, ensure_ascii=False, indent=2))
     print("\n[DRY_RUN] not sending to Feishu")
 else:
     try:
@@ -218,15 +389,26 @@ else:
             raise RuntimeError("no tenant_access_token")
         body = {
             "receive_id": open_id,
-            "msg_type": "text",
-            "content": json.dumps({"text": text}, ensure_ascii=False),
+            "msg_type": "interactive",
+            "content": json.dumps(card, ensure_ascii=False),
         }
         r = requests.post(
             "https://open.feishu.cn/open-apis/im/v1/messages?receive_id_type=open_id",
             headers={"Authorization": "Bearer " + token, "Content-Type": "application/json"},
             data=json.dumps(body, ensure_ascii=False), timeout=20,
         )
-        print("feishu:", r.json().get("msg"), r.json().get("code"))
+        result = r.json()
+        print("feishu:", result.get("msg"), result.get("code"))
+        if result.get("code") != 0:
+            # Fallback to plain text if the card schema is rejected.
+            fallback = requests.post(
+                "https://open.feishu.cn/open-apis/im/v1/messages?receive_id_type=open_id",
+                headers={"Authorization": "Bearer " + token, "Content-Type": "application/json"},
+                data=json.dumps({"receive_id": open_id, "msg_type": "text",
+                                 "content": json.dumps({"text": text}, ensure_ascii=False)},
+                                ensure_ascii=False), timeout=20,
+            ).json()
+            print("feishu fallback:", fallback.get("msg"), fallback.get("code"))
     except Exception as exc:
         print("feishu send failed:", exc)
         raise
