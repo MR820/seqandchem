@@ -67,8 +67,37 @@
 
 <footer>
   SeqChem · {{ credit }} · <a href="/">All tools</a> · <a href="/api">API</a> ·
-  <a href="/guides/">Guides</a> · <a href="mailto:devin2xing@gmail.com">Feedback</a>
+  <a href="/guides/">Guides</a> · <a href="#" data-feedback-open>Feedback</a>
 </footer>
+
+<button type="button" class="feedback-toggle" id="feedback-toggle"
+        aria-controls="feedback-panel" aria-expanded="false">Feedback</button>
+<div class="feedback-panel" id="feedback-panel" role="dialog" aria-modal="false"
+     aria-labelledby="feedback-title" hidden>
+  <div class="feedback-head">
+    <strong id="feedback-title">Anonymous feedback</strong>
+    <button type="button" class="feedback-close" id="feedback-close" aria-label="Close feedback">×</button>
+  </div>
+  <form id="feedback-form">
+    <label for="feedback-category">Type</label>
+    <select id="feedback-category">
+      <option value="idea">Idea / suggestion</option>
+      <option value="bug">Bug report</option>
+      <option value="other">Other</option>
+    </select>
+    <label for="feedback-message">Your message</label>
+    <textarea id="feedback-message" maxlength="2000" required
+              placeholder="What should we improve?"></textarea>
+    <input class="feedback-hp" id="feedback-website" name="website" type="text"
+           tabindex="-1" autocomplete="off" aria-hidden="true">
+    <div class="feedback-actions">
+      <span class="feedback-status" id="feedback-status" aria-live="polite"></span>
+      <button class="btn" id="feedback-submit" type="submit">Send</button>
+    </div>
+    <p class="feedback-note">Anonymous: no account or email required. Only your message,
+       category and page path are stored.</p>
+  </form>
+</div>
 
 <script src="/app.js?v={{ v_js }}"></script>
 {% block scripts %}{% endblock %}

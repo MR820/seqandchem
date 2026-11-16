@@ -11,6 +11,7 @@ import json
 import mimetypes
 import os
 import re
+import sqlite3
 import subprocess
 import threading
 import time
@@ -79,6 +80,12 @@ os.makedirs(DATA_DIR, exist_ok=True)
 HEAVY_LOCK_PATH = os.path.join(DATA_DIR, "heavy.lock")
 HEAVY_WAIT_SECONDS = int(os.environ.get("HEAVY_WAIT_SECONDS", "60"))
 _HEAVY_FALLBACK = threading.BoundedSemaphore(1)
+
+# Anonymous feedback: store only the message, category and page path.
+FEEDBACK_DB = os.path.join(DATA_DIR, "feedback.sqlite3")
+FEEDBACK_PER_HOUR = 10
+_FEEDBACK_HITS = collections.defaultdict(collections.deque)
+_FEEDBACK_LOCK = threading.Lock()
 
 
 def _heavy_acquire(timeout):
@@ -957,6 +964,68 @@ def sitemap():
 @app.get("/health")
 def health():
     return jsonify({"ok": True, "formats": len(supported_formats())})
+
+
+@app.post("/api/feedback")
+def api_feedback():
+    data = request.get_json(silent=True) or {}
+    # Hidden honeypot field: bots fill it, humans never see it.
+    if str(data.get("website") or "").strip():
+        return jsonify({"ok": True})
+
+    message = str(data.get("message") or "").strip()
+    if not message:
+        return err("Please enter a message")
+    if len(message) > 2000:
+        return err("Please keep feedback under 2000 characters", 400)
+
+    page = str(data.get("page") or "")[:300]
+    category = str(data.get("category") or "other").strip().lower()
+    if category not in {"idea", "bug", "other"}:
+        category = "other"
+
+    now = time.monotonic()
+    with _FEEDBACK_LOCK:
+        bucket = _FEEDBACK_HITS[_client_key()]
+        while bucket and bucket[0] < now - 3600:
+            bucket.popleft()
+        if len(bucket) >= FEEDBACK_PER_HOUR:
+            return err("Too many feedback messages", 429, "Please try again later.")
+        bucket.append(now)
+        if len(_FEEDBACK_HITS) > 5000:
+            for key in [k for k, v in _FEEDBACK_HITS.items() if not v]:
+                del _FEEDBACK_HITS[key]
+
+    try:
+        conn = sqlite3.connect(FEEDBACK_DB, timeout=10)
+        try:
+            conn.execute("PRAGMA journal_mode=WAL")
+            conn.execute(
+                "CREATE TABLE IF NOT EXISTS feedback ("
+                "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+                "created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, "
+                "category TEXT NOT NULL DEFAULT 'other', "
+                "page TEXT NOT NULL DEFAULT '', "
+                "message TEXT NOT NULL)"
+            )
+            conn.execute(
+                "INSERT INTO feedback (category, page, message) VALUES (?, ?, ?)",
+                (category, page, message),
+            )
+            conn.commit()
+        finally:
+            conn.close()
+        # Feedback is user content; keep the SQLite files private.
+        for suffix in ("", "-wal", "-shm"):
+            try:
+                os.chmod(FEEDBACK_DB + suffix, 0o600)
+            except OSError:
+                pass
+    except sqlite3.Error:
+        app.logger.exception("feedback insert failed")
+        return err("Could not save feedback", 503)
+
+    return jsonify({"ok": True})
 
 
 @app.get("/api/formats")

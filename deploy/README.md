@@ -127,3 +127,19 @@ Dependencies are installed in `/opt/seqchem-monitor/venv`. Run manually with:
 # dry run, no Feishu message:
 DRY_RUN=1 /opt/seqchem-monitor/venv/bin/python /opt/seqchem-monitor/seo-weekly.py
 ```
+
+## Anonymous feedback
+
+The floating form on every page posts to `POST /api/feedback`. Rows are stored in
+`/opt/chemtools/data/feedback.sqlite3` and contain only timestamp, category, page path and
+message — no IP address, user agent or email. The database is included in the daily backup.
+
+Read the latest entries with:
+
+```bash
+sqlite3 -header -column /opt/chemtools/data/feedback.sqlite3 \
+  "select id, created_at, category, page, message from feedback order by id desc limit 50;"
+```
+
+The endpoint has a 2,000-character limit, a hidden honeypot field and an in-memory limit of
+10 messages per client per hour.
