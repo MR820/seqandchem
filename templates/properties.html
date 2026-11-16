@@ -1,20 +1,20 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2 class="page-title">Molecular Property Calculator</h2>
+<h1 class="page-title">Molecular Property Calculator</h1>
 <p class="lead">Calculate molecular weight, formula, logP, TPSA, hydrogen bond donors and
    acceptors, rotatable bonds, molar refractivity, canonical SMILES, InChI and InChIKey.</p>
 
 <div class="card">
   <div class="grid">
     <div>
-      <label>Input format</label>
+      <label for="prop-from">Input format</label>
       <select id="prop-from" data-fmt data-dir="read" data-default="smi"></select>
     </div>
     <div></div>
   </div>
   <div style="margin-top:12px">
-    <label>Molecule data</label>
+    <label for="prop-input">Molecule data</label>
     <textarea id="prop-input" placeholder="e.g. CC(=O)Oc1ccccc1C(=O)O"></textarea>
     <div class="row">
 <input type="file" id="prop-file" data-target="#prop-input" style="font-size:13px"

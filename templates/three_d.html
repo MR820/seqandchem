@@ -1,18 +1,18 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2 class="page-title">3D Molecular Structure Generator</h2>
+<h1 class="page-title">3D Molecular Structure Generator</h1>
 <p class="lead">Generate a 3D conformer from a SMILES or any supported format, rotate it
    interactively in your browser and download the result as an SDF file.</p>
 
 <div class="card">
   <div class="grid">
     <div>
-      <label>Input format</label>
+      <label for="mol3d-from">Input format</label>
       <select id="mol3d-from" data-fmt data-dir="read" data-default="smi"></select>
     </div>
     <div>
-      <label>Style</label>
+      <label for="mol3d-style">Style</label>
       <select id="mol3d-style">
         <option value="stick">Stick</option>
         <option value="sphere">Sphere</option>
@@ -21,7 +21,7 @@
     </div>
   </div>
   <div style="margin-top:12px">
-    <label>Molecule data</label>
+    <label for="mol3d-input">Molecule data</label>
     <textarea id="mol3d-input" placeholder="e.g. CC(=O)Oc1ccccc1C(=O)O"></textarea>
     <div class="row">
 <input type="file" id="mol3d-file" data-target="#mol3d-input" style="font-size:13px"

@@ -6,7 +6,7 @@
 <title>{% block title %}{{ title }}{% endblock %}</title>
 <meta name="description" content="{{ description }}">
 <link rel="canonical" href="{{ canonical }}">
-<meta name="robots" content="index,follow">
+<meta name="robots" content="{{ robots|default('index,follow') }}">
 <meta property="og:type" content="website">
 <meta property="og:title" content="{{ title }}">
 <meta property="og:description" content="{{ description }}">
@@ -32,13 +32,15 @@
 </script>
 <script data-goatcounter="https://stats.seqandchem.com/count" async src="https://stats.seqandchem.com/count.js"></script>
 </head>
-<body data-page="{{ page }}">
+<body data-page="{{ page }}" data-three-dmol="{{ v_3dmol }}">
+
+<a class="skip-link" href="#main">Skip to content</a>
 
 <header>
   <div class="header-inner">
     <div class="logo">⚗</div>
     <div>
-      <h1><a href="/">SeqChem</a></h1>
+      <div class="site-name"><a href="/">SeqChem</a></div>
       <p>Free online chemistry &amp; sequence tools</p>
     </div>
   </div>
@@ -61,13 +63,14 @@
   </div>
 </nav>
 
-<main>
+<main id="main">
 {% block content %}{% endblock %}
 </main>
 
 <footer>
   SeqChem · {{ credit }} · <a href="/">All tools</a> · <a href="/api">API</a> ·
-  <a href="/guides/">Guides</a> · <a href="#" data-feedback-open>Feedback</a>
+  <a href="/guides/">Guides</a> · <a href="/privacy">Privacy</a> ·
+  <a href="#" data-feedback-open>Feedback</a>
 </footer>
 
 <button type="button" class="feedback-toggle" id="feedback-toggle"

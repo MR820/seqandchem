@@ -1,22 +1,22 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2 class="page-title">{{ h1 }}</h2>
+<h1 class="page-title">{{ h1 }}</h1>
 <p class="lead">{{ lead }}</p>
 
 <div class="card">
   <div class="grid">
     <div>
-      <label>Input format</label>
+      <label for="conv-from">Input format</label>
       <select id="conv-from" data-fmt data-dir="read" data-default="{{ from_fmt }}"></select>
     </div>
     <div>
-      <label>Output format</label>
+      <label for="conv-to">Output format</label>
       <select id="conv-to" data-fmt data-dir="write" data-default="{{ to_fmt }}"></select>
     </div>
   </div>
   <div style="margin-top:12px">
-    <label>Molecule data (paste or upload a file)</label>
+    <label for="conv-input">Molecule data (paste or upload a file)</label>
     <textarea id="conv-input" placeholder="{{ placeholder }}"></textarea>
     <div class="row">
       <input type="file" id="conv-file" data-target="#conv-input" style="font-size:13px"
@@ -40,7 +40,7 @@
 
 <div class="card">
   <div id="conv-3d-wrap" style="display:none;margin-bottom:12px">
-    <label>3D preview</label>
+    <div class="field-label">3D preview</div>
     <div id="conv-3d" class="viewer" style="width:100%;height:420px"></div>
     <p class="hint">Drag to rotate · scroll to zoom</p>
   </div>
@@ -70,4 +70,4 @@
 </div>
 {% endblock %}
 
-{% block scripts %}<script src="/3dmol-min.js?v={{ v_3dmol }}"></script>{% endblock %}
+{% block scripts %}{% endblock %}

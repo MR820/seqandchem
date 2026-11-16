@@ -97,7 +97,7 @@ Referência completa com exemplos de requisição/resposta: <https://seqandchem.
 - **OPSIN** (Universidade de Cambridge) para análise de nomes IUPAC, via HTTP
 - **3Dmol.js** para renderização 3D no cliente
 - **GoatCounter** para análises de página amigáveis à privacidade
-- Sem banco de dados — a aplicação é stateless
+- Aplicação Flask stateless; o feedback anônimo é o único dado armazenado (SQLite local)
 
 ## Estrutura do repositório
 

@@ -323,3 +323,9 @@ GUIDE_INDEX = {
     "description": "Practical guides on chemical file formats, molecular descriptors and sequence "
                    "formats: SMILES vs InChI, Lipinski's rule of five, FASTA vs FASTQ.",
 }
+
+# Additional practical sections for the guide pages (see seo_copy.py).
+from seo_copy import GUIDE_EXTRAS
+
+for _slug, _extra in GUIDE_EXTRAS.items():
+    GUIDES[_slug]["prose"] = GUIDES[_slug]["prose"].rstrip() + _extra

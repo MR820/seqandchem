@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="page-title">Page not found</h1>
+<p class="lead">The address you requested does not exist. It may have moved, or the link may be
+   incomplete.</p>
+
+<div class="card">
+  <h2>Popular places to start</h2>
+  <div class="row" style="gap:8px">
+    <a class="ghost-link" href="/">All tools</a>
+    <a class="ghost-link" href="/convert">Format converter</a>
+    <a class="ghost-link" href="/3d">3D structure</a>
+    <a class="ghost-link" href="/bio/">Sequence tools</a>
+    <a class="ghost-link" href="/api">API docs</a>
+    <a class="ghost-link" href="/guides/">Guides</a>
+  </div>
+  <p class="hint" style="margin:14px 0 0">If you followed a link from another site, please
+     <a href="#" data-feedback-open>tell us</a> so we can fix it.</p>
+</div>
+{% endblock %}

@@ -41,13 +41,16 @@ OBABEL = "obabel"
 TIMEOUT = 60
 MAX_INPUT = 8 * 1024 * 1024  # 8MB for single-molecule endpoints
 MAX_BATCH_INPUT = 64 * 1024 * 1024  # 64MB for /api/batch
+MAX_FEEDBACK_BODY = 16 * 1024       # feedback messages are capped at 2,000 chars
 MAX_BATCH_RECORDS = 5000           # records per batch run (any output format)
 MAX_BATCH_IMAGES = 500             # records per run when the output is an image
+BATCH_TIMEOUT = 840                # keep below gunicorn/nginx's 900s proxy timeout
 
 app = Flask(__name__, static_folder=None)
 Compress(app)
 # 静态资源缓存 1 天；模板里带 ?v=<mtime> 版本号，改文件即失效
 app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 86400
+app.config["MAX_CONTENT_LENGTH"] = MAX_BATCH_INPUT
 
 def _asset_v(name):
     try:
@@ -145,15 +148,17 @@ _RATE_GLOBAL_HITS = collections.deque()
 
 
 def _client_key():
-    for hdr in ("CF-Connecting-IP", "X-Real-IP"):
-        v = (request.headers.get(hdr) or "").strip()
-        if v and v not in ("127.0.0.1", "::1"):
-            return v
+    # nginx overwrites X-Real-IP with the address it actually saw. Do not
+    # trust CF-Connecting-IP directly here: the DNS-only API host is reachable
+    # without Cloudflare, so a client could spoof that header.
+    v = (request.headers.get("X-Real-IP") or "").strip()
+    if v and v not in ("127.0.0.1", "::1"):
+        return v
     for part in (request.headers.get("X-Forwarded-For") or "").split(","):
         part = part.strip()
         if part and part not in ("127.0.0.1", "::1"):
             return part
-    return "shared"
+    return request.remote_addr or "shared"
 
 
 def _rate_limited(bucket, limit, now, window):
@@ -163,6 +168,23 @@ def _rate_limited(bucket, limit, now, window):
         return max(1, int(60 - (now - bucket[0])))
     bucket.append(now)
     return 0
+
+
+@app.before_request
+def _api_body_limit():
+    """Reject oversized API bodies before Flask parses the JSON."""
+    if request.method not in {"POST", "PUT", "PATCH"} or not request.path.startswith("/api/"):
+        return None
+    if request.path == "/api/feedback":
+        limit = MAX_FEEDBACK_BODY
+    elif request.path in {"/api/batch", "/api/v1/batch"}:
+        limit = MAX_BATCH_INPUT
+    else:
+        limit = MAX_INPUT
+    length = request.content_length or 0
+    if length > limit:
+        return err("Request body too large", 413,
+                   f"Maximum body size for this endpoint is {limit // 1024} KB.")
 
 
 @app.before_request
@@ -184,6 +206,8 @@ def _api_rate_limit():
                                   f"{RATE_PER_CLIENT}/min per client, {RATE_GLOBAL}/min total."})
         resp.status_code = 429
         resp.headers["Retry-After"] = str(retry)
+        resp.headers["X-RateLimit-Limit"] = str(RATE_PER_CLIENT)
+        resp.headers["X-RateLimit-Remaining"] = "0"
         return resp
     return None
 
@@ -204,6 +228,27 @@ def _api_cors(resp):
         resp.headers.setdefault("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         resp.headers.setdefault("Access-Control-Allow-Headers", "Content-Type")
         resp.headers.setdefault("Access-Control-Max-Age", "86400")
+        resp.headers.setdefault("X-RateLimit-Limit", str(RATE_PER_CLIENT))
+        resp.headers.setdefault(
+            "X-RateLimit-Policy",
+            f"{RATE_PER_CLIENT}/min per client; {RATE_GLOBAL}/min service-wide (approximate)",
+        )
+    return resp
+
+
+@app.after_request
+def _html_cache(resp):
+    """Let Cloudflare cache mostly-static HTML for a short window.
+
+    The browser revalidates quickly; a CDN Cache Rule can use s-maxage for a
+    longer edge TTL. API, health and error responses are not cached here.
+    """
+    if (request.method == "GET" and resp.status_code == 200
+            and resp.mimetype == "text/html" and not request.path.startswith("/api/")):
+        resp.headers.setdefault(
+            "Cache-Control", "public, max-age=60, s-maxage=300, stale-while-revalidate=60"
+        )
+        resp.headers.setdefault("Vary", "Accept-Encoding")
     return resp
 
 
@@ -269,6 +314,12 @@ def run_obabel(args, data=b"", timeout=TIMEOUT):
 
 
 def payload(max_bytes=MAX_INPUT):
+    length = request.content_length or 0
+    if length > max_bytes:
+        raise ValueError(
+            f"Input too large: {length / 1048576:.1f} MB "
+            f"(limit {max_bytes // 1048576} MB)"
+        )
     data = request.get_json(silent=True) or {}
     text = data.get("data", "")
     if not isinstance(text, str):
@@ -332,7 +383,11 @@ def serve_static(filename):
     if use_gzip:
         resp.headers["Content-Encoding"] = "gzip"
         resp.headers["Vary"] = "Accept-Encoding"
-    resp.headers["Cache-Control"] = "public, max-age=86400"
+    versioned = "v" in request.args
+    resp.headers["Cache-Control"] = (
+        "public, max-age=31536000, immutable" if versioned
+        else "public, max-age=86400"
+    )
     resp.headers["ETag"] = etag
     return resp
 
@@ -726,6 +781,12 @@ PAGE_META.update({
         "description": "Free online bioinformatics tools: FASTA to FASTQ, FASTQ to FASTA, GC "
                        "content, reverse complement and DNA to protein translation.",
     },
+    "privacy": {
+        "page": "privacy", "template": "privacy.html",
+        "title": "Privacy Policy — How SeqChem Handles Data",
+        "description": "What SeqChem stores: anonymous feedback and aggregate analytics. "
+                       "No accounts, no advertising cookies, and no sale of personal data.",
+    },
 })
 
 
@@ -782,7 +843,7 @@ def page_bio_index():
 
 
 # ---------------------------------------------------------------- 教程文章
-GUIDE_DATE = "2026-11-11"
+GUIDE_DATE = "2026-11-16"
 
 
 def _guide_view(slug):
@@ -798,6 +859,11 @@ def _guide_view(slug):
 for _slug, _g in GUIDES.items():
     app.add_url_rule(_g["path"], endpoint="guide_" + _slug.replace("-", "_"),
                      view_func=(lambda k=_slug: _guide_view(k)))
+
+
+@app.get("/privacy")
+def page_privacy():
+    return _render("privacy")
 
 
 @app.get("/guides/")
@@ -946,15 +1012,17 @@ def sitemap():
         ("/guides/fasta-vs-fastq", "0.8", "monthly"),
         ("/api", "0.8", "monthly"),
         ("/embed", "0.7", "monthly"),
+        ("/privacy", "0.3", "yearly"),
     ]
     entries += [(f"/{slug}", "0.7", "monthly") for slug in PRESETS]
     # Static date: bump this when page content actually changes. A dynamic
     # "today" on every request makes lastmod meaningless to crawlers.
-    lastmod = "2026-11-12"
+    lastmod = "2026-11-16"
     body = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+    special_lastmod = {"/bio/translate": "2026-11-16", "/privacy": "2026-11-16"}
     for path, prio, freq in entries:
         # Per-page date for content that changed after the initial launch.
-        lm = "2026-11-13" if path == "/bio/translate" else lastmod
+        lm = special_lastmod.get(path, lastmod)
         body += (f"  <url><loc>{base}{path}</loc><lastmod>{lm}</lastmod>"
                  f"<priority>{prio}</priority><changefreq>{freq}</changefreq></url>\n")
     body += "</urlset>\n"
@@ -964,6 +1032,52 @@ def sitemap():
 @app.get("/health")
 def health():
     return jsonify({"ok": True, "formats": len(supported_formats())})
+
+
+@app.get("/favicon.ico")
+def favicon_ico():
+    return redirect("/favicon.svg", code=301)
+
+
+@app.get("/.well-known/security.txt")
+def security_txt():
+    body = (
+        "Contact: https://seqandchem.com/api\n"
+        "Preferred-Languages: en\n"
+        "Canonical: https://seqandchem.com/.well-known/security.txt\n"
+        "Expires: 2027-11-16T00:00:00.000Z\n"
+    )
+    return Response(body, mimetype="text/plain")
+
+
+def _error_page(status, title, description, template):
+    return render_template(
+        template, canonical=_base_url(), home_url=_base_url(),
+        page="error", nav="", page_name="", credit=DEFAULT_CREDIT,
+        title=title, description=description, robots="noindex,nofollow",
+    ), status
+
+
+@app.errorhandler(404)
+def handle_404(exc):
+    if request.path.startswith("/api/"):
+        return jsonify({"ok": False, "error": "Not found"}), 404
+    return _error_page(
+        404, "Page not found — SeqChem",
+        "The page you requested does not exist. Browse the tools or search from the home page.",
+        "404.html",
+    )
+
+
+@app.errorhandler(500)
+def handle_500(exc):
+    if request.path.startswith("/api/"):
+        return jsonify({"ok": False, "error": "Internal server error"}), 500
+    return _error_page(
+        500, "Something went wrong — SeqChem",
+        "The server hit an unexpected error. Please try again, or send a note through feedback.",
+        "500.html",
+    )
 
 
 @app.post("/api/feedback")
@@ -1035,13 +1149,21 @@ def api_formats():
         "smi", "can", "inchi", "inchikey", "mol", "sdf", "mol2", "pdb",
         "xyz", "cml", "sdf", "json", "smi", "txt", "svg", "png",
     ]
+    direction = (request.args.get("dir") or "both").strip().lower()
+    if direction not in {"read", "write", "both"}:
+        direction = "both"
+    if direction in {"read", "write"}:
+        formats = {
+            k: v for k, v in formats.items()
+            if v["read" if direction == "read" else "write"]
+        }
     items = [
         {"id": k, "desc": v["desc"], "read": v["read"], "write": v["write"]}
         for k, v in sorted(formats.items())
     ]
     order = {k: i for i, k in enumerate(dict.fromkeys(common))}
     items.sort(key=lambda x: (order.get(x["id"], 999), x["id"]))
-    return jsonify({"ok": True, "items": items})
+    return jsonify({"ok": True, "dir": direction, "items": items})
 
 
 @app.get("/api/example")
@@ -1350,7 +1472,107 @@ def api_similarity():
     })
 
 
-# ────────────────────────────────────────────── IUPAC 名称解析（OPSIN）
+# ────────────────────────────────────────────── IUPAC 名称解析（OPSIN + PubChem）
+_IUPAC_CACHE = {}
+_IUPAC_CACHE_LOCK = threading.Lock()
+_IUPAC_CACHE_TTL = 24 * 3600
+_IUPAC_CACHE_MAX = 512
+
+
+def _opsin_lookup(name):
+    url = "https://opsin.ch.cam.ac.uk/opsin/" + urllib.parse.quote(name) + ".json"
+    req = urllib.request.Request(url, headers={"User-Agent": "SeqChem/1.0"})
+    try:
+        with urllib.request.urlopen(req, timeout=20) as resp:
+            payload = json.load(resp)
+    except urllib.error.HTTPError as exc:
+        try:
+            payload = json.loads(exc.read().decode("utf-8"))
+        except Exception:  # noqa: BLE001
+            return None, "OPSIN lookup failed"
+    except Exception as exc:  # noqa: BLE001
+        return None, str(exc)[:200]
+
+    if payload.get("status") != "SUCCESS":
+        return None, payload.get("message", "OPSIN could not interpret the name")
+    smiles = payload.get("smiles") or ""
+    if not smiles:
+        return None, "OPSIN returned no structure"
+    return {
+        "ok": True,
+        "resolved": True,
+        "source": "opsin",
+        "smiles": smiles,
+        "inchi": payload.get("stdinchi") or payload.get("inchi") or "",
+        "inchikey": payload.get("stdinchikey") or "",
+    }, ""
+
+
+def _pubchem_lookup(name):
+    props = "SMILES,ConnectivitySMILES,InChI,InChIKey,MolecularFormula,MolecularWeight"
+    url = ("https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/"
+           + urllib.parse.quote(name, safe="") + "/property/" + props + "/JSON")
+    req = urllib.request.Request(
+        url, headers={"User-Agent": "SeqChem/1.0 (+https://seqandchem.com)"}
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            payload = json.load(resp)
+    except Exception:  # noqa: BLE001
+        return None
+    table = payload.get("PropertyTable") or {}
+    rows = table.get("Properties") or []
+    if not rows:
+        return None
+    row = rows[0]
+    smiles = (row.get("SMILES") or row.get("ConnectivitySMILES")
+              or row.get("IsomericSMILES") or row.get("CanonicalSMILES") or "")
+    if not smiles:
+        return None
+    return {
+        "ok": True,
+        "resolved": True,
+        "source": "pubchem",
+        "smiles": smiles,
+        "inchi": row.get("InChI") or "",
+        "inchikey": row.get("InChIKey") or "",
+        "formula": row.get("MolecularFormula") or "",
+        "mw": row.get("MolecularWeight") or None,
+        "cid": row.get("CID") or None,
+    }
+
+
+def _resolve_iupac(name):
+    opsin, opsin_error = _opsin_lookup(name)
+    if opsin:
+        return opsin
+    pubchem = _pubchem_lookup(name)
+    if pubchem:
+        return pubchem
+    return {
+        "ok": True,
+        "resolved": False,
+        "source": "none",
+        "message": opsin_error or "Name could not be resolved by OPSIN or PubChem",
+    }
+
+
+def _cached_iupac_lookup(name):
+    key = name.strip().casefold()
+    now = time.monotonic()
+    with _IUPAC_CACHE_LOCK:
+        hit = _IUPAC_CACHE.get(key)
+        if hit and now - hit[0] < _IUPAC_CACHE_TTL:
+            return hit[1]
+    result = _resolve_iupac(name)
+    if result.get("resolved"):
+        with _IUPAC_CACHE_LOCK:
+            if len(_IUPAC_CACHE) >= _IUPAC_CACHE_MAX:
+                _IUPAC_CACHE.pop(next(iter(_IUPAC_CACHE)))
+            _IUPAC_CACHE[key] = (now, result)
+    return result
+
+
 @app.post("/api/iupac")
 def api_iupac():
     data = request.get_json(silent=True) or {}
@@ -1359,35 +1581,10 @@ def api_iupac():
         return err("Please enter an IUPAC name")
     if len(name) > 300:
         return err("Name too long")
-
-    url = "https://opsin.ch.cam.ac.uk/opsin/" + urllib.parse.quote(name) + ".json"
-    req = urllib.request.Request(url, headers={"User-Agent": "SeqChem/1.0"})
     try:
-        with urllib.request.urlopen(req, timeout=20) as resp:
-            payload = json.load(resp)
-    except urllib.error.HTTPError as exc:
-        # OPSIN 解析失败时返回 404，但 body 仍是 JSON
-        try:
-            payload = json.loads(exc.read().decode("utf-8"))
-        except Exception:  # noqa: BLE001
-            return err("OPSIN lookup failed", 502, str(exc)[:300])
+        return jsonify(_cached_iupac_lookup(name))
     except Exception as exc:  # noqa: BLE001
-        return err("OPSIN lookup failed", 502, str(exc)[:300])
-
-    if payload.get("status") != "SUCCESS":
-        return jsonify({
-            "ok": True, "resolved": False, "source": "opsin",
-            "message": payload.get("message", "Name could not be interpreted"),
-        })
-
-    return jsonify({
-        "ok": True,
-        "resolved": True,
-        "source": "opsin",
-        "smiles": payload.get("smiles") or "",
-        "inchi": payload.get("stdinchi") or payload.get("inchi") or "",
-        "inchikey": payload.get("stdinchikey") or "",
-    })
+        return err("Name lookup failed", 502, str(exc)[:300])
 
 
 # ────────────────────────────────────────────── 批量转换
@@ -1440,8 +1637,12 @@ def api_batch():
     if waited >= 1:
         app.logger.info("batch queued %.1fs from %s", waited, request.remote_addr)
     try:
+        # Multi-image output is rendered per record by _batch_response. Running
+        # the whole file through OpenBabel first would be discarded, so skip it.
+        if is_image and count > 1:
+            return _batch_response(frm, to, text, b"", "", safe)
         rc, out, errtext = run_obabel(
-            [f"-i{frm}", f"-o{to}"] + safe, text.encode("utf-8"), timeout=1500
+            [f"-i{frm}", f"-o{to}"] + safe, text.encode("utf-8"), timeout=BATCH_TIMEOUT
         )
         if rc != 0 or not out:
             return _obabel_error(frm, errtext)
@@ -1470,9 +1671,15 @@ def _batch_response(frm, to, text, out, errtext, safe):
         # 多条记录：逐条转换后打包成 ZIP
         records = all_records
         images, failed = [], 0
-        for rec in records:
+        deadline = time.monotonic() + BATCH_TIMEOUT
+        for index, rec in enumerate(records):
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                failed += len(records) - index
+                break
             rc1, out1, _ = run_obabel(
-                [f"-i{frm}", f"-o{to}"] + safe, rec.encode("utf-8"), timeout=60
+                [f"-i{frm}", f"-o{to}"] + safe, rec.encode("utf-8"),
+                timeout=max(1, min(60, remaining)),
             )
             if rc1 == 0 and out1:
                 images.append(out1)
@@ -1504,7 +1711,7 @@ def _batch_response(frm, to, text, out, errtext, safe):
             "previews": previews,
             "rendered": len(images),
             "failed": failed,
-            "converted": converted,
+            "converted": len(images),
             "log": errtext.strip()[:2000],
         })
 
@@ -1639,7 +1846,8 @@ def _openapi_spec():
             "required": True,
             "content": {"application/json": {"schema": {
                 "type": "object", "properties": props,
-                "required": required or [k for k in props if k in ("data", "name", "formula")],
+                "required": (required if required is not None
+                             else [k for k in props if k in ("data", "name", "formula")]),
             }}},
         }
 
@@ -1647,13 +1855,17 @@ def _openapi_spec():
         return {"200": {"description": desc,
                         "content": {"application/json": {"schema": {"type": "object"}}}}}
 
+    def error_response(desc):
+        return {"description": desc, "content": {"application/json": {
+            "schema": {"$ref": "#/components/schemas/Error"}}}}
+
     def op(op_id, summary, description="", request_body=None, params=None, tags=None):
         o = {"operationId": op_id, "summary": summary, "description": description,
              "tags": tags or ["chemistry"], "responses": {
                  **ok("Success"),
-                 "400": {"description": "Invalid input"},
-                 "422": {"description": "Conversion failed"},
-                 "429": {"description": "Rate limit exceeded"}}}
+                 "400": error_response("Invalid input"),
+                 "422": error_response("Conversion failed"),
+                 "429": error_response("Rate limit exceeded")}}
         if request_body:
             o["requestBody"] = request_body
         if params:
@@ -1674,8 +1886,10 @@ def _openapi_spec():
     paths = {
         "/api/v1/formats": {"get": op(
             "listFormats", "List supported formats",
-            "Returns every format OpenBabel can read and/or write.", tags=["meta"],
-            params=[q("dir", "Filter by direction: read, write, or both")])},
+            "Returns every format OpenBabel can read and/or write. Use dir=read or dir=write "
+            "to filter.", tags=["meta"],
+            params=[q("dir", "Filter by direction: read, write, or both",
+                      {"type": "string", "enum": ["read", "write", "both"], "default": "both"})])},
         "/api/v1/example": {"get": op(
             "example", "Get an example molecule",
             "Returns aspirin in the requested format, useful for testing.",
@@ -1717,12 +1931,14 @@ def _openapi_spec():
                               ["a", "b"]))},
         "/api/v1/iupac": {"post": op(
             "iupac", "Resolve an IUPAC name to a structure",
-            "Parses the name with OPSIN (Cambridge) and returns SMILES, InChI and InChIKey.",
+            "Parses the name with OPSIN (Cambridge) and falls back to PubChem for trivial or "
+            "common names. Returns SMILES, InChI and InChIKey when resolved.",
             tags=["chemistry", "naming"],
             request_body=body({"name": {"type": "string"}}, ["name"]))},
         "/api/v1/batch": {"post": op(
             "batch", "Bulk conversion",
-            "Converts a whole file. Limits: 64 MB input, 5000 records (500 for image output).",
+            "Converts a whole file. Limits: 64 MB input, 5000 records (500 for image output); "
+            "the server-side run timeout is about 14 minutes.",
             request_body=body({"data": data_prop, "from": from_prop,
                                "to": to_prop, "opts": opts_prop}, ["data"]))},
         "/api/v1/formula": {"post": op(
@@ -1731,7 +1947,7 @@ def _openapi_spec():
             request_body=body({"mode": {"type": "string", "enum": ["formula", "structure"],
                                         "default": "formula"},
                                "formula": {"type": "string"},
-                               "data": data_prop, "from": from_prop}))},
+                               "data": data_prop, "from": from_prop}, []))},
         "/api/v1/bio": {"post": op(
             "bio", "FASTA / FASTQ operations",
             "op is one of fasta2fastq, fastq2fasta, revcomp, translate, stats.",
@@ -1757,10 +1973,11 @@ def _openapi_spec():
                            "2D depiction, 3D conformer generation, substructure and similarity "
                            "search, IUPAC name resolution and FASTA/FASTQ operations. "
                            "No API key required. Limits: 8 MB per request (64 MB batch), "
-                           "120 requests/minute per client.",
+                           "120 requests/minute per client (approximate; nginx adds a shared "
+                           "per-IP limit).",
             "license": {"name": "Free to use with attribution",
                         "url": base + "/api"},
-            "contact": {"url": base + "/api", "email": "devin2xing@gmail.com"},
+            "contact": {"url": base + "/api"},
         },
         "servers": servers,
         "tags": [
@@ -1770,6 +1987,19 @@ def _openapi_spec():
             {"name": "bioinformatics", "description": "Sequence tools"},
         ],
         "paths": paths,
+        "components": {
+            "schemas": {
+                "Error": {
+                    "type": "object",
+                    "required": ["ok", "error"],
+                    "properties": {
+                        "ok": {"type": "boolean", "example": False},
+                        "error": {"type": "string", "example": "Invalid input"},
+                        "detail": {"type": "string"},
+                    },
+                },
+            },
+        },
     }
 
 

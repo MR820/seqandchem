@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 {% block content %}
 <div id="bio-tool" data-op="{{ op }}">
-<h2 class="page-title">{{ h1 }}</h2>
+<h1 class="page-title">{{ h1 }}</h1>
 <p class="lead">{{ lead }}</p>
 
 <div class="card">
-  <label>{{ input_label }}</label>
+  <label for="bio-input">{{ input_label }}</label>
   <textarea id="bio-input" placeholder="{{ placeholder }}" style="min-height:180px"></textarea>
   <div class="row">
     <input type="file" id="bio-file" style="font-size:13px" />

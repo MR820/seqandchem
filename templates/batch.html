@@ -1,22 +1,22 @@
 {% extends "base.html" %}
 {% block content %}
-<h2 class="page-title">Batch Chemical Format Converter</h2>
+<h1 class="page-title">Batch Chemical Format Converter</h1>
 <p class="lead">Convert hundreds of molecules in one go. Upload an SDF or paste a list of
    SMILES, choose an output format, and download the whole converted file.</p>
 
 <div class="card">
   <div class="grid">
     <div>
-      <label>Input format</label>
+      <label for="batch-from">Input format</label>
       <select id="batch-from" data-fmt data-dir="read" data-default="sdf"></select>
     </div>
     <div>
-      <label>Output format</label>
+      <label for="batch-to">Output format</label>
       <select id="batch-to" data-fmt data-dir="write" data-default="smi"></select>
     </div>
   </div>
   <div style="margin-top:12px">
-    <label>Molecule file or list</label>
+    <label for="batch-input">Molecule file or list</label>
     <textarea id="batch-input" placeholder="Paste an SDF file or a list of SMILES — or upload a file below"></textarea>
     <div class="row">
       <input type="file" id="batch-file" style="font-size:13px" />

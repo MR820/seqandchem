@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 {% block content %}
-<h2 class="page-title">IUPAC Name to Structure</h2>
+<h1 class="page-title">IUPAC Name to Structure</h1>
 <p class="lead">Type a systematic IUPAC name and get the chemical structure back — SMILES,
    InChI, InChIKey, molecular formula and a drawn structure image. Parsing is done by
    <strong>OPSIN</strong>, with <strong>PubChem</strong> as a fallback for common and trivial names.</p>
 
 <div class="card">
-  <label>IUPAC name — one per line</label>
+  <label for="iupac-input">IUPAC name — one per line</label>
   <textarea id="iupac-input" placeholder="e.g. 2-acetoxybenzoic acid"></textarea>
   <div class="row">
     <button class="ghost" data-example="iupac">Load example</button>
@@ -25,7 +25,7 @@
   <p>The name is first sent to <strong>OPSIN</strong> (Open Parser for Systematic IUPAC
      Nomenclature), a rule-based parser from the University of Cambridge that reads systematic
      nomenclature directly — no dictionary lookup. If OPSIN cannot interpret the name (common for
-     trivial names such as “aspirin” or “caffeine”), the browser queries
+     trivial names such as “aspirin” or trade names such as “Tylenol”), the browser queries
      <strong>PubChem</strong> directly, which maintains a large curated name-to-structure index.</p>
 
   <h2>What OPSIN handles well</h2>

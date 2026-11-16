@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2 class="page-title">SeqChem API</h2>
+<h1 class="page-title">SeqChem API</h1>
 <p class="lead">A free JSON API over OpenBabel, OPSIN and a set of native sequence tools.
    Convert between 190+ chemical formats, compute descriptors, draw structures, resolve IUPAC
    names and process FASTA/FASTQ — no API key, no sign-up, CORS enabled.</p>
@@ -227,7 +227,9 @@ console.log(data.rows[0].props.MW);   // 180.159</code></pre>
 <pre><code>{"ok": true, "tanimoto": 0.4815, "bits_a": 54, "bits_b": 52, "common": 25, "union": 81}</code></pre>
 
 <h3 id="ep-iupac"><code>POST /api/v1/iupac</code></h3>
-<p>Parses an IUPAC name with OPSIN (Cambridge) and returns the structure identifiers.</p>
+<p>Parses an IUPAC name with OPSIN (Cambridge), falling back to PubChem for trivial or common
+   names, and returns the structure identifiers. The response <code>source</code> is
+   <code>opsin</code>, <code>pubchem</code> or <code>none</code>.</p>
 <table>
   <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
   <tbody><tr><td><code>name</code></td><td>string</td><td><strong>Required.</strong> IUPAC name, max 300 chars</td></tr></tbody>
@@ -247,7 +249,7 @@ console.log(data.rows[0].props.MW);   // 180.159</code></pre>
 <p>Bulk conversion of a whole file. Returns <code>result</code> for text formats; for image
    formats it returns a per-molecule preview list and, when there is more than one record, a
    ZIP as a <code>zip_url</code> data URL. Limits: 64 MB input, 5,000 records per run
-   (500 for image output).</p>
+   (500 for image output), with an approximately 14-minute server-side timeout.</p>
 <p><strong>Long-running jobs:</strong> the normal CDN endpoint has a 100-second origin timeout.
    For batches that may take longer, send the same request to
    <code>https://api.seqandchem.com/api/v1/batch</code> (direct origin, no CDN).</p>
@@ -305,7 +307,9 @@ console.log(data.rows[0].props.MW);   // 180.159</code></pre>
 
 <h2 id="limits">Limits and fair use</h2>
 <ul>
-  <li><strong>120 requests per minute per client</strong>, 300 per minute across the whole service.</li>
+  <li><strong>About 120 requests per minute per client</strong>, 300 per minute across the
+      service. nginx enforces a shared per-IP limit and the Flask app adds a second layer;
+      limits may be approximated across workers.</li>
   <li><strong>8 MB</strong> maximum input per request; <strong>64 MB</strong> for <code>/api/v1/batch</code>.</li>
   <li><strong>5,000 records</strong> per batch run, or <strong>500</strong> when the output is an image
       (PNG, SVG, PDF…). Requests over the limit return <code>400</code> with the actual count and the
@@ -323,7 +327,7 @@ console.log(data.rows[0].props.MW);   // 180.159</code></pre>
 <p>Machine-readable specification: <a href="/api/openapi.json">/api/openapi.json</a> — import it
    into Postman, Insomnia, or any OpenAPI client generator.</p>
 <p>Questions, bug reports or a use case the API does not cover:
-   <a href="mailto:devin2xing@gmail.com">devin2xing@gmail.com</a>.</p>
+   <a href="#" data-feedback-open>send anonymous feedback</a>.</p>
 
 </div>
 

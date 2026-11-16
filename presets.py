@@ -165,9 +165,9 @@ PRESETS = {
     "mol2-to-smiles": {
         "from_fmt": "mol2", "to_fmt": "smi",
         "h1": "MOL2 to SMILES Converter",
-        "title": "MOL2 to SMILES Converter — Free Online Tool",
-        "description": "Convert Tripos MOL2 files to SMILES online. Common when moving structures "
-                       "out of docking and molecular modelling tools.",
+        "title": "MOL2 to SMILES Converter — Convert Tripos MOL2 Online",
+        "description": "Convert Tripos MOL2 files to SMILES online. Common when moving ligands "
+                       "and modelled structures out of docking and molecular modelling tools.",
         "lead": "MOL2 is the Tripos format used by docking and modelling software. Convert it to "
                 "SMILES when you need a compact, portable representation.",
         "placeholder": "Paste the contents of a .mol2 file or upload it",
@@ -243,8 +243,9 @@ PRESETS = {
     "cml-to-smiles": {
         "from_fmt": "cml", "to_fmt": "smi",
         "h1": "CML to SMILES Converter",
-        "title": "CML to SMILES Converter — Free Online Tool",
-        "description": "Convert Chemical Markup Language (CML) XML files to SMILES strings online.",
+        "title": "CML to SMILES Converter — Chemical Markup Language",
+        "description": "Convert Chemical Markup Language (CML) XML files to SMILES strings online. "
+                       "Useful for ELN exports, instrument data and chemistry XML pipelines.",
         "lead": "CML is readable but bulky. Convert it to SMILES when you need something compact to "
                 "store, search or pass to another tool.",
         "placeholder": "Paste CML XML or upload a .cml file",
@@ -442,9 +443,9 @@ PRESETS = {
     "mol2-to-sdf": {
         "from_fmt": "mol2", "to_fmt": "sdf",
         "h1": "MOL2 to SDF Converter",
-        "title": "MOL2 to SDF Converter — Free Online Structure Format Tool",
+        "title": "MOL2 to SDF Converter — Tripos to Structure-Data File",
         "description": "Convert Tripos MOL2 files to SDF online, preserving 3D coordinates for "
-                       "downstream modelling and database tools.",
+                       "downstream modelling, viewers and compound database tools.",
         "lead": "Move structures out of modelling software and into the SDF ecosystem without losing "
                 "the three-dimensional geometry.",
         "placeholder": "Paste the contents of a .mol2 file or upload it",
@@ -510,3 +511,9 @@ PRESETS = {
 """,
     },
 }
+
+# Long-tail copy for pages that were not yet indexed (see seo_copy.py).
+from seo_copy import PRESET_EXTRAS
+
+for _slug, _extra in PRESET_EXTRAS.items():
+    PRESETS[_slug]["prose"] = PRESETS[_slug]["prose"].rstrip() + _extra

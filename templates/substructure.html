@@ -1,23 +1,23 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2 class="page-title">SMARTS Substructure Search</h2>
+<h1 class="page-title">SMARTS Substructure Search</h1>
 <p class="lead">Paste a list of molecules and a SMARTS pattern. Every structure containing
    the pattern is returned — ideal for filtering screening libraries by functional group.</p>
 
 <div class="card">
   <div class="grid">
     <div>
-      <label>Input format</label>
+      <label for="sub-from">Input format</label>
       <select id="sub-from" data-fmt data-dir="read" data-default="smi"></select>
     </div>
     <div>
-      <label>SMARTS pattern</label>
+      <label for="sub-smarts">SMARTS pattern</label>
       <input type="text" id="sub-smarts" value="c1ccccc1" />
     </div>
   </div>
   <div style="margin-top:12px">
-    <label>Molecule data (one per line)</label>
+    <label for="sub-input">Molecule data (one per line)</label>
     <textarea id="sub-input" placeholder="One molecule per line"></textarea>
     <div class="row">
 <input type="file" id="sub-file" data-target="#sub-input" style="font-size:13px"

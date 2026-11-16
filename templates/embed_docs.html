@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2 class="page-title">Embed a converter on your site</h2>
+<h1 class="page-title">Embed a converter on your site</h1>
 <p class="lead">Drop a working chemical format converter into any page with one line of HTML.
    Free, no API key, no account, no tracking of your readers.</p>
 
@@ -43,12 +43,49 @@
   <ul>
     <li>The widget is a plain <code>&lt;iframe&gt;</code> — it works in WordPress, Ghost, Hugo,
         Notion embeds, Jekyll, plain HTML, anywhere that allows raw HTML.</li>
-    <li>Conversion runs on our server through the same API the site uses. Nothing is stored.</li>
+    <li>Conversion runs on our server through the same API the site uses. Conversion data is not stored.</li>
     <li>Please keep the small “Powered by SeqChem” link — it is the only thing we ask in return.
         Removing it will not break the widget.</li>
-    <li>If you want a different size, format pair or theme, email
-        <a href="mailto:devin2xing@gmail.com">devin2xing@gmail.com</a> and we will add a preset.</li>
+    <li>If you want a different size, format pair or theme,
+        <a href="#" data-feedback-open>send anonymous feedback</a> and we will consider adding a preset.</li>
   </ul>
+
+  <h2>What the widget includes</h2>
+  <p>The iframe contains a small, self-contained converter: an input box, an output-format picker
+     and a Convert button. It uses the same public API as the rest of SeqChem, so it supports
+     SMILES, InChI, InChIKey, MOL, SDF, MOL2, PDB, XYZ, CML, SVG and PNG output. The widget does
+     not set cookies, does not require an API key and does not track individual readers.</p>
+
+  <h2>CSP and iframe embedding</h2>
+  <p>If your site sends a <code>Content-Security-Policy</code> with a <code>frame-src</code>
+     directive, add <code>https://seqandchem.com</code> to that directive. The widget response
+     allows embedding from HTTP and HTTPS pages; the main SeqChem pages themselves use
+     <code>X-Frame-Options: SAMEORIGIN</code>. If a browser shows a blank box, check the browser
+     console first — it usually names the blocked frame or a mixed-content problem.</p>
+
+  <h2>Troubleshooting</h2>
+  <ul>
+    <li><strong>Blank iframe:</strong> allow <code>seqandchem.com</code> in the embedding page's
+        CSP, and load the parent page over HTTPS.</li>
+    <li><strong>Too small:</strong> use a minimum height of 330&nbsp;px for a one-line converter,
+        or 380–420&nbsp;px when the format picker and result panel are both visible.</li>
+    <li><strong>No output for a valid molecule:</strong> try the full <a href="/convert">format
+        converter</a> and check the input format selector; a PDB or MOL2 file may need different
+        input handling than a SMILES string.</li>
+    <li><strong>Rate-limited:</strong> the public API allows 120 requests per minute per client;
+        interactive use is far below that, but a page that calls it in a loop may hit the limit.</li>
+  </ul>
+
+  <h2>Frequently asked questions</h2>
+  <h3>Can I use the widget on a commercial site?</h3>
+  <p>Yes. The converter is free to embed; keeping the attribution link is appreciated but not a
+     technical requirement.</p>
+  <h3>Does the widget work without JavaScript?</h3>
+  <p>No. The conversion runs through a small JavaScript fetch call, so JavaScript must be enabled
+     in the embedding page.</p>
+  <h3>Can I change the title or default formats?</h3>
+  <p>Yes. Use the <code>title</code>, <code>from</code> and <code>to</code> query parameters shown
+     above; the values are reflected in the iframe heading and initial selectors.</p>
 </div>
 
 <div class="card">
@@ -57,6 +94,7 @@
     <a class="ghost-link" href="/api">API documentation</a>
     <a class="ghost-link" href="/api/openapi.json">OpenAPI spec</a>
     <a class="ghost-link" href="/convert">Full converter</a>
+    <a class="ghost-link" href="/privacy">Privacy</a>
     <a class="ghost-link" href="/">All tools</a>
   </div>
 </div>

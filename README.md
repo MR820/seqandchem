@@ -59,8 +59,8 @@ FASTA vs FASTQ (`/guides/`).
 
 ## API
 
-No API key. JSON in, JSON out. CORS enabled. Fair use: 120 requests/minute per client,
-300/minute across the service; 8 MB maximum input per request.
+No API key. JSON in, JSON out. CORS enabled. Fair use: about 120 requests/minute per client,
+300/minute across the service (nginx per-IP plus app-level limits); 8 MB maximum input per request.
 
 ```bash
 curl -s https://seqandchem.com/api/v1/properties \
@@ -101,7 +101,7 @@ Full reference with request/response examples: <https://seqandchem.com/api>
 - **OPSIN** (University of Cambridge) for IUPAC name parsing, over HTTP
 - **3Dmol.js** for client-side 3D rendering
 - **GoatCounter** for privacy-friendly page analytics
-- No database — the app is stateless
+- Stateless Flask app; anonymous feedback is the only stored data (local SQLite)
 
 ## Repository layout
 
@@ -130,6 +130,17 @@ BASE_URL=http://127.0.0.1:8080 python app.py
 
 The app serves on `127.0.0.1:8080`; open <http://127.0.0.1:8080>.
 
+## Tests
+
+```bash
+pip install -r requirements.txt -r requirements-dev.txt
+python -m pytest
+```
+
+The suite covers the formula and sequence helpers, heading and error-page contracts,
+the formats filter, IUPAC caching and the feedback body limit. GitHub Actions runs it on every
+push and pull request.
+
 ## Deploying
 
 `deploy/chemtools.service` and `deploy/nginx.conf` are the production configuration used at
@@ -137,12 +148,16 @@ The app serves on `127.0.0.1:8080`; open <http://127.0.0.1:8080>.
 nginx terminating TLS.
 
 `deploy/daily-report.sh` is the operations health check that pushes a daily summary (traffic,
-crawler coverage, service state, security updates) to a Feishu bot.
+crawler coverage, service state, security updates) to a Feishu bot. The GitHub Actions workflow
+`.github/workflows/uptime.yml` independently checks the public site and direct API every 15
+minutes; add the `FEISHU_WEBHOOK` repository secret to receive failure alerts outside the host.
 
 ## Privacy
 
-Nothing is stored server-side. Molecules and sequences are converted in a subprocess and discarded.
-The only analytics is GoatCounter — cookie-free, no personal data, no cross-site tracking.
+Molecules and sequences are converted in a subprocess and are not stored. The anonymous feedback
+form stores only the message, category, page path and timestamp in a private local SQLite file.
+Analytics use self-hosted GoatCounter — cookie-free, no advertising profile, no cross-site
+tracking. See <https://seqandchem.com/privacy> for the full policy.
 
 ## Credits
 

@@ -54,6 +54,15 @@ FEISHU_APP_SECRET=...
 FEISHU_OPEN_ID=...
 ```
 
+## External uptime
+
+`.github/workflows/uptime.yml` runs on GitHub-hosted infrastructure every 15 minutes, so it still
+works when the SeqChem host or its network is down. It checks the public homepage, both `/health`
+endpoints and a real `/api/v1/convert` call. Add the repository secret `FEISHU_WEBHOOK` (a Feishu
+custom-bot webhook) to receive a text alert on failure; without the secret, the failed GitHub
+Actions run is still visible in the repository. Use “Run workflow” on the workflow page for a
+manual check.
+
 ## Real client IPs
 
 TLS is routed by SNI in an nginx `stream` block, so without help every request reaches the HTTP
@@ -89,6 +98,10 @@ Cloudflare-side settings:
 - SSL/TLS: Full (strict), Always Use HTTPS
 - Brotli and HTTP/3 on; Rocket Loader off
 - Cache Rule: bypass `/api/*`, `/count`, `/count.js`, `/user/*`, `/health`
+- Optional HTML cache: the app sends `s-maxage=300` on HTML; add a Cache Rule for
+  `text/html` (edge TTL 5 minutes, browser TTL 60 seconds) and purge the zone after a deploy
+- Versioned assets (`?v=...`) are served with one-year `immutable` caching; unversioned
+  static files keep the one-day default
 - update the trusted ranges from <https://www.cloudflare.com/ips/> when Cloudflare changes them
 
 Cloudflare nameservers: `coby.ns.cloudflare.com`, `walk.ns.cloudflare.com`.
@@ -104,7 +117,13 @@ origin responses after 100 seconds, while `/api/v1/batch` can run longer. Certbo
 Let's Encrypt certificate for it; the main site, `www` and `stats` stay proxied.
 
 Long batch clients can call `https://api.seqandchem.com/api/v1/batch` to bypass the CDN timeout.
-The subdomain sends `X-Robots-Tag: noindex` and returns 404 for non-API paths.
+The subdomain sends `X-Robots-Tag: noindex` and returns 404 for non-API paths. Batch requests are
+allowed up to 64 MB; other API bodies are capped at 8 MB and feedback at 16 KB. The application's
+batch timeout is 840 seconds, below the 900-second gunicorn/nginx proxy timeout.
+
+nginx also enforces API fair use in `nginx-main.conf`: 120 requests/minute per client IP and
+300/minute per vhost, with a small burst allowance. These are shared across gunicorn workers;
+the Flask limiter remains as a second layer and returns `X-RateLimit-*` headers.
 
 ## Weekly SEO report
 

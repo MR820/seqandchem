@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.9"
 license = "Apache-2.0"
 license-files = ["LICENSE"]
-authors = [{ name = "SeqChem", email = "devin2xing@gmail.com" }]
+authors = [{ name = "SeqChem" }]
 keywords = [
     "chemistry", "cheminformatics", "smiles", "inchi", "inchikey", "sdf", "mol",
     "openbabel", "bioinformatics", "fasta", "fastq", "molecular-descriptors",

@@ -210,6 +210,26 @@
   }
 
   /* ── 3D 渲染（共用） ── */
+  let threeDmolPromise = null;
+
+  function ensure3Dmol() {
+    if (window.$3Dmol) return Promise.resolve(true);
+    if (threeDmolPromise) return threeDmolPromise;
+    threeDmolPromise = new Promise((resolve) => {
+      const script = document.createElement("script");
+      const version = document.body.dataset.threeDmol || "";
+      script.src = "/3dmol-min.js" + (version ? "?v=" + encodeURIComponent(version) : "");
+      script.async = true;
+      script.onload = () => resolve(!!window.$3Dmol);
+      script.onerror = () => {
+        threeDmolPromise = null;
+        resolve(false);
+      };
+      document.head.appendChild(script);
+    });
+    return threeDmolPromise;
+  }
+
   function makeViewer(el) {
     if (!window.$3Dmol || !el) return null;
     return window.$3Dmol.createViewer(el, { backgroundColor: "#ffffff" });
@@ -227,7 +247,7 @@
     const pre = $("#conv-out");
     const toggle = $("#conv-toggle");
 
-    renderConv3d(j.preview_sdf || null);
+    renderConv3d(j.preview_sdf || null).catch(() => {});
 
     if (j.binary) {
       convBinary = { dataUrl: j.data_url, ext: (j.mime || "").split("/")[1] || "bin" };
@@ -270,11 +290,13 @@
     toggle.style.display = "none";
   }
 
-  function renderConv3d(sdf) {
+  async function renderConv3d(sdf) {
     const wrap = $("#conv-3d-wrap");
     const el = $("#conv-3d");
     if (!wrap || !el) return;
-    if (!sdf || !window.$3Dmol) { wrap.style.display = "none"; return; }
+    if (!sdf) { wrap.style.display = "none"; return; }
+    const ready = await ensure3Dmol();
+    if (!ready || !window.$3Dmol) { wrap.style.display = "none"; return; }
     wrap.style.display = "block";
     if (!viewerConv) viewerConv = makeViewer(el);
     if (!viewerConv) return;
@@ -848,6 +870,11 @@
     bindCopy();
     loadFormats();
     initFeedback();
+
+    if (window.matchMedia("(max-width: 760px)").matches) {
+      const activeNav = document.querySelector(".nav-inner a.active");
+      if (activeNav) activeNav.scrollIntoView({ block: "nearest", inline: "center" });
+    }
 
     if (page === "convert") {
       $("#conv-run").addEventListener("click", runConvert);

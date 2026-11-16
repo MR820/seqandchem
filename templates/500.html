@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="page-title">Something went wrong</h1>
+<p class="lead">The server hit an unexpected error while processing this request. Please try again
+   in a moment.</p>
+
+<div class="card">
+  <div class="row" style="gap:8px">
+    <a class="ghost-link" href="/">Back to all tools</a>
+    <a class="ghost-link" href="/convert">Format converter</a>
+    <a class="ghost-link" href="/api">API docs</a>
+  </div>
+  <p class="hint" style="margin:14px 0 0">If it keeps happening, please
+     <a href="#" data-feedback-open>send a note</a> with the page you were using.</p>
+</div>
+{% endblock %}

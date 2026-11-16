@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="page-title">Privacy Policy</h1>
+<p class="lead">SeqChem is a free, account-free tool. This page explains what is stored when you
+   use the site or its API, and what is not.</p>
+
+<div class="prose">
+  <h2>Summary</h2>
+  <ul>
+    <li>No accounts, no advertising cookies, and no sale of personal data.</li>
+    <li>Page analytics are aggregate and cookie-free.</li>
+    <li>The feedback form is anonymous: no name, email, IP address or user agent is stored.</li>
+    <li>Standard server logs may contain IP address and request metadata for security and operations.</li>
+  </ul>
+
+  <h2>Page analytics</h2>
+  <p>Page views are counted with a self-hosted <a href="https://www.goatcounter.com/">GoatCounter</a>
+     instance at <code>stats.seqandchem.com</code>. It records aggregate page views and referrers;
+     it does not use advertising cookies or build a personal profile. The analytics script is
+     loaded asynchronously and does not block the tools.</p>
+
+  <h2>Anonymous feedback</h2>
+  <p>When you submit the feedback form, the following are stored in a private SQLite database on
+     the server: the message you write, the selected category, the page path you were viewing, and
+     the submission timestamp. The form does not ask for your name or email, and the application
+     does not add your IP address or user agent to the feedback row. Please do not include personal
+     or confidential information in a feedback message.</p>
+
+  <h2>Server logs</h2>
+  <p>Like most web servers, nginx records requests for security and troubleshooting. Those logs can
+     include your IP address, user agent, requested path and response status. Logs are kept for a
+     limited operational period and are not sold or used for advertising. API request bodies are
+     processed to produce the response and are not intentionally stored as user records.</p>
+
+  <h2>Third-party requests</h2>
+  <p>Chemical name lookups use OPSIN at the University of Cambridge. For common or trivial names,
+     the IUPAC tool can also query PubChem directly from your browser; that request is subject to
+     PubChem's own privacy policy. The site does not require an account or a login.</p>
+
+  <h2>API</h2>
+  <p>The public API is keyless. It has no user accounts or profiles, but it applies fair-use rate
+     limits and standard request logging. Do not submit sensitive or regulated data to a public
+     conversion service.</p>
+
+  <h2>Contact</h2>
+  <p>Questions about this policy can be sent through the anonymous
+     <a href="#" data-feedback-open>feedback form</a>.</p>
+
+  <p class="hint">Last updated: 2026-11-16.</p>
+</div>
+{% endblock %}
