@@ -131,6 +131,34 @@
     });
   }
 
+  function setupFilePickers() {
+    // Native file inputs render "Choose File" in the browser's language.
+    // Wrap them with an English label and keep the original input/event intact.
+    $$('input[type="file"]').forEach((input) => {
+      if (input.closest(".file-picker")) return;
+      const wrap = document.createElement("label");
+      wrap.className = "file-picker";
+      input.parentNode.insertBefore(wrap, input);
+      wrap.appendChild(input);
+      input.classList.add("file-picker-input");
+
+      const btn = document.createElement("span");
+      btn.className = "file-picker-btn";
+      btn.textContent = "Choose file";
+      const name = document.createElement("span");
+      name.className = "file-picker-name";
+      name.textContent = "No file selected";
+      wrap.appendChild(btn);
+      wrap.appendChild(name);
+
+      input.addEventListener("change", () => {
+        name.textContent = input.files && input.files[0]
+          ? input.files[0].name
+          : "No file selected";
+      });
+    });
+  }
+
   function bindFiles() {
     // Any <input type="file"> works: it fills the field(s) named by data-target.
     // A comma-separated target list fills one line per field (used by Similarity).
@@ -749,6 +777,7 @@
   function init() {
     const page = document.body.dataset.page || "";
     bindExamples();
+    setupFilePickers();
     bindFiles();
     bindCopy();
     loadFormats();

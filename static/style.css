@@ -65,6 +65,23 @@ button.ghost,.ghost-link{
   border-radius:8px;cursor:pointer;font-size:13px;text-decoration:none;display:inline-block;
 }
 button.ghost:hover,.ghost-link:hover{border-color:var(--primary);color:var(--primary);text-decoration:none}
+.file-picker{
+  display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;
+  margin:0;font-size:inherit;color:inherit;
+}
+.file-picker-input{
+  position:absolute;width:1px;height:1px;padding:0;margin:-1px;
+  overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;
+}
+.file-picker-btn{
+  background:#fff;color:var(--text);border:1px solid var(--border);
+  padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;display:inline-block;
+}
+.file-picker:hover .file-picker-btn{border-color:var(--primary);color:var(--primary)}
+.file-picker-name{
+  font-size:13px;color:var(--muted);max-width:240px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
 .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .chip{
   display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);
