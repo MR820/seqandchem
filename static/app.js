@@ -774,6 +774,72 @@
     URL.revokeObjectURL(a.href);
   }
 
+  function initFeedback() {
+    const toggle = $("#feedback-toggle");
+    const panel = $("#feedback-panel");
+    if (!toggle || !panel) return;
+    const close = $("#feedback-close");
+    const form = $("#feedback-form");
+    const message = $("#feedback-message");
+    const category = $("#feedback-category");
+    const status = $("#feedback-status");
+    const submit = $("#feedback-submit");
+    const honeypot = $("#feedback-website");
+
+    const open = () => {
+      status.textContent = "";
+      panel.hidden = false;
+      toggle.setAttribute("aria-expanded", "true");
+      setTimeout(() => message.focus(), 20);
+    };
+    const shut = () => {
+      panel.hidden = true;
+      toggle.setAttribute("aria-expanded", "false");
+    };
+
+    toggle.addEventListener("click", () => (panel.hidden ? open() : shut()));
+    close.addEventListener("click", shut);
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !panel.hidden) shut();
+    });
+    $$("[data-feedback-open]").forEach((el) =>
+      el.addEventListener("click", (e) => {
+        e.preventDefault();
+        open();
+      })
+    );
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const text = message.value.trim();
+      if (!text) {
+        status.textContent = "Please enter a message.";
+        return;
+      }
+      submit.disabled = true;
+      status.textContent = "Sending…";
+      try {
+        const j = await postJSON("/api/feedback", {
+          message: text,
+          category: category.value,
+          page: location.pathname + location.search,
+          website: honeypot.value,
+        });
+        if (j.ok) {
+          form.reset();
+          status.textContent = "Thanks — feedback sent.";
+          trackEvent("feedback");
+          setTimeout(shut, 1500);
+        } else {
+          status.textContent = j.error || "Could not send feedback.";
+        }
+      } catch (err) {
+        status.textContent = "Network error. Please try again.";
+      }
+      submit.disabled = false;
+    });
+  }
+
   function init() {
     const page = document.body.dataset.page || "";
     bindExamples();
@@ -781,6 +847,7 @@
     bindFiles();
     bindCopy();
     loadFormats();
+    initFeedback();
 
     if (page === "convert") {
       $("#conv-run").addEventListener("click", runConvert);
