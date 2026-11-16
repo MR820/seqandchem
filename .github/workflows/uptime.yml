@@ -32,6 +32,7 @@ jobs:
         if: failure()
         env:
           FEISHU_WEBHOOK: ${{ secrets.FEISHU_WEBHOOK }}
+          FEISHU_WEBHOOK_SECRET: ${{ secrets.FEISHU_WEBHOOK_SECRET }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           if [ -z "${FEISHU_WEBHOOK:-}" ]; then
@@ -39,10 +40,21 @@ jobs:
             exit 0
           fi
           python3 - <<'PY'
-          import json, os, urllib.request
+          import base64, hashlib, hmac, json, os, time, urllib.request
           url = os.environ["FEISHU_WEBHOOK"]
           text = "SeqChem external uptime check failed.\n" + os.environ["RUN_URL"]
-          body = json.dumps({"msg_type": "text", "content": {"text": text}}).encode()
+          payload = {"msg_type": "text", "content": {"text": text}}
+          secret = os.environ.get("FEISHU_WEBHOOK_SECRET", "")
+          if secret:
+              timestamp = str(int(time.time()))
+              string_to_sign = f"{timestamp}\n{secret}"
+              sign = base64.b64encode(
+                  hmac.new(string_to_sign.encode("utf-8"), digestmod=hashlib.sha256).digest()
+              ).decode("utf-8")
+              payload["timestamp"] = timestamp
+              payload["sign"] = sign
+          body = json.dumps(payload).encode()
           req = urllib.request.Request(url, data=body, headers={"Content-Type": "application/json"})
-          urllib.request.urlopen(req, timeout=20).read()
+          with urllib.request.urlopen(req, timeout=20) as resp:
+              print(resp.read().decode("utf-8", "replace")[:500])
           PY
