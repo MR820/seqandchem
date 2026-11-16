@@ -1,0 +1,26 @@
+README.md
+  s_98b9f922a3cf6e::t_e02c1b6a9f96d6 141-143
+  s_98b9f922a3cf6e::t_3b7e96a6aaf740 152-155
+deploy/README.md
+  s_98b9f922a3cf6e::t_e02c1b6a9f96d6 59-64
+deploy/github-actions/ci.yml
+  s_98b9f922a3cf6e::t_c191e1cd831c0b 1-25
+deploy/github-actions/uptime.yml
+  s_98b9f922a3cf6e::t_c191e1cd831c0b 1-48
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a7a0033a31f487e4707d1e70ddeeb42bb5872d69",
+  "prompts": {},
+  "sessions": {
+    "s_98b9f922a3cf6e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2e0f25b9-5505-4b58-88c1-1bb68d47b286",
+        "model": "deepseek-flash"
+      },
+      "human_author": "xingzhiwei <xingzhiwei@xunlei.com>"
+    }
+  }
+}
