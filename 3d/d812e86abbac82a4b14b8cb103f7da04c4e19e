@@ -1,0 +1,48 @@
+README.pt-BR.md
+  s_98b9f922a3cf6e::t_f86c91a0665353 100
+templates/base.html
+  s_98b9f922a3cf6e::t_d04aee6afcc55c 72-73
+  s_98b9f922a3cf6e::t_ed23a7d8dc5fd3 9
+app.py
+  s_98b9f922a3cf6e::t_87fd8c5f6f9c31 1822
+  s_98b9f922a3cf6e::t_717abb114b1166 809-813
+  s_98b9f922a3cf6e::t_a430262b5825bd 960
+  s_98b9f922a3cf6e::t_2db3c261a35252 729-734
+  s_98b9f922a3cf6e::t_86d6ae1f8758b9 967,970
+  s_98b9f922a3cf6e::t_2198983498f686 982-1027
+templates/privacy.html
+  s_98b9f922a3cf6e::t_0a19f5bf6d9eaf 1-51
+templates/iupac.html
+  s_98b9f922a3cf6e::t_d818f23e00c9e1 28
+templates/404.html
+  s_98b9f922a3cf6e::t_fca9aba8099b13 1-20
+README.md
+  s_98b9f922a3cf6e::t_f5d1f0d205d074 104
+templates/500.html
+  s_98b9f922a3cf6e::t_0e651b05aee523 1-16
+templates/api_docs.html
+  s_98b9f922a3cf6e::t_d30cef885df537 326
+templates/index.html
+  s_98b9f922a3cf6e::t_cc7d750baf7713 9
+templates/embed_docs.html
+  s_98b9f922a3cf6e::t_54f7730ea0398d 46
+  s_98b9f922a3cf6e::t_f0e75441bf6339 49-50
+packages/python/pyproject.toml
+  s_98b9f922a3cf6e::t_82c8772babbca3 13
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3dd812e86abbac82a4b14b8cb103f7da04c4e19e",
+  "prompts": {},
+  "sessions": {
+    "s_98b9f922a3cf6e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2e0f25b9-5505-4b58-88c1-1bb68d47b286",
+        "model": "deepseek-flash"
+      },
+      "human_author": "xingzhiwei <xingzhiwei@xunlei.com>"
+    }
+  }
+}
