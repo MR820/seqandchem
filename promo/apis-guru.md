@@ -56,3 +56,16 @@ APIs.guru updates definitions weekly. Check:
 
 If they ask for a category change, `data` or `education` are the closest alternatives; `tools`
 is the best fit for a utility API.
+
+## Submission status
+
+Submitted on **2026-11-16** through the Add API flow, which creates a GitHub issue:
+
+- Issue: <https://github.com/APIs-guru/openapi-directory/issues/4428>
+- Title: `Add "SeqChem" API`
+- Body fields: `Format=openapi`, `Official=true`, `Url=https://seqandchem.com/api/openapi.json`, `Name=SeqChem`, `Category=tools`, `Logo=https://seqandchem.com/logo-512.png`
+
+The `add API` label could not be applied by the submitting GitHub account (GitHub requires
+repository admin rights for labels); the maintainers/bot can add it during review.
+APIs.guru refreshes the directory weekly — check for `seqandchem.com` in
+<https://api.apis.guru/v2/list.json> or <https://apis.guru/?search=seqchem>.
