@@ -1,0 +1,22 @@
+static/style.css
+  s_98b9f922a3cf6e::t_0a6d30e54dc735 68-84
+static/app.js
+  s_98b9f922a3cf6e::t_39b2c64955adbc 780
+  s_98b9f922a3cf6e::t_c6a5e0e805db5c 134-161
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f82b02c5a646caf3f848f83eebf10a1ef0dee2c4",
+  "prompts": {},
+  "sessions": {
+    "s_98b9f922a3cf6e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2e0f25b9-5505-4b58-88c1-1bb68d47b286",
+        "model": "deepseek-flash"
+      },
+      "human_author": "xingzhiwei <xingzhiwei@xunlei.com>"
+    }
+  }
+}
