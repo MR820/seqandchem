@@ -1,0 +1,50 @@
+app.py
+  s_98b9f922a3cf6e::t_2b456e46a28897 1990-2002
+  s_98b9f922a3cf6e::t_f1590126e92bcf 1950
+  s_98b9f922a3cf6e::t_fdd05b4801bb96 1976-1977
+  s_98b9f922a3cf6e::t_6d2cadde808f3c 1934-1935
+  s_98b9f922a3cf6e::t_0c61c3adc92b06 1889-1892
+  s_98b9f922a3cf6e::t_94af49c3f261a4 151-156,161
+  s_98b9f922a3cf6e::t_e3b7be56f604b8 209-210
+  s_98b9f922a3cf6e::t_1220246029a8e6 1475-1480,1482,1492,1494,1497-1501,1505,1508-1587
+  s_98b9f922a3cf6e::t_d9d8c053fcd2b1 1849-1850
+  s_98b9f922a3cf6e::t_d5f74ab69562d5 1858-1861,1866-1868
+  s_98b9f922a3cf6e::t_0c8fd9e7fdec1f 231-235
+  s_98b9f922a3cf6e::t_20769904282a52 1152-1159,1166
+deploy/nginx.conf
+  s_98b9f922a3cf6e::t_a7de9a512f1be1 84-85,201-202
+  s_98b9f922a3cf6e::t_ce4162f1a7c17e 228-229
+  s_98b9f922a3cf6e::t_06280f3e5526c7 72-73,189-190
+  s_98b9f922a3cf6e::t_27db51266b16fb 58-62,108,177-181
+  s_98b9f922a3cf6e::t_29138633b13bcb 98-99,215-216
+  s_98b9f922a3cf6e::t_10e38983a4b899 110-112
+  s_98b9f922a3cf6e::t_216b1e9a6c9800 100-102,105-107
+  s_98b9f922a3cf6e::t_8125f7cee74943 109
+  s_98b9f922a3cf6e::t_e248c691973055 103-104
+templates/api_docs.html
+  s_98b9f922a3cf6e::t_644540509af100 310-312
+  s_98b9f922a3cf6e::t_aeae9f1493ff7d 230-232
+deploy/nginx-main.conf
+  s_98b9f922a3cf6e::t_1a53a5fef6cde9 20
+  s_98b9f922a3cf6e::t_58ec841f8832d7 16-19
+README.md
+  s_98b9f922a3cf6e::t_55cb88a7617262 62-63
+deploy/README.md
+  s_98b9f922a3cf6e::t_00c3cb98a1658e 115-118
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "84b955dd100448fc2cb42b853982706f6fecef25",
+  "prompts": {},
+  "sessions": {
+    "s_98b9f922a3cf6e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2e0f25b9-5505-4b58-88c1-1bb68d47b286",
+        "model": "deepseek-flash"
+      },
+      "human_author": "xingzhiwei <xingzhiwei@xunlei.com>"
+    }
+  }
+}
