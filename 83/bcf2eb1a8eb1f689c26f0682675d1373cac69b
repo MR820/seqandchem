@@ -1,0 +1,36 @@
+static/app.js
+  s_98b9f922a3cf6e::t_7541c47200e2f5 777-842,850
+templates/base.html
+  s_98b9f922a3cf6e::t_3dad6c69c4bda5 70,73-100
+  s_98b9f922a3cf6e::t_cee3fb1f231fb5 101
+static/style.css
+  s_98b9f922a3cf6e::t_0cf80edd9e9566 132-171
+deploy/backup.sh
+  s_98b9f922a3cf6e::t_0eabd4fbe5898d 17,20-25
+  s_98b9f922a3cf6e::t_6f597efed94b4b 2
+  s_98b9f922a3cf6e::t_8a14f801da371e 31-32
+  s_98b9f922a3cf6e::t_1160eae05309c4 26
+deploy/README.md
+  s_98b9f922a3cf6e::t_70b5b3e0592fbb 130-145
+app.py
+  s_98b9f922a3cf6e::t_a8866d123d6f7b 14
+  s_98b9f922a3cf6e::t_7c290f44d4fdb9 969-1017,1024-1030
+  s_98b9f922a3cf6e::t_82f551b9887fb9 1018-1023
+  s_98b9f922a3cf6e::t_49050c3e7cb7fc 84-89
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "83bcf2eb1a8eb1f689c26f0682675d1373cac69b",
+  "prompts": {},
+  "sessions": {
+    "s_98b9f922a3cf6e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2e0f25b9-5505-4b58-88c1-1bb68d47b286",
+        "model": "deepseek-flash"
+      },
+      "human_author": "xingzhiwei <xingzhiwei@xunlei.com>"
+    }
+  }
+}
