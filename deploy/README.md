@@ -10,7 +10,7 @@ Production runs on a single Debian/Ubuntu host.
 | `daily-report.sh` | `/opt/seqchem-monitor/` | cron `0 1 * * *`; needs `feishu.env` alongside |
 | `backup.sh` | `/opt/seqchem-monitor/` | cron `30 1 * * *`; SQLite + configs, newest 7 in `/var/backups/seqchem` |
 | `uptime-check.sh` | `/opt/seqchem-monitor/` | cron `*/5 * * * *`; main site + api `/health` + services, Feishu on state change |
-| `seo-weekly.py` | `/opt/seqchem-monitor/` | cron `0 2 * * 1`; GSC + Bing + GoatCounter → Feishu; needs `gsc-service-account.json` and `bing-webmaster.env` |
+| `seo-weekly.py` | `/opt/seqchem-monitor/` | cron `0 2 * * 1`; GSC + Bing + GoatCounter → Feishu interactive card; needs `gsc-service-account.json` and `bing-webmaster.env` |
 | `feedback-digest.py` | `/opt/seqchem-monitor/` | cron `15 1 * * *`; yesterday's feedback → Feishu, only when count > 0 |
 
 ## First-time setup
@@ -108,11 +108,13 @@ The subdomain sends `X-Robots-Tag: noindex` and returns 404 for non-API paths.
 
 ## Weekly SEO report
 
-`seo-weekly.py` runs Mondays at 02:00 UTC and pushes a Feishu summary with:
+`seo-weekly.py` runs Mondays at 02:00 UTC and pushes a Feishu **interactive card** with:
 
-- Google Search Console: URL Inspection for the sitemap URLs, 28-day queries/pages
+- Google Search Console: indexed progress bar, 28-day totals, 7-day impression/click
+  sparklines, top query/page, URL Inspection failures
 - Bing Webmaster: sitemap status, queries, crawl issues, submission quota
-- GoatCounter: last-7-day PV/UV, top pages and tool events
+- GoatCounter: last-7-day PV/UV sparklines, top-page bars and tool events
+- 12-week indexing history from `/opt/seqchem-monitor/seo-history.json` (mode 600)
 
 Credentials live outside the repo, both mode 600:
 
