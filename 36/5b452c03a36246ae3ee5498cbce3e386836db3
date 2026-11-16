@@ -1,0 +1,35 @@
+deploy/README.md
+  s_98b9f922a3cf6e::t_7d202cde80db1e 111,116-117
+  s_98b9f922a3cf6e::t_652e28fab3e73a 113-114
+  s_98b9f922a3cf6e::t_f708ecce97a7c8 13
+deploy/seo-weekly.py
+  s_98b9f922a3cf6e::t_b5d7c14785de6a 127
+  s_98b9f922a3cf6e::t_880a7105ef1a27 143-148
+  s_98b9f922a3cf6e::t_7135dd624befbc 169
+  s_98b9f922a3cf6e::t_76bce6518befcf 314-315
+  s_98b9f922a3cf6e::t_5cbb9d90285c8c 306-309,318-320
+  s_98b9f922a3cf6e::t_9e5959d7a228a4 2,21,25-26,41-47,49-74,77-84,87-96,98-105,117-123,132-142,149-150,154,157-158,161,167,170-178,201-210,218,222,226,231-239,244-246,248-281,287-305,310-313,316-317,321-325,327-329,331,333-350,352-373,392-393,400-411
+  s_98b9f922a3cf6e::t_f3d076113d56b8 97
+  s_98b9f922a3cf6e::t_d4bed4f548497f 247
+  s_98b9f922a3cf6e::t_da3cc293086fe3 326
+  s_98b9f922a3cf6e::t_9a508d00cdd64d 330,332
+  s_98b9f922a3cf6e::t_0084f4d13ac24e 376-377
+  s_98b9f922a3cf6e::t_e233802f2f4915 351
+  s_98b9f922a3cf6e::t_efae42a139f999 374
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "365b452c03a36246ae3ee5498cbce3e386836db3",
+  "prompts": {},
+  "sessions": {
+    "s_98b9f922a3cf6e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2e0f25b9-5505-4b58-88c1-1bb68d47b286",
+        "model": "deepseek-flash"
+      },
+      "human_author": "xingzhiwei <xingzhiwei@xunlei.com>"
+    }
+  }
+}
