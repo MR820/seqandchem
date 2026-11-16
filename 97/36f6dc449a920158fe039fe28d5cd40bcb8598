@@ -1,0 +1,77 @@
+static/app.js
+  s_98b9f922a3cf6e::t_3d93e57ccee4ae 852-856
+templates/bio_index.html
+  s_98b9f922a3cf6e::t_b88f305bccd139 3
+templates/depict.html
+  s_98b9f922a3cf6e::t_b88f305bccd139 4
+  s_98b9f922a3cf6e::t_9025cf8bb4f78e 11,17
+templates/similarity.html
+  s_98b9f922a3cf6e::t_b88f305bccd139 4
+  s_98b9f922a3cf6e::t_9025cf8bb4f78e 11,15,21,25
+templates/three_d.html
+  s_98b9f922a3cf6e::t_b88f305bccd139 4
+  s_98b9f922a3cf6e::t_9025cf8bb4f78e 11,15,24
+templates/properties.html
+  s_98b9f922a3cf6e::t_9025cf8bb4f78e 11,17
+  s_98b9f922a3cf6e::t_b88f305bccd139 4
+templates/base.html
+  s_98b9f922a3cf6e::t_216cc8bf43d69e 66
+  s_98b9f922a3cf6e::t_b88f305bccd139 43
+  s_98b9f922a3cf6e::t_722f2eaf999ff4 37-38
+templates/formula.html
+  s_98b9f922a3cf6e::t_b88f305bccd139 3
+  s_98b9f922a3cf6e::t_9025cf8bb4f78e 14,22,28
+templates/preset.html
+  s_98b9f922a3cf6e::t_9025cf8bb4f78e 10,14,19,43
+  s_98b9f922a3cf6e::t_b88f305bccd139 4
+templates/substructure.html
+  s_98b9f922a3cf6e::t_b88f305bccd139 4
+  s_98b9f922a3cf6e::t_9025cf8bb4f78e 11,15,20
+templates/convert.html
+  s_98b9f922a3cf6e::t_b88f305bccd139 4
+  s_98b9f922a3cf6e::t_9025cf8bb4f78e 11,15,20,46
+templates/guide.html
+  s_98b9f922a3cf6e::t_b88f305bccd139 5
+templates/lipinski.html
+  s_98b9f922a3cf6e::t_b88f305bccd139 3
+templates/embed_docs.html
+  s_98b9f922a3cf6e::t_b88f305bccd139 4
+static/style.css
+  s_98b9f922a3cf6e::t_13c90f9dd5f26f 13-21
+  s_98b9f922a3cf6e::t_01406bc7d3bb90 63
+  s_98b9f922a3cf6e::t_843d0c181bd66d 31-32
+  s_98b9f922a3cf6e::t_6cad2466c68d9e 57-62
+  s_98b9f922a3cf6e::t_62297df3f5f5f8 130
+  s_98b9f922a3cf6e::t_04fadd6e3eeecd 50
+templates/guides_index.html
+  s_98b9f922a3cf6e::t_b88f305bccd139 4
+templates/batch.html
+  s_98b9f922a3cf6e::t_b88f305bccd139 3
+  s_98b9f922a3cf6e::t_9025cf8bb4f78e 10,14,19
+templates/api_docs.html
+  s_98b9f922a3cf6e::t_b88f305bccd139 4
+templates/index.html
+  s_98b9f922a3cf6e::t_b88f305bccd139 5
+templates/iupac.html
+  s_98b9f922a3cf6e::t_b88f305bccd139 3
+  s_98b9f922a3cf6e::t_9025cf8bb4f78e 9
+templates/bio_tool.html
+  s_98b9f922a3cf6e::t_b88f305bccd139 4
+  s_98b9f922a3cf6e::t_9025cf8bb4f78e 8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9736f6dc449a920158fe039fe28d5cd40bcb8598",
+  "prompts": {},
+  "sessions": {
+    "s_98b9f922a3cf6e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2e0f25b9-5505-4b58-88c1-1bb68d47b286",
+        "model": "deepseek-flash"
+      },
+      "human_author": "xingzhiwei <xingzhiwei@xunlei.com>"
+    }
+  }
+}
