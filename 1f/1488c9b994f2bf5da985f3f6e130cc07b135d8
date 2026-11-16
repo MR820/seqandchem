@@ -1,0 +1,38 @@
+templates/api_docs.html
+  s_98b9f922a3cf6e::t_102876faf5ef9e 250
+deploy/README.md
+  s_98b9f922a3cf6e::t_fffe91bde8c745 107-109
+app.py
+  s_98b9f922a3cf6e::t_27d8e4d3644791 1602
+  s_98b9f922a3cf6e::t_19c25d877d6d21 53
+  s_98b9f922a3cf6e::t_28ec851d65b467 172-187
+  s_98b9f922a3cf6e::t_fed41443fa7103 292-297
+  s_98b9f922a3cf6e::t_40bfff2d04883b 1820-1821
+  s_98b9f922a3cf6e::t_68c9d1d87ba11e 44,47
+  s_98b9f922a3cf6e::t_f93df9b1d49106 1528-1531,1533
+  s_98b9f922a3cf6e::t_76834bf6174751 1562-1567,1569-1570
+  s_98b9f922a3cf6e::t_d0bb698d82588a 171
+deploy/nginx.conf
+  s_98b9f922a3cf6e::t_f3c20d2ef2d69b 137
+  s_98b9f922a3cf6e::t_e481a779c87b71 65-98
+  s_98b9f922a3cf6e::t_b2696c069cba5a 158-191
+  s_98b9f922a3cf6e::t_b0728b2cceca27 46
+  s_98b9f922a3cf6e::t_262eb481a1f23a 148-153
+  s_98b9f922a3cf6e::t_775770d0e83229 53-58
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1f1488c9b994f2bf5da985f3f6e130cc07b135d8",
+  "prompts": {},
+  "sessions": {
+    "s_98b9f922a3cf6e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2e0f25b9-5505-4b58-88c1-1bb68d47b286",
+        "model": "deepseek-flash"
+      },
+      "human_author": "xingzhiwei <xingzhiwei@xunlei.com>"
+    }
+  }
+}
