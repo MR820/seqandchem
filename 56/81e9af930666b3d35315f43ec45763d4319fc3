@@ -1,0 +1,33 @@
+templates/embed_docs.html
+  s_98b9f922a3cf6e::t_f280c2a8c7382c 52-88
+  s_98b9f922a3cf6e::t_228f0049cba19c 97
+app.py
+  s_98b9f922a3cf6e::t_b177172ffc4ed0 837
+  s_98b9f922a3cf6e::t_c65e1a259cc2aa 1011
+  s_98b9f922a3cf6e::t_b7745accc014da 1013
+presets.py
+  s_98b9f922a3cf6e::t_93e00f2a134a4f 514-519
+  s_98b9f922a3cf6e::t_36f786e1f2a211 246-248
+  s_98b9f922a3cf6e::t_c5f3dfd6cb29cf 168-170
+  s_98b9f922a3cf6e::t_5eccd7e6e50ab2 446,448
+seo_copy.py
+  s_98b9f922a3cf6e::t_6d96a9f1a589e9 1-263
+guides.py
+  s_98b9f922a3cf6e::t_93e00f2a134a4f 326-331
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5681e9af930666b3d35315f43ec45763d4319fc3",
+  "prompts": {},
+  "sessions": {
+    "s_98b9f922a3cf6e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2e0f25b9-5505-4b58-88c1-1bb68d47b286",
+        "model": "deepseek-flash"
+      },
+      "human_author": "xingzhiwei <xingzhiwei@xunlei.com>"
+    }
+  }
+}
