@@ -56,14 +56,11 @@ FEISHU_OPEN_ID=...
 
 ## External uptime
 
-`deploy/github-actions/uptime.yml` is the external monitor template. Copy it to
-`.github/workflows/uptime.yml` after enabling a GitHub token with `workflow` scope. It runs on
-GitHub-hosted infrastructure every 15 minutes, so it still works when the SeqChem host or its
-network is down. It checks the public homepage, both `/health`
-endpoints and a real `/api/v1/convert` call. Add the repository secret `FEISHU_WEBHOOK` (a Feishu custom-bot webhook) to receive a text alert
-on failure; without the secret, the failed GitHub
-Actions run is still visible in the repository. Use “Run workflow” on the workflow page for a
-manual check.
+`.github/workflows/uptime.yml` runs on GitHub-hosted infrastructure every 15 minutes, so it still
+works when the SeqChem host or its network is down. It checks the public homepage, both `/health`
+endpoints and a real `/api/v1/convert` call. Add the repository secret `FEISHU_WEBHOOK` (a Feishu
+custom-bot webhook) to receive a text alert on failure; without the secret, the failed GitHub Actions
+run is still visible in the repository. Use “Run workflow” on the workflow page for a manual check.
 
 ## Real client IPs
 

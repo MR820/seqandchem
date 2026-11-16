@@ -138,9 +138,8 @@ python -m pytest
 ```
 
 The suite covers the formula and sequence helpers, heading and error-page contracts,
-the formats filter, IUPAC caching and the feedback body limit. Workflow templates live in
-`deploy/github-actions/`; copy them to `.github/workflows/` after enabling a GitHub token with
-`workflow` scope to run the suite on every push and pull request.
+the formats filter, IUPAC caching and the feedback body limit. GitHub Actions runs the suite on
+every push and pull request.
 
 ## Deploying
 
@@ -149,10 +148,9 @@ the formats filter, IUPAC caching and the feedback body limit. Workflow template
 nginx terminating TLS.
 
 `deploy/daily-report.sh` is the operations health check that pushes a daily summary (traffic,
-crawler coverage, service state, security updates) to a Feishu bot. The external monitor template
-`deploy/github-actions/uptime.yml` checks the public site and direct API every 15 minutes once it is
-copied to `.github/workflows/`; add the `FEISHU_WEBHOOK` repository secret to receive failure alerts
-outside the host.
+crawler coverage, service state, security updates) to a Feishu bot. The GitHub Actions workflow
+`.github/workflows/uptime.yml` independently checks the public site and direct API every 15 minutes;
+add the `FEISHU_WEBHOOK` repository secret to receive failure alerts outside the host.
 
 ## Privacy
 
