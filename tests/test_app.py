@@ -85,3 +85,69 @@ def test_feedback_body_limit():
     )
     assert response.status_code == 413
     assert response.get_json()["ok"] is False
+
+
+def test_batch_page_has_3d_preview():
+    response = client().get("/batch")
+    assert response.status_code == 200
+    body = response.data.decode()
+    assert 'id="batch-3d-wrap"' in body
+    assert 'id="batch-3d"' in body
+    assert 'value="--gen3d"' in body
+
+
+def test_batch_preview_sdf_uses_gen3d(monkeypatch):
+    seen = {}
+
+    def fake_obabel(args, data=b"", timeout=None):
+        seen["args"] = args
+        seen["data"] = data
+        return 0, b"SDF\n$$$$\n", "1 molecule converted"
+
+    monkeypatch.setattr(app_module, "run_obabel", fake_obabel)
+    out = app_module._batch_preview_sdf("smi", "sdf", "CCO\nCCC", ["--gen3d"])
+    assert out == "SDF\n$$$$\n"
+    assert "--gen3d" in seen["args"]
+    assert seen["data"] == b"CCO\nCCC"
+
+
+def test_batch_3d_limit(monkeypatch):
+    fake = {
+        "smi": {"desc": "SMILES", "read": True, "write": True},
+        "sdf": {"desc": "SDF", "read": True, "write": True},
+    }
+    monkeypatch.setattr(app_module, "supported_formats", lambda: fake)
+    data = "\n".join(["CCO"] * (app_module.MAX_BATCH_3D + 1))
+    response = client().post("/api/batch", json={
+        "data": data, "from": "smi", "to": "sdf", "opts": ["--gen3d"],
+    })
+    assert response.status_code == 400
+    body = response.get_json()
+    assert body["ok"] is False
+    assert "3D generation limit" in body["error"]
+
+
+def test_batch_auto_gen3d_and_preview(monkeypatch):
+    fake = {
+        "smi": {"desc": "SMILES", "read": True, "write": True},
+        "sdf": {"desc": "SDF", "read": True, "write": True},
+    }
+    monkeypatch.setattr(app_module, "supported_formats", lambda: fake)
+    calls = []
+
+    def fake_obabel(args, data=b"", timeout=None):
+        calls.append((args, data))
+        return 0, b"SDF\n$$$$\n", "1 molecule converted"
+
+    monkeypatch.setattr(app_module, "run_obabel", fake_obabel)
+    monkeypatch.setattr(app_module, "_heavy_acquire", lambda timeout: object())
+    monkeypatch.setattr(app_module, "_heavy_release", lambda slot: None)
+
+    response = client().post("/api/batch", json={
+        "data": "CCO", "from": "smi", "to": "sdf",
+    })
+    assert response.status_code == 200
+    body = response.get_json()
+    assert body["ok"] is True
+    assert body["preview_sdf"] == "SDF\n$$$$\n"
+    assert calls and all("--gen3d" in args for args, _ in calls)

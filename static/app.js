@@ -9,6 +9,8 @@
   let convBinary = null;
   let viewerConv = null;
   let viewer3d = null;
+  let viewerBatch3d = null;
+  let batch3dRecords = [];
   let lastSdf = "";
   let lastSvg = "";
 
@@ -308,6 +310,38 @@
     viewerConv.resize();
   }
 
+  async function renderBatch3d(sdf) {
+    const wrap = $("#batch-3d-wrap");
+    const el = $("#batch-3d");
+    const sel = $("#batch-3d-model");
+    if (!wrap || !el || !sel) return;
+    if (!sdf) {
+      wrap.style.display = "none";
+      batch3dRecords = [];
+      return;
+    }
+    const ready = await ensure3Dmol();
+    if (!ready || !window.$3Dmol) { wrap.style.display = "none"; return; }
+    batch3dRecords = sdf.split(/\$\$\$\$/).map((s) => s.trim()).filter(Boolean);
+    if (!batch3dRecords.length) { wrap.style.display = "none"; return; }
+    sel.innerHTML = batch3dRecords.map((_, i) =>
+      `<option value="${i}">Molecule ${i + 1}</option>`).join("");
+    wrap.style.display = "block";
+    if (!viewerBatch3d) viewerBatch3d = makeViewer(el);
+    showBatch3dModel(0);
+  }
+
+  function showBatch3dModel(index) {
+    if (!viewerBatch3d || !batch3dRecords[index]) return;
+    const style = $("#batch-3d-style");
+    viewerBatch3d.removeAllModels();
+    viewerBatch3d.addModel(batch3dRecords[index] + "\n$$$$\n", "sdf");
+    applyStyle(viewerBatch3d, style ? style.value : "stick");
+    viewerBatch3d.zoomTo();
+    viewerBatch3d.render();
+    viewerBatch3d.resize();
+  }
+
   async function runConvert() {
     const data = $("#conv-input").value;
     if (!data.trim()) return setStatus("#conv-status", "Please enter molecule data", "err");
@@ -525,7 +559,9 @@
 
     const out = $("#batch-out");
     const img = $("#batch-image");
+    const wrap3d = $("#batch-3d-wrap");
     if (img) { img.style.display = "none"; img.innerHTML = ""; }
+    if (wrap3d) { wrap3d.style.display = "none"; }
 
     const j = await postJSON("/api/batch", {
       data, from: $("#batch-from").value, to: $("#batch-to").value, opts,
@@ -563,6 +599,7 @@
     } else {
       out.style.display = "";
       out.textContent = j.result || "";
+      renderBatch3d(j.preview_sdf || null).catch(() => {});
     }
     setStatus("#batch-status", "Done · " + j.converted + " molecule(s) converted", "ok");
     trackEvent("batch");
@@ -947,6 +984,13 @@
 
     if (page === "batch") {
       $("#batch-run").addEventListener("click", runBatch);
+      $("#batch-3d-model").addEventListener("change", (e) => showBatch3dModel(Number(e.target.value)));
+      $("#batch-3d-style").addEventListener("change", () => {
+        if (!viewerBatch3d) return;
+        applyStyle(viewerBatch3d, $("#batch-3d-style").value);
+        viewerBatch3d.render();
+      });
+      window.addEventListener("resize", () => { if (viewerBatch3d) viewerBatch3d.resize(); });
       $("#batch-download").addEventListener("click", () => {
         const text = $("#batch-out").textContent || "";
         if (!text) return;

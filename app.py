@@ -44,6 +44,7 @@ MAX_BATCH_INPUT = 64 * 1024 * 1024  # 64MB for /api/batch
 MAX_FEEDBACK_BODY = 16 * 1024       # feedback messages are capped at 2,000 chars
 MAX_BATCH_RECORDS = 5000           # records per batch run (any output format)
 MAX_BATCH_IMAGES = 500             # records per run when the output is an image
+MAX_BATCH_3D = 200                 # records per run when 3D coordinates are generated
 BATCH_TIMEOUT = 840                # keep below gunicorn/nginx's 900s proxy timeout
 
 app = Flask(__name__, static_folder=None)
@@ -71,6 +72,7 @@ THREE_D_FORMATS = {
     "sdf", "sd", "mol", "mdl", "mol2", "pdb", "xyz", "cml", "cif",
     "stl", "obj", "ply", "vrml", "wrl", "gpr",
 }
+PREVIEW_3D_FORMATS = {"sdf", "sd", "mol", "mdl", "mol2", "pdb", "xyz", "cml"}
 TWO_D_SOURCES = {"smi", "can", "inchi", "inchikey", "txt", "smi"}
 
 EXAMPLE_SMILES = "CC(=O)Oc1ccccc1C(=O)O"
@@ -1599,6 +1601,29 @@ def split_records(text: str, frm: str):
     return [text]
 
 
+def _batch_preview_sdf(frm, to, text, safe, limit=6):
+    """Build a small SDF preview for 3D-capable batch output."""
+    if to not in PREVIEW_3D_FORMATS:
+        return None
+    records = split_records(text, frm)
+    if not records:
+        return None
+    if frm in {"sdf", "sd"}:
+        subset = "".join(records[:limit])
+    elif frm in {"smi", "can", "smiles", "inchi", "inchikey", "txt"}:
+        subset = "\n".join(records[:limit])
+    else:
+        # Compressed/multi-record 3D inputs are not cheap to slice here.
+        return None
+    args = [f"-i{frm}", "-osdf"] + safe
+    if "--gen3d" not in safe and frm in TWO_D_SOURCES:
+        args.append("--gen3d")
+    rc, out, _ = run_obabel(args, subset.encode("utf-8"), timeout=60)
+    if rc != 0 or not out:
+        return None
+    return out.decode("utf-8", "replace")
+
+
 @app.post("/api/batch")
 def api_batch():
     try:
@@ -1614,8 +1639,12 @@ def api_batch():
         return err("Please enter molecule data")
 
     opts = [o for o in (data.get("opts") or []) if isinstance(o, str)][:10]
-    allowed = {"--canonical", "--unique", "--deletehydrogens", "--addhydrogens"}
+    allowed = {"--canonical", "--unique", "--deletehydrogens", "--addhydrogens", "--gen3d"}
     safe = [o for o in opts if o.split("=")[0] in allowed]
+
+    # 2D inputs need coordinates before a 3D format makes sense; match /api/convert.
+    if to in THREE_D_FORMATS and frm in TWO_D_SOURCES and "--gen3d" not in safe:
+        safe.append("--gen3d")
 
     # 明确的批量上限：先数记录数再跑 OpenBabel，避免大文件跑到一半才失败
     count = len(split_records(text, frm))
@@ -1628,6 +1657,10 @@ def api_batch():
                "Split the file into several smaller batches and run them separately."
         return err(f"Batch limit exceeded: {count} records, maximum {limit} per run "
                    f"({what})", 400, hint)
+    if "--gen3d" in safe and count > MAX_BATCH_3D:
+        return err(f"3D generation limit exceeded: {count} records, maximum {MAX_BATCH_3D} per run",
+                   400, f"Split the input into smaller batches of {MAX_BATCH_3D} or fewer. "
+                        "3D generation is much slower than plain format conversion.")
 
     wait_start = time.monotonic()
     slot = _heavy_acquire(HEAVY_WAIT_SECONDS)
@@ -1715,11 +1748,13 @@ def _batch_response(frm, to, text, out, errtext, safe):
             "log": errtext.strip()[:2000],
         })
 
+    preview_sdf = _batch_preview_sdf(frm, to, text, safe)
     return jsonify({
         "ok": True,
         "binary": False,
         "result": out.decode("utf-8", "replace"),
         "converted": converted,
+        "preview_sdf": preview_sdf,
         "log": errtext.strip()[:2000],
     })
 
@@ -1937,8 +1972,8 @@ def _openapi_spec():
             request_body=body({"name": {"type": "string"}}, ["name"]))},
         "/api/v1/batch": {"post": op(
             "batch", "Bulk conversion",
-            "Converts a whole file. Limits: 64 MB input, 5000 records (500 for image output); "
-            "the server-side run timeout is about 14 minutes.",
+            "Converts a whole file. Limits: 64 MB input, 5000 records (500 for image output, "
+            "200 when 3D coordinates are generated); the server-side run timeout is about 14 minutes.",
             request_body=body({"data": data_prop, "from": from_prop,
                                "to": to_prop, "opts": opts_prop}, ["data"]))},
         "/api/v1/formula": {"post": op(
