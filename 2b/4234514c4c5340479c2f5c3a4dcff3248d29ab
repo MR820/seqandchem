@@ -1,0 +1,40 @@
+deploy/cloudflare-uptime-worker/deploy.sh
+  s_0b7a7542719a54::t_e1d8cac72f9135 11-17
+  s_0b7a7542719a54::t_ab48467d1e9955 1-10,18-93
+README.md
+  s_0b7a7542719a54::t_7a72d21a4d0fb0 153-159
+deploy/cloudflare-uptime-worker/load-feishu-secrets.sh
+  s_0b7a7542719a54::t_ab48467d1e9955 1-7,12-30
+  s_0b7a7542719a54::t_ce9b88c8b2c8f9 8-11
+deploy/cloudflare-uptime-worker/README.md
+  s_0b7a7542719a54::t_ab48467d1e9955 1-18,20-26,28-38,40-41,50-53,56-58,63-68
+  s_0b7a7542719a54::t_cd216cd49ab8cd 19,27
+  s_0b7a7542719a54::t_4616722a9a88fb 59-62
+  s_0b7a7542719a54::t_1861229ff69d1c 39,42-49,54-55
+deploy/cloudflare-uptime-worker/cleanup-token.sh
+  s_0b7a7542719a54::t_ab48467d1e9955 1-19
+deploy/cloudflare-uptime-worker/worker.mjs
+  s_0b7a7542719a54::t_ab48467d1e9955 1-179
+deploy/README.md
+  s_0b7a7542719a54::t_24192068788da7 44-46
+  s_0b7a7542719a54::t_6a89f0c2ce4b55 63-85
+  s_0b7a7542719a54::t_af76de76a7edd7 15
+deploy/cloudflare-uptime-worker/.gitignore
+  s_0b7a7542719a54::t_1b486ed9b569b9 1-7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2b4234514c4c5340479c2f5c3a4dcff3248d29ab",
+  "prompts": {},
+  "sessions": {
+    "s_0b7a7542719a54": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5f5ca9c1-68cc-4653-b7cd-16b82c6c3cfb",
+        "model": "deepseek-flash"
+      },
+      "human_author": "xingzhiwei <xingzhiwei@xunlei.com>"
+    }
+  }
+}
