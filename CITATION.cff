@@ -1,0 +1,34 @@
+cff-version: 1.2.0
+message: "If you use SeqChem, please cite this software."
+title: "SeqChem: free chemistry and bioinformatics web tools and JSON API"
+type: software
+authors:
+  - name: "SeqChem contributors"
+version: "1.0.0"
+date-released: "2026-11-17"
+doi: "10.5281/zenodo.24310592"
+identifiers:
+  - type: doi
+    value: "10.5281/zenodo.24310591"
+    description: "Concept DOI for all versions"
+url: "https://seqandchem.com"
+repository-code: "https://github.com/MR820/seqandchem"
+repository-artifact: "https://zenodo.org/records/24310592"
+license: "Apache-2.0"
+abstract: >-
+  SeqChem is a free web application and JSON API for chemistry and
+  bioinformatics. It converts 190+ chemical formats (SMILES, InChI, MOL, SDF,
+  PDB, MOL2, XYZ, CML), calculates molecular properties, draws 2D structures,
+  generates 3D conformers, runs SMARTS substructure and Tanimoto similarity
+  searches, resolves IUPAC names, and processes FASTA/FASTQ sequences. No
+  account or API key is required.
+keywords:
+  - cheminformatics
+  - bioinformatics
+  - SMILES
+  - InChI
+  - structure conversion
+  - FASTA
+  - FASTQ
+  - OpenBabel
+  - JSON API

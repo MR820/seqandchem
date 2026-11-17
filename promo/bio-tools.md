@@ -1,7 +1,10 @@
 # bio.tools submission — SeqChem
 
-Status checked 2026-11-13: `seqchem` is **not listed**, and the ID `seqchem` is available
-(`GET https://bio.tools/api/t/seqchem` → 404).
+**Status: submitted and live on 2026-11-17.**
+
+- bio.tools entry: <https://bio.tools/seqchem>
+- Zenodo DOI: <https://doi.org/10.5281/zenodo.24310592>
+- bio.tools ID: `seqchem` (preserved)
 
 - Sign up: <https://bio.tools/signup>
 - Add content: <https://bio.tools/register>

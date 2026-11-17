@@ -1,5 +1,7 @@
 # SeqChem
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24310591.svg)](https://doi.org/10.5281/zenodo.24310591)
+
 **English** | [简体中文](README.zh-CN.md) | [Español](README.es.md) | [Português (Brasil)](README.pt-BR.md)
 
 **Free online chemistry and bioinformatics tools — <https://seqandchem.com>**
@@ -158,6 +160,15 @@ Molecules and sequences are converted in a subprocess and are not stored. The an
 form stores only the message, category, page path and timestamp in a private local SQLite file.
 Analytics use self-hosted GoatCounter — cookie-free, no advertising profile, no cross-site
 tracking. See <https://seqandchem.com/privacy> for the full policy.
+
+## Citation
+
+If you use SeqChem in your work, please cite it via Zenodo:
+
+- All versions (concept DOI): <https://doi.org/10.5281/zenodo.24310591>
+- v1.0.0 (version DOI): <https://doi.org/10.5281/zenodo.24310592>
+
+Machine-readable citation metadata is in [CITATION.cff](CITATION.cff).
 
 ## Credits
 

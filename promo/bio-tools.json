@@ -3,7 +3,9 @@
   "biotoolsID": "seqchem",
   "description": "Free web application and JSON API for chemistry and bioinformatics. Converts 190+ chemical formats (SMILES, InChI, MOL, SDF, PDB, MOL2, XYZ, CML), calculates molecular properties, draws 2D structures, generates 3D conformers, runs SMARTS substructure and Tanimoto similarity searches, resolves IUPAC names, and processes FASTA/FASTQ sequences. No account, no API key, open source.",
   "homepage": "https://seqandchem.com",
-  "version": "1.0.0",
+  "version": [
+    "1.0.0"
+  ],
   "toolType": [
     "Web application",
     "Web service"
@@ -71,9 +73,9 @@
     {
       "url": "https://pypi.org/project/seqchem/",
       "type": [
-        "Package distribution"
+        "Other"
       ],
-      "note": "Python client."
+      "note": "Python client package on PyPI"
     },
     {
       "url": "https://github.com/MR820/seqandchem/issues",
@@ -93,7 +95,11 @@
       "note": "Maintainers of the SeqChem project."
     }
   ],
-  "publication": [],
+  "publication": [
+    {
+      "doi": "10.5281/zenodo.24310592"
+    }
+  ],
   "function": [
     {
       "operation": [
@@ -226,7 +232,12 @@
             "uri": "http://edamontology.org/data_2050",
             "term": "Molecular property (general)"
           },
-          "format": []
+          "format": [
+            {
+              "uri": "http://edamontology.org/format_2330",
+              "term": "Textual format"
+            }
+          ]
         }
       ]
     },
@@ -409,14 +420,24 @@
             "uri": "http://edamontology.org/data_2976",
             "term": "Protein sequence"
           },
-          "format": []
+          "format": [
+            {
+              "uri": "http://edamontology.org/format_1929",
+              "term": "FASTA"
+            }
+          ]
         },
         {
           "data": {
             "uri": "http://edamontology.org/data_1254",
             "term": "Sequence property"
           },
-          "format": []
+          "format": [
+            {
+              "uri": "http://edamontology.org/format_2330",
+              "term": "Textual format"
+            }
+          ]
         }
       ]
     },
@@ -437,7 +458,12 @@
             "uri": "http://edamontology.org/data_0998",
             "term": "Chemical name (IUPAC)"
           },
-          "format": []
+          "format": [
+            {
+              "uri": "http://edamontology.org/format_2330",
+              "term": "Textual format"
+            }
+          ]
         }
       ],
       "output": [
