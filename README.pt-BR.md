@@ -1,5 +1,7 @@
 # SeqChem
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24310591.svg)](https://doi.org/10.5281/zenodo.24310591)
+
 [English](README.md) | [简体中文](README.zh-CN.md) | [Español](README.es.md) | **Português (Brasil)**
 
 > Esta tradução pode estar desatualizada em relação ao [README em inglês](README.md); em caso de divergência, a versão em inglês prevalece.
