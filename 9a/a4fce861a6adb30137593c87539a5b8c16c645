@@ -1,0 +1,37 @@
+templates/batch.html
+  s_0b7a7542719a54::t_ce2114ae5cd6a1 32,34-36
+  s_0b7a7542719a54::t_7d80abd3aa4b36 47-62
+  s_0b7a7542719a54::t_c3cf2fabe72607 84-90
+tests/test_app.py
+  s_0b7a7542719a54::t_64cf27e40018ea 88-153
+app.py
+  s_0b7a7542719a54::t_a3364c6e118f2d 1642,1645-1648,1660-1661,1663
+  s_0b7a7542719a54::t_1d37824516fe4d 1975-1976
+  s_0b7a7542719a54::t_6f9fdf7f15a700 1604-1626
+  s_0b7a7542719a54::t_6e415715c85bee 1751,1757
+  s_0b7a7542719a54::t_a87629e5a983eb 47
+  s_0b7a7542719a54::t_3f50a4bcac8bbe 75
+  s_0b7a7542719a54::t_42ef324fd3ccf7 1662
+static/app.js
+  s_0b7a7542719a54::t_29d0943a25bc44 987-993
+  s_0b7a7542719a54::t_35ebb3bac05076 12-13
+  s_0b7a7542719a54::t_ba3e2e5d7eb213 313-344
+  s_0b7a7542719a54::t_edaf2241cecfaa 602
+  s_0b7a7542719a54::t_339360aad27e16 562,564
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9aa4fce861a6adb30137593c87539a5b8c16c645",
+  "prompts": {},
+  "sessions": {
+    "s_0b7a7542719a54": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5f5ca9c1-68cc-4653-b7cd-16b82c6c3cfb",
+        "model": "deepseek-flash"
+      },
+      "human_author": "xingzhiwei <xingzhiwei@xunlei.com>"
+    }
+  }
+}
