@@ -1,0 +1,26 @@
+README.md
+  s_0b7a7542719a54::t_aa6f277102fe1b 164-172
+  s_0b7a7542719a54::t_b0db63f6031f46 3-4
+promo/bio-tools.json
+  s_0b7a7542719a54::t_bd4f613c015cbf 6-8,76,78,98-102,235-240,423-428,435-440,461-466,505
+CITATION.cff
+  s_0b7a7542719a54::t_4eb39286f45220 1-34
+promo/bio-tools.md
+  s_0b7a7542719a54::t_71324139639601 3-7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2a2d9744f499482c41c7cc56809716aeedae1ad9",
+  "prompts": {},
+  "sessions": {
+    "s_0b7a7542719a54": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5f5ca9c1-68cc-4653-b7cd-16b82c6c3cfb",
+        "model": "deepseek-flash"
+      },
+      "human_author": "xingzhiwei <xingzhiwei@xunlei.com>"
+    }
+  }
+}
