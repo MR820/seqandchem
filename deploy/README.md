@@ -12,6 +12,7 @@ Production runs on a single Debian/Ubuntu host.
 | `uptime-check.sh` | `/opt/seqchem-monitor/` | cron `*/5 * * * *`; main site + api `/health` + services, Feishu on state change |
 | `seo-weekly.py` | `/opt/seqchem-monitor/` | cron `0 2 * * 1`; GSC + Bing + GoatCounter → Feishu interactive card; needs `gsc-service-account.json` and `bing-webmaster.env` |
 | `feedback-digest.py` | `/opt/seqchem-monitor/` | cron `15 1 * * *`; yesterday's feedback → Feishu, only when count > 0 |
+| `cloudflare-uptime-worker/` | Cloudflare account (Worker + KV) | Worker `seqchem-uptime`, KV `seqchem_uptime`, cron `*/5 * * * *`; primary external check |
 
 ## First-time setup
 
@@ -40,6 +41,9 @@ ssh root@HOST 'chown -R chemtools:chemtools /opt/chemtools && cd /opt/chemtools 
 Always run the `import app` check before restarting — it catches syntax and import errors that
 would otherwise take the service down.
 
+If the update changes HTML, Cloudflare may serve the previous page for up to 5 minutes
+(`s-maxage=300`); purge the affected URLs after the deploy or wait for the cache to expire.
+
 ## Monitoring
 
 `daily-report.sh` pushes a Feishu card once a day with: uptime and latency, certificate expiry,
@@ -56,11 +60,29 @@ FEISHU_OPEN_ID=...
 
 ## External uptime
 
-`.github/workflows/uptime.yml` runs on GitHub-hosted infrastructure every 15 minutes, so it still
-works when the SeqChem host or its network is down. It checks the public homepage, both `/health`
-endpoints and a real `/api/v1/convert` call. Add the repository secret `FEISHU_WEBHOOK` (a Feishu
-custom-bot webhook) to receive a text alert on failure; without the secret, the failed GitHub Actions
-run is still visible in the repository. Use “Run workflow” on the workflow page for a manual check.
+The primary external check is the Cloudflare Worker in `cloudflare-uptime-worker/`. It runs on
+Cloudflare's edge every 5 minutes and checks the public homepage, both `/health` endpoints and a
+real `/api/v1/convert` call. It sends a Feishu message on OK → DOWN and DOWN → OK, with a 6-hour
+reminder while down. See `cloudflare-uptime-worker/README.md` for deployment.
+
+`.github/workflows/uptime.yml` is a secondary, best-effort GitHub Actions check. GitHub's scheduler
+can delay `schedule` runs by hours, so do not rely on it for minute-level alerting. Add the
+repository secret `FEISHU_WEBHOOK` (a Feishu custom-bot webhook) to receive a text alert on
+failure; without the secret, the failed run is still visible in the repository.
+
+## Cloudflare cache
+
+The zone has a Cache Rule that makes public HTML eligible for edge caching with
+`edge_ttl=respect_origin`; the app sends `Cache-Control: public, max-age=60, s-maxage=300`.
+After deploying an HTML change, purge the affected URLs (or the zone cache) or wait up to
+5 minutes. Example:
+
+```bash
+curl -X POST "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/purge_cache" \
+  -H "Authorization: Bearer $CLOUDFLARE_ZONE_TOKEN" \
+  -H "Content-Type: application/json" \
+  --data '{"files":["https://seqandchem.com/","https://seqandchem.com/privacy"]}'
+```
 
 ## Real client IPs
 

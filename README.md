@@ -150,9 +150,13 @@ every push and pull request.
 nginx terminating TLS.
 
 `deploy/daily-report.sh` is the operations health check that pushes a daily summary (traffic,
-crawler coverage, service state, security updates) to a Feishu bot. The GitHub Actions workflow
-`.github/workflows/uptime.yml` independently checks the public site and direct API every 15 minutes;
-add the `FEISHU_WEBHOOK` repository secret to receive failure alerts outside the host.
+crawler coverage, service state, security updates) to a Feishu bot. The primary external check is
+the Cloudflare Worker in `deploy/cloudflare-uptime-worker/`, which runs every 5 minutes and alerts
+via Feishu on state changes. `.github/workflows/uptime.yml` is a secondary best-effort GitHub
+Actions check; add the `FEISHU_WEBHOOK` repository secret to receive its failure alerts.
+
+Public HTML is edge-cached for up to 5 minutes (`s-maxage=300`); purge Cloudflare after
+time-sensitive HTML deploys or wait for the cache to expire.
 
 ## Privacy
 
