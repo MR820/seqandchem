@@ -1,0 +1,23 @@
+README.es.md
+  s_0b7a7542719a54::t_ad97624615c2d2 3-4
+README.pt-BR.md
+  s_0b7a7542719a54::t_d1ec46e1211a57 3-4
+README.zh-CN.md
+  s_0b7a7542719a54::t_8affdd55930e46 3-4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3cea49629d83879aeefbff3f900acef4a95fa11e",
+  "prompts": {},
+  "sessions": {
+    "s_0b7a7542719a54": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5f5ca9c1-68cc-4653-b7cd-16b82c6c3cfb",
+        "model": "deepseek-flash"
+      },
+      "human_author": "xingzhiwei <xingzhiwei@xunlei.com>"
+    }
+  }
+}
