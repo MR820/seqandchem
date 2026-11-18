@@ -20,7 +20,7 @@ FEISHU_ENV = os.environ.get("FEISHU_ENV", "/opt/seqchem-monitor/feishu.env")
 BING_ENV = os.environ.get("BING_ENV", "/opt/seqchem-monitor/bing-webmaster.env")
 HISTORY = os.environ.get("SEO_HISTORY", "/opt/seqchem-monitor/seo-history.json")
 DRY_RUN = os.environ.get("DRY_RUN") == "1"
-INSPECT_LIMIT = int(os.environ.get("INSPECT_LIMIT", "49"))
+INSPECT_LIMIT = int(os.environ.get("INSPECT_LIMIT", "50"))
 
 SPARK = "▁▂▃▄▅▆▇█"
 
