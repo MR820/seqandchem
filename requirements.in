@@ -1,0 +1,9 @@
+# Direct runtime dependencies for the SeqChem web app.
+# OpenBabel is the OS CLI (Debian/Ubuntu: apt install openbabel; macOS: brew install open-babel).
+# Do not add the PyPI openbabel package here.
+#
+# Regenerate the hashed lock after changing this file:
+#   pip-compile --generate-hashes --output-file=requirements.txt requirements.in
+Flask==3.1.3
+Flask-Compress==1.26
+gunicorn==26.2.0
