@@ -1,32 +1,41 @@
 name: External uptime
 
+# Secondary probe from a GitHub-hosted runner. The primary checks are the
+# Cloudflare Worker seqchem-uptime (cron */5) and deploy/uptime-check.sh (cron */5).
+# GitHub delays or drops schedule events under load, especially at the start of
+# an hour, and does not backfill missed ticks. These crons avoid minute 0 and
+# request 12 runs/day. That is best-effort coverage, not a minute-level SLA.
+
 on:
   schedule:
-    - cron: "*/15 * * * *"
+    - cron: "17 */3 * * *"
+    - cron: "47 1,7,13,19 * * *"
   workflow_dispatch:
 
 permissions:
   contents: read
+
+concurrency:
+  group: external-uptime
+  cancel-in-progress: false
 
 jobs:
   check:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
       - name: Check public site and API
         run: |
           set -euo pipefail
-          curl -fsS --max-time 20 https://seqandchem.com/ >/dev/null
-          curl -fsS --max-time 20 https://seqandchem.com/health \
-            | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d.get("ok") and d.get("formats", 0) > 0'
-          curl -fsS --max-time 20 https://api.seqandchem.com/health \
-            | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d.get("ok") and d.get("formats", 0) > 0'
-          code=$(curl -sS --max-time 30 -o /tmp/convert.json -w '%{http_code}' \
-            -X POST https://api.seqandchem.com/api/v1/convert \
-            -H 'Content-Type: application/json' \
-            -d '{"from":"smi","to":"inchi","data":"CCO"}')
-          test "$code" = "200"
-          python3 -c 'import json; d=json.load(open("/tmp/convert.json")); assert d.get("ok")'
+          python3 deploy/external_uptime.py check \
+            --site https://seqandchem.com/ \
+            --site-health https://seqandchem.com/health \
+            --api-health https://api.seqandchem.com/health \
+            --convert https://api.seqandchem.com/api/v1/convert
 
       - name: Notify Feishu on failure
         if: failure()
@@ -35,26 +44,24 @@ jobs:
           FEISHU_WEBHOOK_SECRET: ${{ secrets.FEISHU_WEBHOOK_SECRET }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          if [ -z "${FEISHU_WEBHOOK:-}" ]; then
-            echo "FEISHU_WEBHOOK is not configured; relying on GitHub Actions failure notifications."
-            exit 0
-          fi
-          python3 - <<'PY'
-          import base64, hashlib, hmac, json, os, time, urllib.request
-          url = os.environ["FEISHU_WEBHOOK"]
-          text = "SeqChem external uptime check failed.\n" + os.environ["RUN_URL"]
-          payload = {"msg_type": "text", "content": {"text": text}}
-          secret = os.environ.get("FEISHU_WEBHOOK_SECRET", "")
-          if secret:
-              timestamp = str(int(time.time()))
-              string_to_sign = f"{timestamp}\n{secret}"
-              sign = base64.b64encode(
-                  hmac.new(string_to_sign.encode("utf-8"), digestmod=hashlib.sha256).digest()
-              ).decode("utf-8")
-              payload["timestamp"] = timestamp
-              payload["sign"] = sign
-          body = json.dumps(payload).encode()
-          req = urllib.request.Request(url, data=body, headers={"Content-Type": "application/json"})
-          with urllib.request.urlopen(req, timeout=20) as resp:
-              print(resp.read().decode("utf-8", "replace")[:500])
-          PY
+          set -euo pipefail
+          python3 deploy/external_uptime.py notify \
+            --text "$(printf '%s\n' \
+              "SeqChem secondary GitHub Actions uptime check failed." \
+              "Primary checks remain Cloudflare Worker seqchem-uptime and the on-host cron." \
+              "$RUN_URL")"
+
+      - name: Record best-effort context
+        if: always()
+        run: |
+          {
+            echo "### Secondary external uptime check"
+            echo
+            echo "Best-effort GitHub Actions probe. Not a minute-level SLA."
+            echo
+            echo "- Event: \`${{ github.event_name }}\`"
+            echo "- Schedule expression: \`${{ github.event.schedule }}\`"
+            echo "- Observed start (UTC): $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo "- Primary external check: Cloudflare Worker \`seqchem-uptime\` cron \`*/5\`"
+            echo "- On-host check: \`uptime-check.sh\` cron \`*/5\`"
+          } >> "$GITHUB_STEP_SUMMARY"

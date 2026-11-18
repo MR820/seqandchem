@@ -1,0 +1,8 @@
+# Test dependencies. Includes the runtime set via requirements.in.
+# pytest is pinned to the version already resolved by CI on 2026-11-18
+# (requirements-dev.txt previously allowed pytest>=8,<10).
+#
+# Regenerate:
+#   pip-compile --generate-hashes --output-file=requirements-dev.txt requirements-dev.in
+-r requirements.in
+pytest==9.2.0

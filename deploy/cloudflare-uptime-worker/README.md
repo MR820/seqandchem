@@ -2,6 +2,9 @@
 
 Cron-only Cloudflare Worker that checks the public site and API every 5 minutes
 from outside the production host, and sends a Feishu message on state changes.
+This Worker is the primary external check. The on-host cron
+(`../uptime-check.sh`, `*/5`) is the other primary check. GitHub Actions
+(`.github/workflows/uptime.yml`) is only a best-effort secondary probe.
 
 Checks per run:
 

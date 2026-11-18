@@ -123,8 +123,8 @@ deploy/           systemd unit, nginx vhost, monitoring script
 ```bash
 python3 -m venv venv
 source venv/bin/activate
-pip install -r requirements.txt
-# plus the OpenBabel CLI, which is a system package:
+pip install --require-hashes -r requirements.txt
+# plus the OpenBabel CLI, which is a system package, not a pip package:
 #   Debian/Ubuntu: apt install openbabel
 #   macOS:         brew install open-babel
 BASE_URL=http://127.0.0.1:8080 python app.py
@@ -135,9 +135,13 @@ The app serves on `127.0.0.1:8080`; open <http://127.0.0.1:8080>.
 ## Tests
 
 ```bash
-pip install -r requirements.txt -r requirements-dev.txt
+pip install --require-hashes -r requirements-dev.txt
 python -m pytest
 ```
+
+`requirements.txt` and `requirements-dev.txt` are hashed locks compiled from `requirements.in`
+and `requirements-dev.in`. Direct versions remain Flask 3.1.3, Flask-Compress 1.26, gunicorn
+26.2.0 and pytest 9.2.0.
 
 The suite covers the formula and sequence helpers, heading and error-page contracts,
 the formats filter, IUPAC caching and the feedback body limit. GitHub Actions runs the suite on
@@ -147,13 +151,17 @@ every push and pull request.
 
 `deploy/chemtools.service` and `deploy/nginx.conf` are the production configuration used at
 <https://seqandchem.com>: gunicorn on `127.0.0.1:8080` under a dedicated `chemtools` user, with
-nginx terminating TLS.
+nginx terminating TLS. Deploys are manual. The Actions workflows in this repository have
+`contents: read` only; do not give them production SSH keys or Cloudflare tokens.
 
 `deploy/daily-report.sh` is the operations health check that pushes a daily summary (traffic,
-crawler coverage, service state, security updates) to a Feishu bot. The primary external check is
-the Cloudflare Worker in `deploy/cloudflare-uptime-worker/`, which runs every 5 minutes and alerts
-via Feishu on state changes. `.github/workflows/uptime.yml` is a secondary best-effort GitHub
-Actions check; add the `FEISHU_WEBHOOK` repository secret to receive its failure alerts.
+crawler coverage, service state, security updates) to a Feishu bot. Monitoring checks are layered:
+the on-host cron runs `deploy/uptime-check.sh` every 5 minutes, and the primary external check is
+the Cloudflare Worker `seqchem-uptime` in `deploy/cloudflare-uptime-worker/`, also every 5 minutes,
+alerting via Feishu on state changes. `.github/workflows/uptime.yml` is a secondary best-effort
+GitHub Actions probe from another network. GitHub may delay or drop `schedule` runs by hours, so
+it is not a minute-level SLA. Its failure text still uses the existing `FEISHU_WEBHOOK` and
+`FEISHU_WEBHOOK_SECRET` repository secrets. See `deploy/README.md`.
 
 Public HTML is edge-cached for up to 5 minutes (`s-maxage=300`); purge Cloudflare after
 time-sensitive HTML deploys or wait for the cache to expire.
