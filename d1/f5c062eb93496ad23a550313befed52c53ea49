@@ -1,0 +1,19 @@
+deploy/seo-weekly.py
+  s_0b7a7542719a54::t_25c9d5176efb89 23
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d1f5c062eb93496ad23a550313befed52c53ea49",
+  "prompts": {},
+  "sessions": {
+    "s_0b7a7542719a54": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5f5ca9c1-68cc-4653-b7cd-16b82c6c3cfb",
+        "model": "deepseek-flash"
+      },
+      "human_author": "xingzhiwei <xingzhiwei@xunlei.com>"
+    }
+  }
+}
