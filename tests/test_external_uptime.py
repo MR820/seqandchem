@@ -39,10 +39,23 @@ class ProbeServer:
 
 def make_handler(state):
     class Handler(BaseHTTPRequestHandler):
+        def _note(self, method):
+            state.setdefault("seen", []).append({
+                "method": method,
+                "path": self.path,
+                "ua": self.headers.get("User-Agent", ""),
+                "accept": self.headers.get("Accept", ""),
+                "content_type": self.headers.get("Content-Type", ""),
+            })
+
         def do_GET(self):
+            self._note("GET")
             state["paths"].append(self.path)
             if self.path == "/down":
                 self._send(500, b"no")
+                return
+            if self.path == "/blocked":
+                self._send(403, b"blocked")
                 return
             if self.path == "/health-bad":
                 self._send(200, b'{"ok": true, "formats": 0}')
@@ -56,6 +69,7 @@ def make_handler(state):
             self._send(404, b"missing")
 
         def do_POST(self):
+            self._note("POST")
             length = int(self.headers.get("Content-Length", "0"))
             raw = self.rfile.read(length)
             state["posts"].append(json.loads(raw.decode()))
@@ -102,6 +116,10 @@ def test_script_has_no_production_or_feishu_defaults():
     assert "open.feishu.cn" not in text
     assert "FEISHU_APP_SECRET" not in text
     assert "FEISHU_APP_ID" not in text
+    assert "Mozilla/" not in text
+    assert "Chrome/" not in text
+    assert UPTIME.MONITOR_USER_AGENT.startswith("SeqChem-Uptime/")
+    assert "Python-urllib" not in UPTIME.MONITOR_USER_AGENT
 
 
 def test_check_requires_explicit_urls():
@@ -135,6 +153,17 @@ def test_successful_local_probe():
     assert result.returncode == 0, result.stderr
     assert state["posts"] == [{"from": "smi", "to": "inchi", "data": "CCO"}]
     assert "api convert 200" in result.stdout
+    seen = {(item["method"], item["path"]): item for item in state["seen"]}
+    homepage = seen[("GET", "/")]
+    health = seen[("GET", "/health")]
+    convert = seen[("POST", "/convert")]
+    for item in (homepage, health, convert):
+        assert item["ua"] == UPTIME.MONITOR_USER_AGENT
+        assert not item["ua"].startswith("Python-urllib")
+    assert homepage["accept"] == "text/html"
+    assert health["accept"] == "application/json"
+    assert convert["accept"] == "application/json"
+    assert convert["content_type"] == "application/json"
 
 
 def test_failed_health_and_convert_do_not_pass():
@@ -187,6 +216,21 @@ def test_failed_health_and_convert_do_not_pass():
                 "1",
             ]
         )
+        blocked = run_cli(
+            [
+                "check",
+                "--site",
+                base + "/blocked",
+                "--site-health",
+                base + "/health",
+                "--api-health",
+                base + "/health",
+                "--convert",
+                base + "/convert",
+                "--timeout",
+                "2",
+            ]
+        )
     finally:
         server.close()
     assert bad_health.returncode == 1
@@ -195,6 +239,9 @@ def test_failed_health_and_convert_do_not_pass():
     assert "api convert payload invalid" in bad_convert.stderr
     assert refused.returncode == 1
     assert "seqandchem.com" not in refused.stderr
+    assert blocked.returncode == 1
+    assert "site HTTP 403" in blocked.stderr
+    assert "site 403" not in blocked.stdout
 
 
 def test_feishu_sign_and_local_notify():
