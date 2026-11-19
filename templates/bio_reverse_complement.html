@@ -16,7 +16,10 @@
 
   <h2>IUPAC ambiguity codes</h2>
   <p>Ambiguous bases are complemented correctly: R (A/G) ↔ Y (C/T), K (G/T) ↔ M (A/C),
-     S ↔ S, W ↔ W, B ↔ V, D ↔ H, and N stays N.</p>
+     S ↔ S, W ↔ W, B ↔ V, D ↔ H, and N stays N. U is accepted for RNA and complemented to A;
+     A is still complemented to T. Any other character is rejected. Spaces and line breaks
+     inside a sequence are ignored. A bare sequence is one record and comes back on a single
+     line; FASTA records are converted separately.</p>
 
   <h2>Frequently asked questions</h2>
   <h3>Does it reverse, complement, or both?</h3>

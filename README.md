@@ -51,7 +51,7 @@ Pure-Python FASTA/FASTQ utilities — no external services, no data leaves the s
 - FASTA → FASTQ and FASTQ → FASTA (`/bio/fasta-to-fastq`, `/bio/fastq-to-fasta`)
 - GC content and sequence statistics (`/bio/gc-content`)
 - Reverse complement with IUPAC ambiguity codes (`/bio/reverse-complement`)
-- DNA → protein translation in all frames (`/bio/translate`)
+- DNA → protein translation in three forward reading frames (`/bio/translate`)
 
 ### Guides
 Long-form explainers that back the tools: SMILES vs InChI vs InChIKey, Lipinski's rule of five,

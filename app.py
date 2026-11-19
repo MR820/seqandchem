@@ -29,8 +29,8 @@ from flask import (Flask, Response, abort, jsonify, redirect, render_template,
                    request, send_from_directory)
 from flask_compress import Compress
 
-from bio import (fasta_to_fastq, fastq_to_fasta, parse_fasta, parse_fastq,
-                 reverse_complement, sequence_stats, translate)
+from bio import (SequenceError, fasta_to_fastq, fastq_to_fasta, parse_fasta,
+                 parse_fastq, reverse_complement, sequence_stats, translate)
 from formula import (FormulaError, composition, hill_notation, molecular_weight,
                      parse_formula)
 from guides import GUIDE_INDEX, GUIDES
@@ -335,6 +335,14 @@ def payload(max_bytes=MAX_INPUT):
 
 def err(message, code=400, detail=""):
     return jsonify({"ok": False, "error": message, "detail": detail}), code
+
+
+def _smarts_is_invalid(errtext):
+    """OpenBabel 3.1.1 对非法 -s 模式仍返回退出码 0，只在 stderr 写 SMARTS Error。
+
+    合法但零命中时 stderr 只有 “0 molecules converted”，不能靠退出码区分。
+    """
+    return "SMARTS Error" in errtext or "in SMARTSError" in errtext
 
 
 def _obabel_error(frm, errtext):
@@ -1273,7 +1281,7 @@ DESCRIPTORS = [
     ("HBD", "H-bond donors"),
     ("HBA1", "H-bond acceptors"),
     ("rotors", "Rotatable bonds"),
-    ("atoms", "Atoms"),
+    ("atoms", "Atoms"),  # OpenBabel heavy-atom count; implicit hydrogens excluded
     ("bonds", "Bonds"),
     ("MR", "Molar refractivity"),
     ("cansmi", "Canonical SMILES"),
@@ -1390,9 +1398,11 @@ def api_substructure():
     if len(smarts) > 500:
         return err("SMARTS pattern too long")
 
-    rc, out, errtext = run_obabel(
+    _rc, out, errtext = run_obabel(
         [f"-i{frm}", "-osmi", "-s", smarts], text.encode("utf-8")
     )
+    if _smarts_is_invalid(errtext):
+        return err("Invalid SMARTS pattern", 422, errtext.strip()[:1000])
     matched = [l.strip() for l in out.decode("utf-8", "replace").splitlines() if l.strip()]
 
     return jsonify({
@@ -1843,6 +1853,8 @@ def api_bio():
             return jsonify({"ok": True, "rows": rows})
 
         return err("Unknown operation")
+    except SequenceError as exc:
+        return err(str(exc), 400, exc.detail)
     except Exception as exc:  # noqa: BLE001
         return err("Processing failed", 422, str(exc)[:1000])
 
@@ -1938,7 +1950,8 @@ def _openapi_spec():
         "/api/v1/properties": {"post": op(
             "properties", "Compute molecular descriptors",
             "Returns formula, MW, logP, TPSA, HBD, HBA, rotatable bonds, canonical SMILES, "
-            "InChI and InChIKey for every record.",
+            "InChI and InChIKey for every record. atoms is the heavy-atom count and bonds "
+            "counts bonds between those atoms; implicit hydrogens are excluded.",
             request_body=body({"data": data_prop, "from": from_prop}, ["data"]))},
         "/api/v1/depict": {"post": op(
             "depict", "Render a 2D structure as SVG",
@@ -1949,6 +1962,8 @@ def _openapi_spec():
             request_body=body({"data": data_prop, "from": from_prop}, ["data"]))},
         "/api/v1/substructure": {"post": op(
             "substructure", "SMARTS substructure filter",
+            "A valid pattern with no hits returns count 0 and matches []. A pattern "
+            "OpenBabel cannot parse is HTTP 422 with ok false, not an empty match list.",
             request_body=body({"data": data_prop, "from": from_prop,
                                "smarts": {"type": "string"}}, ["data", "smarts"]))},
         "/api/v1/fingerprint": {"post": op(
@@ -1978,14 +1993,21 @@ def _openapi_spec():
                                "to": to_prop, "opts": opts_prop}, ["data"]))},
         "/api/v1/formula": {"post": op(
             "formula", "Molecular formula and weight",
-            "Use mode=formula to parse a formula string, mode=structure to compute from a structure.",
+            "mode=formula parses a formula string and returns top-level formula, mw, "
+            "composition (a list of element rows) and atoms, counting every atom including "
+            "hydrogen. mode=structure returns rows of smiles, formula and mw from OpenBabel, "
+            "not those top-level fields.",
             request_body=body({"mode": {"type": "string", "enum": ["formula", "structure"],
                                         "default": "formula"},
                                "formula": {"type": "string"},
                                "data": data_prop, "from": from_prop}, []))},
         "/api/v1/bio": {"post": op(
             "bio", "FASTA / FASTQ operations",
-            "op is one of fasta2fastq, fastq2fasta, revcomp, translate, stats.",
+            "op is one of fasta2fastq, fastq2fasta, revcomp, translate, stats. "
+            "fastq2fasta accepts standard four-line FASTQ and returns 400 when a record "
+            "is truncated or its quality length or Phred characters are invalid. "
+            "revcomp accepts DNA, RNA (U) and IUPAC ambiguity codes and returns 400 for "
+            "any other character. translate frame is 0, 1 or 2 (three forward frames only).",
             tags=["bioinformatics"],
             request_body=body({"op": {"type": "string",
                                       "enum": ["fasta2fastq", "fastq2fasta",

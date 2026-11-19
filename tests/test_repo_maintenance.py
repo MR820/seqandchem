@@ -109,6 +109,7 @@ def test_ci_installs_the_hashed_dev_lock():
     assert "cache-dependency-path:" in text
     assert "requirements-dev.txt" in text
     assert 'python-version: "3.12"' in text
+    assert "apt-get install -y --no-install-recommends openbabel" in text
 
 
 def _cron_fields(workflow: str):

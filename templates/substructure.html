@@ -48,6 +48,8 @@
   <h2>SMILES vs SMARTS</h2>
   <p>SMILES describes one specific molecule, while SMARTS describes a <em>query</em>: atom
      properties, bond types and ring membership can all be constrained. Substructure matching
-     returns a molecule if the pattern can be mapped onto any part of it.</p>
+     returns a molecule if the pattern can be mapped onto any part of it. A pattern OpenBabel
+     cannot parse is an error, not a search with zero hits. An empty result means the pattern
+     is valid and none of the molecules contain it.</p>
 </div>
 {% endblock %}
