@@ -61,6 +61,18 @@ def test_fastq_accepts_matching_quality_and_multiple_records():
     assert fastq_to_fasta(text) == ">read1\nATGC\n>read2 desc\nTTAA"
 
 
+def test_fastq_blank_lines_and_special_quality_with_several_records():
+    text = (
+        "@read1\nGATTACA\n+\n!''*(((\n"
+        "\n\n"
+        "@read2 desc\nACGT\n+read2 desc\n+@5I\n"
+    )
+    assert fastq_to_fasta(text) == ">read1\nGATTACA\n>read2 desc\nACGT"
+    with pytest.raises(SequenceError) as caught:
+        parse_fastq("@read1\nGATTACA\n\n+\n!''*(((\n")
+    assert "separator line must start with +" in str(caught.value)
+
+
 def test_fastq_public_example_and_phred_punctuation():
     seq = "ATGGCCATTGTAATGGGCCGCTGAAAGGGTGCCCGATAG"
     qual = "I" * len(seq)

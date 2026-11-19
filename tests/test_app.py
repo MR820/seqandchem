@@ -251,6 +251,9 @@ def test_docs_describe_the_implemented_behavior():
     assert api.status_code == 200
     page = api.get_data(as_text=True)
     assert '"atoms": "13"' in page
+    assert '"MW": "180.157"' in page
+    assert '"MR": "44.9003"' in page
+    assert "180.159" in page
     assert "heavy-atom count" in page
     assert "not 21" in page
     assert '"rows"' in page

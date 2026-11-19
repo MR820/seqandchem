@@ -68,6 +68,12 @@ def test_invalid_smarts_is_422_and_a_real_miss_is_empty():
     assert "error" not in body
 
 
+def test_ethanol_property_mw_matches_the_docs():
+    response = client().post("/api/v1/properties", json={"data": "CCO", "from": "smi"})
+    assert response.status_code == 200
+    assert response.get_json()["rows"][0]["props"]["MW"] == "46.0684"
+
+
 def test_properties_atoms_are_heavy_atoms_for_aspirin():
     response = client().post("/api/v1/properties", json={
         "data": "CC(=O)Oc1ccccc1C(=O)O", "from": "smi",
@@ -77,6 +83,8 @@ def test_properties_atoms_are_heavy_atoms_for_aspirin():
     assert props["formula"] == "C9H8O4"
     assert props["atoms"] == "13"
     assert props["bonds"] == "13"
+    assert props["MW"] == "180.157"
+    assert props["MR"] == "44.9003"
     assert props["logP"] == "1.3101"
     assert props["TPSA"] == "63.6"
     assert props["rotors"] == "3"

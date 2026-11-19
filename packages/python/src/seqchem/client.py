@@ -199,9 +199,9 @@ class Client:
         """FASTA/FASTQ operation.
 
         ``op`` is one of ``fasta2fastq``, ``fastq2fasta``, ``revcomp``,
-        ``translate`` or ``stats``. ``fastq2fasta`` rejects a FASTQ record whose
-        quality length or characters are invalid. ``revcomp`` accepts DNA, RNA
-        and IUPAC ambiguity codes and rejects anything else. Both raise
-        ``SeqChemError`` with HTTP status 400.
+        ``translate`` or ``stats``. A bad FASTQ record or a ``revcomp``
+        sequence outside DNA, RNA and IUPAC ambiguity codes raises
+        ``SeqChemError`` with HTTP status 400. A successful call still
+        returns this response dict.
         """
         return self._request("POST", "/bio", {"op": op, "data": data, "frame": frame})

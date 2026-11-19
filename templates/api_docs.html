@@ -46,7 +46,7 @@ print(r.json()["result"])
 
 c = Client()
 print(c.convert("CC(=O)Oc1ccccc1C(=O)O", to="inchi")["result"])
-print(c.properties("CCO")[0]["props"]["MW"])      # 46.069
+print(c.properties("CCO")[0]["props"]["MW"])      # 46.0684
 print(c.similarity("CCO", "CCCO"))                # Tanimoto</code></pre>
 
 <p>And from the browser — CORS is enabled, so this works from any origin:</p>
@@ -56,7 +56,7 @@ print(c.similarity("CCO", "CCCO"))                # Tanimoto</code></pre>
   body: JSON.stringify({ from: "smi", data: "CC(=O)Oc1ccccc1C(=O)O" }),
 });
 const data = await res.json();
-console.log(data.rows[0].props.MW);   // 180.159</code></pre>
+console.log(data.rows[0].props.MW);   // 180.157</code></pre>
 
 <h2 id="formats">Format identifiers</h2>
 <p>Every format is referred to by its OpenBabel id: <code>smi</code>, <code>can</code>,
@@ -152,9 +152,9 @@ console.log(data.rows[0].props.MW);   // 180.159</code></pre>
   "rows": [{
     "smiles": "CC(=O)Oc1ccccc1C(=O)O",
     "props": {
-      "formula": "C9H8O4", "MW": "180.159", "logP": "1.3101",
+      "formula": "C9H8O4", "MW": "180.157", "logP": "1.3101",
       "TPSA": "63.6", "HBD": "1", "HBA1": "4", "rotors": "3",
-      "atoms": "13", "bonds": "13", "MR": "44.691",
+      "atoms": "13", "bonds": "13", "MR": "44.9003",
       "cansmi": "CC(=O)Oc1ccccc1C(=O)O",
       "InChI": "InChI=1S/C9H8O4/c1-6(10)...",
       "InChIKey": "BSYNRYMUTXBXSQ-UHFFFAOYSA-N"
@@ -164,7 +164,11 @@ console.log(data.rows[0].props.MW);   // 180.159</code></pre>
 }</code></pre>
 <p><code>atoms</code> is the heavy-atom count and <code>bonds</code> counts bonds between those
    atoms. Implicit hydrogens are not included, so aspirin is 13 and 13, not 21. The field
-   name in the response stays <code>atoms</code>.</p>
+   name in the response stays <code>atoms</code>. <code>MW</code> and <code>MR</code> in this
+   example are the OpenBabel 3.1.1 descriptor strings (<code>180.157</code> and
+   <code>44.9003</code>). They are not the formula parser's IUPAC average weight, which is
+   <code>180.159</code> for <code>C9H8O4</code> and is returned by <code>mode=formula</code>
+   below.</p>
 
 <h3 id="ep-depict"><code>POST /api/v1/depict</code></h3>
 <p>Renders a 2D depiction and returns the raw SVG markup in <code>svg</code>. The SVG is
