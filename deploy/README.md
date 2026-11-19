@@ -77,8 +77,11 @@ Two primary checks already run every 5 minutes:
   nginx and goatcounter.
 
 `.github/workflows/uptime.yml` is a secondary probe from a GitHub-hosted runner, so it is a
-different network path. It is best-effort only. GitHub documents that `schedule` events can be
-delayed when Actions is under load, that the start of every hour is a high-load time, and that
+different network path. It is best-effort only. The probe names itself
+`SeqChem-Uptime/1.0 (GitHub Actions secondary uptime probe)` and sends an `Accept` header,
+instead of the default Python-urllib client; an HTTP 403 is still a failed check.
+GitHub documents that `schedule` events can be delayed when Actions is under load, that the
+start of every hour is a high-load time, and that
 queued jobs may be dropped. On `main` the workflow was active and its cron was valid. Schedule
 runs that GitHub did emit were created and started in the same second and then succeeded; the
 multi-hour gaps were events that were not emitted. That is scheduler delay and drop, not a

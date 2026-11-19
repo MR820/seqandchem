@@ -20,6 +20,18 @@ import time
 import urllib.error
 import urllib.request
 
+# Honest identity for this secondary probe. It replaces urllib's default
+# Python-urllib token, which Cloudflare Browser Integrity Check blocks.
+# It is not a browser User-Agent.
+MONITOR_USER_AGENT = "SeqChem-Uptime/1.0 (GitHub Actions secondary uptime probe)"
+
+
+def _probe_headers(accept: str, extra: dict[str, str] | None = None) -> dict[str, str]:
+    headers = {"User-Agent": MONITOR_USER_AGENT, "Accept": accept}
+    if extra:
+        headers.update(extra)
+    return headers
+
 
 def feishu_sign(timestamp: str, secret: str) -> str:
     """Feishu custom-bot signature: HMAC-SHA256 of an empty message.
@@ -59,7 +71,7 @@ def _health_error(name: str, status: int, body: bytes) -> str | None:
 def run_checks(site: str, site_health: str, api_health: str, convert: str, timeout: float) -> list[str]:
     errors: list[str] = []
     try:
-        status, _body = _request(site, None, {}, timeout)
+        status, _body = _request(site, None, _probe_headers("text/html"), timeout)
         if status != 200:
             errors.append(f"site HTTP {status}")
         else:
@@ -69,7 +81,7 @@ def run_checks(site: str, site_health: str, api_health: str, convert: str, timeo
 
     for name, url in (("site /health", site_health), ("api /health", api_health)):
         try:
-            status, body = _request(url, None, {}, timeout)
+            status, body = _request(url, None, _probe_headers("application/json"), timeout)
             error = _health_error(name, status, body)
             if error:
                 errors.append(error)
@@ -83,7 +95,7 @@ def run_checks(site: str, site_health: str, api_health: str, convert: str, timeo
         status, body = _request(
             convert,
             payload,
-            {"Content-Type": "application/json"},
+            _probe_headers("application/json", {"Content-Type": "application/json"}),
             timeout,
         )
         if status != 200:
