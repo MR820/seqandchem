@@ -147,7 +147,11 @@ class Client:
         return self._request("POST", "/gen3d", {"data": data, "from": frm})["result"]
 
     def substructure(self, data: str, smarts: str, frm: str = "smi") -> List[str]:
-        """Molecules from ``data`` that contain the SMARTS pattern."""
+        """Molecules from ``data`` that contain the SMARTS pattern.
+
+        A valid pattern with no hits returns an empty list. A pattern the service
+        cannot parse raises ``SeqChemError`` with HTTP status 422.
+        """
         return self._request(
             "POST", "/substructure", {"data": data, "smarts": smarts, "from": frm}
         )["matches"]
@@ -195,6 +199,9 @@ class Client:
         """FASTA/FASTQ operation.
 
         ``op`` is one of ``fasta2fastq``, ``fastq2fasta``, ``revcomp``,
-        ``translate`` or ``stats``.
+        ``translate`` or ``stats``. A bad FASTQ record or a ``revcomp``
+        sequence outside DNA, RNA and IUPAC ambiguity codes raises
+        ``SeqChemError`` with HTTP status 400. A successful call still
+        returns this response dict.
         """
         return self._request("POST", "/bio", {"op": op, "data": data, "frame": frame})
