@@ -48,8 +48,10 @@
 
   <h2>Frequently asked questions</h2>
   <h3>Which FASTQ variants are supported?</h3>
-  <p>Standard four-line FASTQ (Sanger, Illumina 1.8+) is supported. Multi-line sequence records,
-     used by a few older tools, are not.</p>
+  <p>Standard four-line FASTQ (Sanger, Illumina 1.8+) is supported. Multi-line sequence
+     records, used by a few older tools, are not. A record whose quality string is not the
+     same length as the sequence, whose quality characters fall outside ASCII 33-126, or that is
+     missing a line is rejected. Blank lines are allowed only between records.</p>
   <h3>Are the identifiers preserved?</h3>
   <p>Yes. The <code>@</code> header becomes a <code>&gt;</code> header with the same content,
      including any description after the identifier.</p>

@@ -119,8 +119,8 @@ deploy/           systemd unit、nginx vhost、监控脚本
 ```bash
 python3 -m venv venv
 source venv/bin/activate
-pip install -r requirements.txt
-# 另外需要 OpenBabel CLI（系统包）：
+pip install --require-hashes -r requirements.txt
+# OpenBabel CLI 是系统包，不要用 pip 安装 openbabel：
 #   Debian/Ubuntu: apt install openbabel
 #   macOS:         brew install open-babel
 BASE_URL=http://127.0.0.1:8080 python app.py
@@ -130,7 +130,9 @@ BASE_URL=http://127.0.0.1:8080 python app.py
 
 ## 部署
 
-`deploy/chemtools.service` 和 `deploy/nginx.conf` 是 <https://seqandchem.com> 使用的生产配置：gunicorn 以专用 `chemtools` 用户运行在 `127.0.0.1:8080`，由 nginx 终止 TLS。
+`deploy/chemtools.service` 和 `deploy/nginx.conf` 是 <https://seqandchem.com> 使用的生产配置：gunicorn 以专用 `chemtools` 用户运行在 `127.0.0.1:8080`，由 nginx 终止 TLS。部署由人工执行。本仓库的 GitHub Actions 只有 `contents: read`，不要把生产 SSH 密钥或 Cloudflare 令牌放进 Actions。
+
+监控分三层：主机 cron 每 5 分钟运行 `deploy/uptime-check.sh`；主外部检查是 Cloudflare Worker `seqchem-uptime`（`deploy/cloudflare-uptime-worker/`，同样每 5 分钟，状态变化时发飞书）；`.github/workflows/uptime.yml` 只是来自另一网络的次要、尽力而为检查。GitHub 会延迟或丢弃 `schedule` 任务，不能当作分钟级 SLA。失败文本仍使用现有的 `FEISHU_WEBHOOK` 与 `FEISHU_WEBHOOK_SECRET`。详见 `deploy/README.md`。
 
 `deploy/daily-report.sh` 是运维健康检查脚本，每天把摘要（流量、爬虫覆盖、服务状态、安全更新）推送到飞书机器人。
 

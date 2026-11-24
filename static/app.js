@@ -424,6 +424,8 @@
       data, from: $("#sub-from").value, smarts: $("#sub-smarts").value,
     });
     if (!j.ok) {
+      const box = $("#sub-result");
+      if (box) { box.style.display = "none"; box.innerHTML = ""; }
       setStatus("#sub-status", j.error + (j.detail ? " — " + j.detail : ""), "err");
       return;
     }
@@ -658,6 +660,10 @@
     setStatus("#bio-status", "Working…", "");
     const j = await postJSON("/api/bio", body);
     if (!j.ok) {
+      const statsBox = $("#bio-stats");
+      const out = $("#bio-out");
+      if (statsBox) { statsBox.style.display = "none"; statsBox.innerHTML = ""; }
+      if (out) out.textContent = "";
       setStatus("#bio-status", j.error + (j.detail ? " — " + j.detail : ""), "err");
       return;
     }

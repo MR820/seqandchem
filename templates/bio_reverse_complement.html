@@ -51,9 +51,11 @@
       <tr><td>N</td><td>Any base</td><td>N</td></tr>
     </tbody>
   </table>
-  <p>Lowercase and masked bases are complemented and reversed in the same way. Gap characters such
-     as <code>-</code> are preserved but not complemented, so they keep their position relative to
-     the reversed sequence.</p>
+  <p>Lowercase and masked bases are complemented and reversed in the same way. U is accepted for
+     RNA and complemented to A; A is still complemented to T. Spaces and line breaks inside a
+     sequence are ignored. Any character outside the IUPAC codes (for example digits or gap
+     characters) is rejected with an error. A bare sequence is one record and comes back on a
+     single line; FASTA records are converted separately.</p>
 
   <h2>Why the 5′→3′ direction matters</h2>
   <p>Sequences are written 5′→3′ by convention. When you copy a sequence from a paper, a primer
@@ -106,9 +108,9 @@ print(reverse_complement)          # GCCAT</code></pre>
      complement, also written 5′→3′. For a primer order, enter the sequence exactly as you want it
      synthesized; the synthesizer reads it 5′→3′.</p>
   <h3>Does it work with RNA?</h3>
-  <p>The tool is designed for DNA and complements A with T. If you are working with RNA, take the
-     DNA result and replace T with U. For RNA-specific work, check that your downstream tool
-     expects U rather than T.</p>
+  <p>The tool accepts U in the input and complements it to A. The output strand uses T for DNA;
+     if you need an RNA string, replace T with U in the result and check that your downstream tool
+     expects RNA.</p>
   <h3>What happens to lowercase or masked bases?</h3>
   <p>Lowercase bases are complemented to lowercase and reversed with the rest of the sequence.
      Masked regions therefore stay masked in the output.</p>

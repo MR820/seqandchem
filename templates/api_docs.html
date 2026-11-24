@@ -46,7 +46,7 @@ print(r.json()["result"])
 
 c = Client()
 print(c.convert("CC(=O)Oc1ccccc1C(=O)O", to="inchi")["result"])
-print(c.properties("CCO")[0]["props"]["MW"])      # 46.069
+print(c.properties("CCO")[0]["props"]["MW"])      # 46.0684
 print(c.similarity("CCO", "CCCO"))                # Tanimoto</code></pre>
 
 <p>And from the browser — CORS is enabled, so this works from any origin:</p>
@@ -56,7 +56,7 @@ print(c.similarity("CCO", "CCCO"))                # Tanimoto</code></pre>
   body: JSON.stringify({ from: "smi", data: "CC(=O)Oc1ccccc1C(=O)O" }),
 });
 const data = await res.json();
-console.log(data.rows[0].props.MW);   // 180.159</code></pre>
+console.log(data.rows[0].props.MW);   // 180.157</code></pre>
 
 <h2 id="formats">Format identifiers</h2>
 <p>Every format is referred to by its OpenBabel id: <code>smi</code>, <code>can</code>,
@@ -152,9 +152,9 @@ console.log(data.rows[0].props.MW);   // 180.159</code></pre>
   "rows": [{
     "smiles": "CC(=O)Oc1ccccc1C(=O)O",
     "props": {
-      "formula": "C9H8O4", "MW": "180.159", "logP": "1.3101",
+      "formula": "C9H8O4", "MW": "180.157", "logP": "1.3101",
       "TPSA": "63.6", "HBD": "1", "HBA1": "4", "rotors": "3",
-      "atoms": "21", "bonds": "21", "MR": "44.691",
+      "atoms": "13", "bonds": "13", "MR": "44.9003",
       "cansmi": "CC(=O)Oc1ccccc1C(=O)O",
       "InChI": "InChI=1S/C9H8O4/c1-6(10)...",
       "InChIKey": "BSYNRYMUTXBXSQ-UHFFFAOYSA-N"
@@ -162,6 +162,13 @@ console.log(data.rows[0].props.MW);   // 180.159</code></pre>
   }],
   "labels": {"formula": "Formula", "MW": "Molecular weight"}
 }</code></pre>
+<p><code>atoms</code> is the heavy-atom count and <code>bonds</code> counts bonds between those
+   atoms. Implicit hydrogens are not included, so aspirin is 13 and 13, not 21. The field
+   name in the response stays <code>atoms</code>. <code>MW</code> and <code>MR</code> in this
+   example are the OpenBabel 3.1.1 descriptor strings (<code>180.157</code> and
+   <code>44.9003</code>). They are not the formula parser's IUPAC average weight, which is
+   <code>180.159</code> for <code>C9H8O4</code> and is returned by <code>mode=formula</code>
+   below.</p>
 
 <h3 id="ep-depict"><code>POST /api/v1/depict</code></h3>
 <p>Renders a 2D depiction and returns the raw SVG markup in <code>svg</code>. The SVG is
@@ -199,6 +206,10 @@ console.log(data.rows[0].props.MW);   // 180.159</code></pre>
   </tbody>
 </table>
 <pre><code>{"ok": true, "count": 2, "matches": ["CC(=O)Oc1ccccc1C(=O)O", "CC(=O)Nc1ccc(O)cc1"]}</code></pre>
+<p>A valid pattern that matches nothing returns <code>{"ok": true, "count": 0, "matches": []}</code>.
+   A pattern OpenBabel cannot parse, such as an unclosed bracket, is <code>422</code> with
+   <code>ok: false</code> and <code>error: "Invalid SMARTS pattern"</code>. The OpenBabel
+   message is in <code>detail</code>. That is not an empty match list.</p>
 
 <h3 id="ep-fingerprint"><code>POST /api/v1/fingerprint</code></h3>
 <p>Returns the raw fingerprint bit string for each molecule.</p>
@@ -276,8 +287,21 @@ console.log(data.rows[0].props.MW);   // 180.159</code></pre>
     <tr><td><code>from</code></td><td>string</td><td>Input format id for structure mode</td></tr>
   </tbody>
 </table>
-<pre><code>{"ok": true, "formula": "C9H8O4", "mw": 180.159,
- "composition": {"C": 9, "H": 8, "O": 4}, "atoms": 21}</code></pre>
+<p><code>mode=formula</code> (the default) returns one object. <code>atoms</code> counts every
+   atom, including hydrogen. <code>composition</code> is a list of element rows, not a map of
+   counts:</p>
+<pre><code>{"ok": true, "formula": "C9H8O4", "mw": 180.159, "atoms": 21,
+ "composition": [
+   {"element": "C", "count": 9, "mass": 108.099, "percent": 60.0},
+   {"element": "O", "count": 4, "mass": 63.996, "percent": 35.52},
+   {"element": "H", "count": 8, "mass": 8.064, "percent": 4.48}
+ ]}</code></pre>
+<p><code>mode=structure</code> returns <code>rows</code>, one object per molecule. It does not
+   include top-level <code>formula</code>, <code>mw</code>, <code>composition</code> or
+   <code>atoms</code>. Weights here come from OpenBabel:</p>
+<pre><code>{"ok": true, "rows": [
+  {"smiles": "CCO", "formula": "C2H6O", "mw": 46.068}
+]}</code></pre>
 
 <h3 id="ep-bio"><code>POST /api/v1/bio</code></h3>
 <p>Sequence operations, all implemented natively in Python.</p>
@@ -295,6 +319,17 @@ console.log(data.rows[0].props.MW);   // 180.159</code></pre>
   </tbody>
 </table>
 <pre><code>{"ok": true, "result": "ATGGCC...", "count": 3}</code></pre>
+<p><code>fastq2fasta</code> accepts standard four-line FASTQ. Quality characters must be ASCII
+   33-126 (the range that covers Phred+33 and Phred+64) and the quality string must be the
+   same length as the sequence. A mismatch, a missing line, or a quality character outside
+   that range is <code>400</code> with <code>ok: false</code>. Blank lines are allowed between
+   records, not inside a record. Wrapped multi-line sequences are not accepted.</p>
+<p><code>revcomp</code> accepts A, C, G, T, U and the IUPAC ambiguity codes N, R, Y, K, M, S,
+   W, B, D, H, V, in either case. Any other character is <code>400</code>. U is complemented
+   to A. Whitespace in a sequence is ignored: a bare sequence split across lines is one
+   sequence and comes back on a single line; FASTA records are converted separately and
+   wrapped at 70 columns. <code>translate</code> reads forward frames <code>0</code>,
+   <code>1</code> and <code>2</code> only.</p>
 
 <h2 id="errors">Errors</h2>
 <p>Failures always return the same shape, with an HTTP status of 400, 422 or 429:</p>
@@ -302,8 +337,8 @@ console.log(data.rows[0].props.MW);   // 180.159</code></pre>
 <table>
   <thead><tr><th>Status</th><th>Meaning</th></tr></thead>
   <tbody>
-    <tr><td><code>400</code></td><td>Bad request — missing field, unknown format, input too large</td></tr>
-    <tr><td><code>422</code></td><td>OpenBabel or OPSIN could not process the input</td></tr>
+    <tr><td><code>400</code></td><td>Bad request — missing field, unknown format, input too large, or FASTQ / nucleotide text that fails validation</td></tr>
+    <tr><td><code>422</code></td><td>OpenBabel or OPSIN could not process the input, including a SMARTS pattern that does not parse</td></tr>
     <tr><td><code>429</code></td><td>Rate limit or a heavy job already running; see <code>Retry-After</code></td></tr>
     <tr><td><code>502</code></td><td>Upstream name-resolution service unavailable</td></tr>
   </tbody>

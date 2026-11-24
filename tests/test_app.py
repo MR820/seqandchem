@@ -151,3 +151,151 @@ def test_batch_auto_gen3d_and_preview(monkeypatch):
     assert body["ok"] is True
     assert body["preview_sdf"] == "SDF\n$$$$\n"
     assert calls and all("--gen3d" in args for args, _ in calls)
+
+
+def _bio(op, data, **extra):
+    body = {"op": op, "data": data}
+    body.update(extra)
+    return client().post("/api/v1/bio", json=body)
+
+
+def test_fastq_length_mismatch_is_400_and_not_a_success():
+    response = _bio("fastq2fasta", "@read1\nATGC\n+\nII\n")
+    assert response.status_code == 400
+    body = response.get_json()
+    assert body["ok"] is False
+    assert body["error"] == "Invalid FASTQ: sequence and quality lengths differ"
+    assert body["detail"] == (
+        "Record 1 (read1): sequence length 4, quality length 2"
+    )
+    assert "result" not in body
+
+    same = client().post("/api/bio", json={
+        "op": "fastq2fasta", "data": "@read1\nATGC\n+\nII\n",
+    })
+    assert same.status_code == 400
+    assert same.get_json()["ok"] is False
+
+
+def test_fastq_valid_multi_record_and_middle_failure():
+    good = "@read1\nATGC\n+\nIIII\n@read2\nTTAA\n+\nIIII\n"
+    response = _bio("fastq2fasta", good)
+    assert response.status_code == 200
+    body = response.get_json()
+    assert body["ok"] is True
+    assert body["count"] == 2
+    assert body["result"] == ">read1\nATGC\n>read2\nTTAA"
+
+    bad = "@ok\nATGC\n+\nIIII\n@bad\nATGC\n+\nII\n@later\nGG\n+\nII\n"
+    response = _bio("fastq2fasta", bad)
+    assert response.status_code == 400
+    body = response.get_json()
+    assert body["ok"] is False
+    assert "result" not in body
+    assert "Record 2 (bad)" in body["detail"]
+
+
+def test_revcomp_rejects_digits_and_keeps_iupac_rna_and_records():
+    bad = _bio("revcomp", "12345")
+    assert bad.status_code == 400
+    body = bad.get_json()
+    assert body["ok"] is False
+    assert body["error"] == (
+        "Invalid sequence: characters are not DNA, RNA or IUPAC ambiguity codes"
+    )
+    assert "result" not in body
+    assert "'1'" in body["detail"]
+
+    iupac = _bio("revcomp", "ATGCRY")
+    assert iupac.status_code == 200
+    assert iupac.get_json() == {"ok": True, "result": "RYGCAT"}
+
+    rna = _bio("revcomp", "AUGC")
+    assert rna.status_code == 200
+    assert rna.get_json()["result"] == "GCAT"
+
+    records = _bio("revcomp", ">a\nATGC\nRY\n>b\nAU\n")
+    assert records.status_code == 200
+    assert records.get_json()["result"] == ">a\nRYGCAT\n>b\nAT"
+
+    lines = _bio("revcomp", "ATGC\nRY")
+    assert lines.status_code == 200
+    assert lines.get_json()["result"] == "RYGCAT"
+
+
+def test_bio_empty_and_unknown_op_stay_client_errors():
+    empty = _bio("stats", "")
+    assert empty.status_code == 400
+    assert empty.get_json()["ok"] is False
+    unknown = _bio("nope", "ATGC")
+    assert unknown.status_code == 400
+    assert unknown.get_json()["error"] == "Unknown operation"
+
+
+def test_formula_mode_shape_matches_the_docs():
+    response = client().post("/api/v1/formula", json={
+        "mode": "formula", "formula": "C9H8O4",
+    })
+    assert response.status_code == 200
+    body = response.get_json()
+    assert body["ok"] is True
+    assert body["formula"] == "C9H8O4"
+    assert body["mw"] == 180.159
+    assert body["atoms"] == 21
+    assert [row["element"] for row in body["composition"]] == ["C", "O", "H"]
+    assert body["composition"][0]["count"] == 9
+
+
+def test_docs_describe_the_implemented_behavior():
+    api = client().get("/api")
+    assert api.status_code == 200
+    page = api.get_data(as_text=True)
+    assert '"atoms": "13"' in page
+    assert '"MW": "180.157"' in page
+    assert '"MR": "44.9003"' in page
+    assert "180.159" in page
+    assert "heavy-atom count" in page
+    assert "not 21" in page
+    assert '"rows"' in page
+    assert "not a map of" in page
+    assert "Invalid SMARTS pattern" in page
+    assert "six-frame" not in page
+
+    bio = client().get("/bio/")
+    assert bio.status_code == 200
+    text = bio.get_data(as_text=True)
+    assert "six-frame" not in text
+    assert "three forward reading frames" in text
+
+    fastq = client().get("/bio/fastq-to-fasta")
+    assert fastq.status_code == 200
+    assert b"ASCII 33-126" in fastq.data
+
+    rev = client().get("/bio/reverse-complement")
+    assert rev.status_code == 200
+    assert b"complemented to A" in rev.data
+
+    sub = client().get("/substructure")
+    assert sub.status_code == 200
+    assert b"not a search with zero hits" in sub.data
+
+    guide = client().get("/guides/fasta-vs-fastq")
+    assert guide.status_code == 200
+    assert b"does not drop the quality string" in guide.data
+
+    embed = client().get("/embed")
+    widget = client().get("/embed/convert?from=smi&to=inchi")
+    assert embed.status_code == 200
+    assert embed.headers.get("X-Frame-Options") == "SAMEORIGIN"
+    assert widget.status_code == 200
+    assert b'id="w-in"' in widget.data
+    assert widget.headers.get("Content-Security-Policy") == "frame-ancestors https: http: 'self'"
+
+    spec = client().get("/api/openapi.json").get_json()
+    assert "heavy-atom" in spec["paths"]["/api/v1/properties"]["post"]["description"]
+    assert "422" in spec["paths"]["/api/v1/substructure"]["post"]["description"]
+    formula = spec["paths"]["/api/v1/formula"]["post"]["description"]
+    assert "rows" in formula and "composition" in formula
+    bio_desc = spec["paths"]["/api/v1/bio"]["post"]["description"]
+    assert "0, 1 or 2" in bio_desc
+    assert "six" not in bio_desc.lower()

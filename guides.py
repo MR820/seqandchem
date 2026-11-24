@@ -251,8 +251,12 @@ IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII</code></pre>
   <li><code>@</code> header — same content as a FASTA header, different marker</li>
   <li>Sequence</li>
   <li><code>+</code> separator, optionally repeating the header</li>
-  <li>Quality string — exactly one character per base</li>
+  <li>Quality string — exactly one character per base, ASCII 33-126</li>
 </ol>
+<p>The FASTQ to FASTA converter rejects a record when those rules are broken: a quality string
+   of a different length, a quality character outside that range, a missing line, or a wrapped
+   multi-line sequence. It does not drop the quality string and return the sequence anyway.
+   Blank lines are allowed between records.</p>
 
 <h2>What the quality string means</h2>
 <p>Each character encodes a Phred quality score Q, which is a log-scale estimate of the probability

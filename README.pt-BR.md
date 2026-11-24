@@ -119,8 +119,8 @@ deploy/           Unidade systemd, vhost do nginx, script de monitoramento
 ```bash
 python3 -m venv venv
 source venv/bin/activate
-pip install -r requirements.txt
-# além disso, é necessário o CLI do OpenBabel, que é um pacote do sistema:
+pip install --require-hashes -r requirements.txt
+# além disso, é necessário o CLI do OpenBabel, que é um pacote do sistema, não um pacote pip:
 #   Debian/Ubuntu: apt install openbabel
 #   macOS:         brew install open-babel
 BASE_URL=http://127.0.0.1:8080 python app.py
@@ -132,7 +132,16 @@ A aplicação é servida em `127.0.0.1:8080`; abra <http://127.0.0.1:8080>.
 
 `deploy/chemtools.service` e `deploy/nginx.conf` são a configuração de produção usada em
 <https://seqandchem.com>: gunicorn em `127.0.0.1:8080` sob um usuário dedicado `chemtools`, com
-o nginx terminando o TLS.
+o nginx terminando o TLS. O deploy é manual. Os workflows do Actions têm apenas `contents: read`;
+não coloque neles chaves SSH de produção nem tokens da Cloudflare.
+
+O monitoramento tem três camadas: o cron do host executa `deploy/uptime-check.sh` a cada 5
+minutos; a verificação externa principal é o Worker da Cloudflare `seqchem-uptime`
+(`deploy/cloudflare-uptime-worker/`), também a cada 5 minutos, com alerta no Feishu quando o
+estado muda. `.github/workflows/uptime.yml` é uma sonda secundária de melhor esforço a partir de
+outra rede. O GitHub pode atrasar ou descartar eventos `schedule` por horas; isso não é um SLA
+por minuto. O texto de falha continua usando os segredos existentes `FEISHU_WEBHOOK` e
+`FEISHU_WEBHOOK_SECRET`. Detalhes em `deploy/README.md`.
 
 `deploy/daily-report.sh` é a verificação de saúde operacional que envia um resumo diário
 (tráfego, cobertura de rastreadores, estado dos serviços, atualizações de segurança) para um bot do

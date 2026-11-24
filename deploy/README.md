@@ -23,7 +23,8 @@ useradd -r -s /usr/sbin/nologin chemtools
 mkdir -p /opt/chemtools
 # copy app.py bio.py formula.py guides.py presets.py templates/ static/
 python3 -m venv /opt/chemtools/venv
-/opt/chemtools/venv/bin/pip install -r requirements.txt
+/opt/chemtools/venv/bin/python -m pip install --upgrade pip
+/opt/chemtools/venv/bin/pip install --require-hashes -r requirements.txt
 chown -R chemtools:chemtools /opt/chemtools
 systemctl enable --now chemtools
 ```
@@ -41,6 +42,13 @@ ssh root@HOST 'chown -R chemtools:chemtools /opt/chemtools && cd /opt/chemtools 
 
 Always run the `import app` check before restarting — it catches syntax and import errors that
 would otherwise take the service down.
+
+Deploys stay manual. The GitHub Actions workflows in this repository declare `contents: read`
+and are not a deploy path: do not put production SSH keys, Cloudflare tokens, or the Feishu app
+credentials (`FEISHU_APP_ID`, `FEISHU_APP_SECRET`, `FEISHU_OPEN_ID`) into Actions. Those app
+credentials stay in `/opt/seqchem-monitor/feishu.env` (mode 600) and in the Worker secrets.
+The secondary uptime workflow uses only the existing repository secrets `FEISHU_WEBHOOK` and
+`FEISHU_WEBHOOK_SECRET`.
 
 If the update changes HTML, Cloudflare may serve the previous page for up to 5 minutes
 (`s-maxage=300`); purge the affected URLs after the deploy or wait for the cache to expire.
@@ -61,15 +69,49 @@ FEISHU_OPEN_ID=...
 
 ## External uptime
 
-The primary external check is the Cloudflare Worker in `cloudflare-uptime-worker/`. It runs on
-Cloudflare's edge every 5 minutes and checks the public homepage, both `/health` endpoints and a
-real `/api/v1/convert` call. It sends a Feishu message on OK → DOWN and DOWN → OK, with a 6-hour
-reminder while down. See `cloudflare-uptime-worker/README.md` for deployment.
+Two primary checks already run every 5 minutes:
 
-`.github/workflows/uptime.yml` is a secondary, best-effort GitHub Actions check. GitHub's scheduler
-can delay `schedule` runs by hours, so do not rely on it for minute-level alerting. Add the
-repository secret `FEISHU_WEBHOOK` (a Feishu custom-bot webhook) to receive a text alert on
-failure; without the secret, the failed run is still visible in the repository.
+- Cloudflare Worker `seqchem-uptime` (`cloudflare-uptime-worker/`), cron `*/5 * * * *`, from
+  Cloudflare's edge. It checks both `/health` endpoints and one `/api/v1/convert` call, and sends
+  a Feishu message on OK → DOWN and DOWN → OK, with a 6-hour reminder while down.
+- On-host `uptime-check.sh`, cron `*/5 * * * *`, which also sees systemd state for chemtools,
+  nginx and goatcounter.
+
+`.github/workflows/uptime.yml` is a secondary probe from a GitHub-hosted runner, so it is a
+different network path. It is best-effort only. The probe names itself
+`SeqChem-Uptime/1.0 (GitHub Actions secondary uptime probe)` and sends an `Accept` header,
+instead of the default Python-urllib client; an HTTP 403 is still a failed check.
+GitHub documents that `schedule` events can be delayed when Actions is under load, that the
+start of every hour is a high-load time, and that
+queued jobs may be dropped. On `main` the workflow was active and its cron was valid. Schedule
+runs that GitHub did emit were created and started in the same second and then succeeded; the
+multi-hour gaps were events that were not emitted. That is scheduler delay and drop, not a
+failed check.
+
+The workflow therefore does not request a 15-minute cadence. It asks for twelve runs per day,
+none of them at minute 0:
+
+- `17 */3 * * *` (minute 17 every third hour)
+- `47 1,7,13,19 * * *`
+
+A concurrency group named `external-uptime` keeps an in-progress probe running (so a failure can
+still notify) and drops older queued duplicates. `workflow_dispatch` remains for a manual run.
+Failure notification still uses the repository secrets `FEISHU_WEBHOOK` and
+`FEISHU_WEBHOOK_SECRET` and stays silent when the webhook secret is unset. This does not add
+another notification service, and it does not replace either primary check.
+
+## Dependencies
+
+`requirements.in` lists the direct runtime pins (Flask 3.1.3, Flask-Compress 1.26, gunicorn
+26.2.0). `requirements.txt` is the hashed pip-compile lock, including the transitive set already
+resolved by CI on 2026-11-18. Tests install `requirements-dev.txt`, which adds pytest 9.2.0 and
+its dependencies. Regenerate with the commands in the `.in` files; do not hand-edit the locks.
+
+OpenBabel stays the OS package installed above. Do not add the PyPI `openbabel` distribution.
+
+`.github/dependabot.yml` opens at most two pip update PRs and one GitHub Actions update PR per
+week, so version updates are reviewed individually instead of applied as a broad bump. This
+change does not modify GitHub secret scanning.
 
 ## Cloudflare cache
 
