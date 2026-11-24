@@ -1,0 +1,79 @@
+templates/bio_fastq_to_fasta.html
+  s_cca9ad2212bd78::t_0db892b0a74990 51-52
+  s_cca9ad2212bd78::t_83bea7e833aa5e 53-54
+templates/api_docs.html
+  s_cca9ad2212bd78::t_0db892b0a74990 49,59,155,157,165-171,209-212,290-304,322-332,340-341
+tests/test_external_uptime.py
+  s_cca9ad2212bd78::t_0db892b0a74990 1-295
+.github/dependabot.yml
+  s_cca9ad2212bd78::t_0db892b0a74990 1-24
+deploy/cloudflare-uptime-worker/README.md
+  s_cca9ad2212bd78::t_0db892b0a74990 5-7
+tests/test_app.py
+  s_cca9ad2212bd78::t_0db892b0a74990 154-301
+tests/test_obabel_integration.py
+  s_cca9ad2212bd78::t_0db892b0a74990 1-104
+.github/workflows/uptime.yml
+  s_cca9ad2212bd78::t_0db892b0a74990 3-8,11-12,18-21,27-30,34-38,47-67
+README.es.md
+  s_cca9ad2212bd78::t_0db892b0a74990 122-123,135-144
+tests/test_repo_maintenance.py
+  s_cca9ad2212bd78::t_0db892b0a74990 1-152
+requirements-dev.txt
+  s_cca9ad2212bd78::t_0db892b0a74990 1-455
+README.md
+  s_cca9ad2212bd78::t_0db892b0a74990 131-132,143,147-150,159-160,163-169
+  s_cca9ad2212bd78::t_83e6689de0c16d 55
+requirements.txt
+  s_cca9ad2212bd78::t_0db892b0a74990 1-435
+templates/bio_index.html
+  s_cca9ad2212bd78::t_83bea7e833aa5e 5-6
+templates/substructure.html
+  s_cca9ad2212bd78::t_83bea7e833aa5e 88-89
+deploy/external_uptime.py
+  s_cca9ad2212bd78::t_0db892b0a74990 1-191
+app.py
+  s_cca9ad2212bd78::t_0db892b0a74990 363-370,1436,1553,1556-1557,2057-2058,2154-2155,2166-2167,2197-2200
+  s_cca9ad2212bd78::t_83e6689de0c16d 32-35,2208-2212
+requirements-dev.in
+  s_cca9ad2212bd78::t_0db892b0a74990 1-8
+packages/python/src/seqchem/client.py
+  s_cca9ad2212bd78::t_0db892b0a74990 150-154,202-205
+deploy/README.md
+  s_cca9ad2212bd78::t_0db892b0a74990 26-27,46-52,72-114
+README.pt-BR.md
+  s_cca9ad2212bd78::t_0db892b0a74990 122-123,135-144
+bio.py
+  s_cca9ad2212bd78::t_0db892b0a74990 6-32,72-78,80-87,89-91,93-120,143-156,158-164,166-171,173-179,181-183
+README.zh-CN.md
+  s_cca9ad2212bd78::t_0db892b0a74990 122-123,133-135
+requirements.in
+  s_cca9ad2212bd78::t_0db892b0a74990 1-9
+guides.py
+  s_cca9ad2212bd78::t_0db892b0a74990 254,256-259
+templates/bio_reverse_complement.html
+  s_cca9ad2212bd78::t_83bea7e833aa5e 54-58,111-113
+tests/test_bio.py
+  s_cca9ad2212bd78::t_bfb71e2e7b5cbd 98-99
+  s_cca9ad2212bd78::t_0db892b0a74990 4,100-188
+static/app.js
+  s_cca9ad2212bd78::t_0db892b0a74990 427-428,663-666
+.github/workflows/ci.yml
+  s_cca9ad2212bd78::t_0db892b0a74990 20-22,26-28
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "746d942c954abb61a72ada0249998bdb53844ecd",
+  "prompts": {},
+  "sessions": {
+    "s_cca9ad2212bd78": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0e76450e-5aef-42e5-86cc-ccb8e0e104bd",
+        "model": "deepseek-flash"
+      },
+      "human_author": "xingzhiwei <xingzhiwei@xunlei.com>"
+    }
+  }
+}
