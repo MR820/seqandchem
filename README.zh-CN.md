@@ -98,7 +98,7 @@ curl -s https://seqandchem.com/api/v1/properties \
 - **OpenBabel 3.1.1** CLI 负责所有分子处理（以子进程调用）
 - **OPSIN**（剑桥大学）通过 HTTP 解析 IUPAC 名称
 - **3Dmol.js** 负责客户端 3D 渲染
-- **GoatCounter** 提供隐私友好的页面统计
+- **Cloudflare Web Analytics** 提供无 Cookie 的页面统计
 - 无数据库——应用无状态
 
 ## 仓库结构
@@ -136,7 +136,7 @@ BASE_URL=http://127.0.0.1:8080 python app.py
 
 ## 隐私
 
-服务器端不存储任何内容。分子和序列在子进程中转换后即丢弃。唯一统计工具是 GoatCounter——无 Cookie、不收集个人数据、不做跨站跟踪。
+服务器端不存储任何内容。分子和序列在子进程中转换后即丢弃。唯一统计工具是 Cloudflare Web Analytics——无 Cookie、不收集个人数据、不做跨站跟踪。
 
 ## 致谢
 

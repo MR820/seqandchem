@@ -1,18 +1,63 @@
 {% extends "preset.html" %}
 {% block prose %}
 <div class="prose">
-  <h2>SMILES to SDF with 3D coordinates</h2>
+  <h2>What this SMILES to SDF converter does</h2>
   <p>This converter turns a SMILES string into an SDF structure file. SDF is what most molecular
-     viewers, docking programs and modelling pipelines accept. When the
-     <em>3D coordinates</em> option is enabled, OpenBabel generates an initial geometry and
-     optimises it with a force field so the file contains a real 3D conformer rather than a flat
-     drawing.</p>
+     viewers, docking programs and modelling pipelines accept. When the <em>3D coordinates</em>
+     option is enabled, OpenBabel generates an initial geometry and optimises it with a force field
+     so the file contains a real 3D conformer rather than a flat drawing.</p>
+  <p>Paste one SMILES or a list, one per line. The output contains one SDF record per molecule,
+     separated by <code>$$$$</code>. To go the other way, use
+     <a href="/sdf-to-smiles">SDF to SMILES</a>; for a single MOL file, use
+     <a href="/smiles-to-mol">SMILES to MOL</a>.</p>
 
   <h2>What you get</h2>
   <ul>
-    <li>A valid V2000 SDF block with atom and bond tables</li>
-    <li>2D layout by default, 3D conformer when <em>3D coordinates</em> is checked</li>
-    <li>Explicit hydrogens when 3D coordinates are generated</li>
+    <li>A valid V2000 SDF block with atom and bond tables.</li>
+    <li>2D layout by default, 3D conformer when <em>3D coordinates</em> is checked.</li>
+    <li>Explicit hydrogens when 3D coordinates are generated.</li>
+    <li>One record per input molecule, in the same order.</li>
+  </ul>
+
+  <h2>2D vs 3D</h2>
+  <table>
+    <thead>
+      <tr><th>Option</th><th>What it does</th><th>Use when</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>2D (default)</td><td>Generates a flat, readable layout</td><td>Editing, reports, database storage</td></tr>
+      <tr><td>3D coordinates</td><td>Builds and optimises a conformer</td><td>Docking, molecular dynamics, 3D viewers</td></tr>
+    </tbody>
+  </table>
+  <p>3D generation takes longer and produces one low-energy conformer, not an ensemble. For a
+     flexible molecule, the result depends on the starting geometry and the force field. Use a
+     dedicated conformer generator if you need to sample multiple minima.</p>
+
+  <h2>What is preserved</h2>
+  <ul>
+    <li><strong>Connectivity and bond orders</strong> — from the SMILES.</li>
+    <li><strong>Formal charges</strong> — written into the atom block.</li>
+    <li><strong>Stereochemistry</strong> — wedge/hash bonds and stereo flags when the SMILES
+        defines it.</li>
+    <li><strong>Coordinates</strong> — 2D layout or 3D conformer, depending on the option.</li>
+  </ul>
+  <p>SMILES does not carry properties or names, so the SDF record has a structure block and no
+     metadata. Add data fields in your downstream tool if you need them.</p>
+
+  <h2>Salts and multiple components</h2>
+  <p>A SMILES with a salt or mixture contains disconnected components separated by dots. The SDF
+     record may contain all components in one record or split them depending on the input. Check
+     the record and remove counter-ions first if you want the parent compound only.</p>
+
+  <h2>Common uses</h2>
+  <ul>
+    <li>Preparing a ligand for docking or a 3D viewer
+        (<a href="/smiles-to-pdbqt">SMILES to PDBQT</a> for AutoDock).</li>
+    <li>Building a compound library from a SMILES list
+        (<a href="/batch">batch converter</a>).</li>
+    <li>Opening a SMILES structure in ChemDraw, Marvin or Avogadro.</li>
+    <li>Generating a starting geometry for a quantum-chemistry calculation
+        (<a href="/smiles-to-xyz">SMILES to XYZ</a>).</li>
   </ul>
 
   <h2>Frequently asked questions</h2>
@@ -23,5 +68,30 @@
   <h3>Can I convert many SMILES at once?</h3>
   <p>Yes. Put one SMILES per line and the output will contain one SDF record per molecule,
      separated by <code>$$$$</code>.</p>
+  <h3>Does it add hydrogens?</h3>
+  <p>3D generation adds hydrogens because a 3D geometry needs them. For a 2D SDF, hydrogens are
+     implicit unless you use the add-hydrogens option.</p>
+  <h3>Does it preserve stereochemistry?</h3>
+  <p>Yes, when the SMILES defines it. Chiral centres and double-bond geometry are written into the
+     atom and bond blocks.</p>
+  <h3>Why does the SDF record have no properties?</h3>
+  <p>SMILES has no property data. The SDF record contains the structure only; add data fields in
+     your downstream tool if you need names, IDs or assay values.</p>
+  <h3>Can I convert the SDF back to SMILES?</h3>
+  <p>Yes — use <a href="/sdf-to-smiles">SDF to SMILES</a>. The round trip preserves connectivity and
+     defined stereochemistry, but not the 3D coordinates in the SMILES output.</p>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Is the 3D conformer the global minimum?","acceptedAnswer":{"@type":"Answer","text":"No. OpenBabel performs a fast force-field optimisation from a generated starting geometry. It produces a low-energy conformer, not a guaranteed global minimum, and only one conformer, not an ensemble."}},
+{"@type":"Question","name":"Can I convert many SMILES to SDF at once?","acceptedAnswer":{"@type":"Answer","text":"Yes. Put one SMILES per line and the output will contain one SDF record per molecule, separated by the SDF record separator."}},
+{"@type":"Question","name":"Does the SMILES to SDF converter add hydrogens?","acceptedAnswer":{"@type":"Answer","text":"3D generation adds hydrogens because a 3D geometry needs them. For a 2D SDF, hydrogens are implicit unless you use the add-hydrogens option."}},
+{"@type":"Question","name":"Does it preserve stereochemistry?","acceptedAnswer":{"@type":"Answer","text":"Yes, when the SMILES defines it. Chiral centres and double-bond geometry are written into the atom and bond blocks."}},
+{"@type":"Question","name":"Why does the SDF record have no properties?","acceptedAnswer":{"@type":"Answer","text":"SMILES has no property data. The SDF record contains the structure only; add data fields in your downstream tool if you need names, IDs or assay values."}},
+{"@type":"Question","name":"Can I convert the SDF back to SMILES?","acceptedAnswer":{"@type":"Answer","text":"Yes, use the SDF to SMILES converter. The round trip preserves connectivity and defined stereochemistry, but not the 3D coordinates in the SMILES output."}}
+]}
+</script>
 {% endblock %}

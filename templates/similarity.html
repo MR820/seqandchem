@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1 class="page-title">Molecular Similarity (Tanimoto)</h1>
-<p class="lead">Compare two molecules and get their Tanimoto similarity using FP2, FP3, FP4
-   or MACCS fingerprints. A score of 1.0 means identical fingerprints, 0.0 means no overlap.</p>
+<h1 class="page-title">Tanimoto Similarity Calculator</h1>
+<p class="lead">Compare two molecules and get their Tanimoto similarity using FP2, FP3, FP4 or
+   MACCS fingerprints. A score of 1.0 means identical fingerprints; 0.0 means no overlap.</p>
 
 <div class="card">
   <div class="grid">
@@ -42,21 +42,116 @@
 <div class="card" id="sim-result" style="display:none"></div>
 
 <div class="prose">
-  <h2>How Tanimoto similarity works</h2>
+  <h2>What Tanimoto similarity measures</h2>
   <p>Each molecule is converted into a binary fingerprint — a bit string where each bit means
-     "this substructure is present". The Tanimoto coefficient is the number of shared bits
-     divided by the number of bits present in either molecule:</p>
-  <p><code>T = (A ∩ B) / (A ∪ B)</code></p>
-  <p>Rules of thumb widely used in cheminformatics: <strong>T &gt; 0.85</strong> usually means
-     the same compound, <strong>T &gt; 0.5</strong> suggests a similar scaffold, and
-     <strong>T &lt; 0.3</strong> indicates little structural overlap.</p>
+     “this substructure or path is present”. The Tanimoto coefficient compares two fingerprints by
+     dividing the number of shared bits by the number of bits present in either molecule:</p>
+  <p><code>T(A, B) = |A ∩ B| / |A ∪ B|</code></p>
+  <p>The result is between 0 and 1. A value of 1.0 means the fingerprints are identical; 0.0 means
+     they share no bits. Because the comparison is done on fingerprints rather than on the full
+     graph, the score is fast enough for screening large libraries.</p>
+
+  <h2>How to read the score</h2>
+  <table>
+    <thead>
+      <tr><th>Tanimoto</th><th>Typical interpretation</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>1.0</td><td>Identical fingerprint — usually the same canonical structure</td></tr>
+      <tr><td>0.85–1.0</td><td>Very similar; often the same compound or a close analogue</td></tr>
+      <tr><td>0.5–0.85</td><td>Similar scaffold or related series</td></tr>
+      <tr><td>0.3–0.5</td><td>Some structural overlap; may share a functional group</td></tr>
+      <tr><td>&lt; 0.3</td><td>Little structural overlap</td></tr>
+    </tbody>
+  </table>
+  <p>These thresholds are rules of thumb, not a definition. The “same compound” cutoff depends on
+     the fingerprint, the molecule size and the task; a score of 0.85 with MACCS is not the same
+     evidence as 0.85 with FP2. Always report which fingerprint produced the number.</p>
 
   <h2>Which fingerprint should I use?</h2>
+  <table>
+    <thead>
+      <tr><th>Fingerprint</th><th>Type</th><th>Good for</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>FP2</td><td>Path-based, 1024 bits</td><td>General-purpose similarity and virtual screening</td></tr>
+      <tr><td>FP3</td><td>Path-based, smaller</td><td>Faster, more permissive comparisons</td></tr>
+      <tr><td>FP4</td><td>SMARTS-based</td><td>Functional-group similarity</td></tr>
+      <tr><td>MACCS</td><td>166 structural keys</td><td>Interpretable, key-based matching</td></tr>
+    </tbody>
+  </table>
+  <p>For a first pass, FP2 is a sensible default. Use MACCS when you need to explain which
+     substructures drove the similarity, and FP4 when functional groups matter more than the
+     carbon skeleton.</p>
+
+  <h2>Worked example</h2>
+  <p>The default pair is aspirin (<code>CC(=O)Oc1ccccc1C(=O)O</code>) and its methyl ester
+     (<code>CC(=O)Oc1ccccc1C(=O)OC</code>). They share the aromatic ring, the acetate group and
+     most of the skeleton; they differ at the carboxylic acid. The Tanimoto score is therefore
+     high — typically above 0.8 with FP2 — but not 1.0, because the acid and ester produce
+     different fingerprint bits.</p>
+  <p>This is the intended use of the score: it tells you that two structures are closely related,
+     not that they are interchangeable. Check the structures before treating them as duplicates.</p>
+
+  <h2>Limitations</h2>
   <ul>
-    <li><strong>FP2</strong> — Daylight-style path-based fingerprint, good general-purpose choice.</li>
-    <li><strong>FP3</strong> — smaller, faster, more permissive.</li>
-    <li><strong>FP4</strong> — SMARTS-based, emphasises functional groups.</li>
-    <li><strong>MACCS</strong> — 166 predefined structural keys, very interpretable.</li>
+    <li><strong>2D fingerprints ignore 3D shape.</strong> Two molecules with the same connectivity
+        but different conformations can score 1.0.</li>
+    <li><strong>Protonation and charge</strong> can change the fingerprint. Compare molecules in the
+        same protonation state.</li>
+    <li><strong>Salts and counter-ions</strong> add bits. Strip them first if you want to compare
+        the parent compound.</li>
+    <li><strong>Different fingerprints give different scores.</strong> A pair can be highly similar
+        with FP2 and less similar with MACCS.</li>
+    <li><strong>Similarity is not bioactivity.</strong> A high Tanimoto score does not guarantee
+        that two compounds share a target or an effect.</li>
   </ul>
+
+  <h2>Common uses</h2>
+  <ul>
+    <li>Virtual screening: rank a library against a query compound.</li>
+    <li>Duplicate detection: flag near-identical records before registration.</li>
+    <li>Clustering: group analogues by fingerprint similarity.</li>
+    <li>Scaffold hopping: find molecules with similar substructures but different frameworks.</li>
+  </ul>
+  <p>For substructure matching rather than similarity, use the
+     <a href="/substructure">SMARTS substructure search</a>. For molecular properties, use the
+     <a href="/properties">property calculator</a>. For bulk comparisons, the
+     <a href="/api">API</a> and <a href="/batch">batch tools</a> accept multiple structures.</p>
+
+  <h2>Frequently asked questions</h2>
+  <h3>What is a good Tanimoto score?</h3>
+  <p>There is no universal cutoff. In many virtual-screening workflows, 0.7–0.8 is used as a
+     “similar” threshold and 0.85+ as a “very similar” threshold. The right cutoff depends on the
+     fingerprint and the diversity of your library.</p>
+  <h3>What is the difference between Tanimoto and cosine similarity?</h3>
+  <p>Both compare binary fingerprints. Tanimoto divides the intersection by the union; cosine
+     divides the intersection by the geometric mean of the set sizes. They are related but not
+     identical, and the ranking of a library can differ.</p>
+  <h3>Which fingerprint is best?</h3>
+  <p>FP2 is a good general default. MACCS is more interpretable, FP4 emphasises functional groups
+     and FP3 is faster. Try more than one fingerprint when the decision is important.</p>
+  <h3>Can I compare more than two molecules?</h3>
+  <p>This page compares a pair. For a library, use the <a href="/api">API</a> or a script that
+     computes the fingerprint matrix once and then compares all pairs.</p>
+  <h3>Does the score consider 3D conformation?</h3>
+  <p>No. The fingerprints are derived from the 2D connection table. Use a 3D shape-similarity tool
+     if conformation matters.</p>
+  <h3>Why do I get different scores with different fingerprints?</h3>
+  <p>Each fingerprint encodes different structural features. FP2 uses paths, FP4 uses SMARTS
+     patterns and MACCS uses predefined keys, so the same pair can produce different numbers.</p>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"What is a good Tanimoto score?","acceptedAnswer":{"@type":"Answer","text":"There is no universal cutoff. In many virtual-screening workflows, 0.7 to 0.8 is used as a similar threshold and 0.85 or higher as a very similar threshold. The right cutoff depends on the fingerprint and the diversity of your library."}},
+{"@type":"Question","name":"What is the difference between Tanimoto and cosine similarity?","acceptedAnswer":{"@type":"Answer","text":"Both compare binary fingerprints. Tanimoto divides the intersection by the union; cosine divides the intersection by the geometric mean of the set sizes. They are related but not identical, and the ranking of a library can differ."}},
+{"@type":"Question","name":"Which fingerprint is best?","acceptedAnswer":{"@type":"Answer","text":"FP2 is a good general default. MACCS is more interpretable, FP4 emphasises functional groups and FP3 is faster. Try more than one fingerprint when the decision is important."}},
+{"@type":"Question","name":"Can I compare more than two molecules?","acceptedAnswer":{"@type":"Answer","text":"This page compares a pair. For a library, use the API or a script that computes the fingerprint matrix once and then compares all pairs."}},
+{"@type":"Question","name":"Does the score consider 3D conformation?","acceptedAnswer":{"@type":"Answer","text":"No. The fingerprints are derived from the 2D connection table. Use a 3D shape-similarity tool if conformation matters."}},
+{"@type":"Question","name":"Why do I get different scores with different fingerprints?","acceptedAnswer":{"@type":"Answer","text":"Each fingerprint encodes different structural features. FP2 uses paths, FP4 uses SMARTS patterns and MACCS uses predefined keys, so the same pair can produce different numbers."}}
+]}
+</script>
 {% endblock %}

@@ -1,15 +1,31 @@
 {% extends "bio_tool.html" %}
 {% block prose %}
 <div class="prose">
-  <h2>DNA to protein translation</h2>
-  <p>Ribosomes read nucleotides in triplets called codons, each coding for one amino acid.
-     With four possible bases there are 64 codons encoding 20 amino acids plus three stop
-     codons (TAA, TAG, TGA), which are shown as <code>*</code> in the output.</p>
+  <h2>What this DNA to protein converter does</h2>
+  <p>Paste a DNA or RNA sequence and translate it into amino acids using the standard genetic
+     code. The tool reports all three forward reading frames, preserves FASTA headers for
+     multi-record input and marks stop codons as <code>*</code>. It translates the sequence from
+     the first base of the selected frame — it does not search for the first ATG or predict open
+     reading frames.</p>
+  <p>For the opposite strand, use the <a href="/bio/reverse-complement">reverse complement
+     tool</a> first, then translate the result. For sequence composition, use the
+     <a href="/bio/gc-content">GC content calculator</a>.</p>
+
+  <h2>How translation works</h2>
+  <p>Ribosomes read nucleotides in triplets called codons. With four possible bases there are
+     64 codons: 61 encode the 20 standard amino acids and three are stop codons (TAA, TAG and
+     TGA). Translation starts at a start codon — usually ATG, which also encodes methionine — and
+     ends at a stop codon. The protein sequence is written from the N-terminus to the C-terminus,
+     which corresponds to reading the mRNA in the 5′→3′ direction.</p>
+  <p>This page applies the standard genetic code. Mitochondrial codes and other alternative codes
+     are not applied; in vertebrate mitochondria, for example, TGA encodes tryptophan rather than
+     a stop.</p>
 
   <h2 id="codon-chart">Codon chart (standard genetic code)</h2>
   <p>The chart below lists all 64 codons and the amino acid they encode. DNA codons are shown;
-     for RNA, replace T with U. Stop codons are marked <code>*</code>. Use the translator above
-     to read a sequence codon by codon, or use this table as a quick reference.</p>
+     for RNA, replace T with U. Stop codons are marked <code>*</code>. Use the translator above to
+     read a sequence codon by codon, or use this table as a quick reference. For a standalone
+     reference, see the <a href="/codon-chart">printable codon chart</a>.</p>
   <table>
     <thead><tr><th>Amino acid</th><th>One-letter</th><th>Codons</th></tr></thead>
     <tbody>
@@ -37,20 +53,93 @@
     </tbody>
   </table>
 
+  <h2>How to read a codon chart</h2>
+  <p>Take the first three bases of the sequence in the chosen frame. Read the first base, then the
+     second, then the third, and find the corresponding row in the chart. For example:</p>
+  <ul>
+    <li><code>ATG</code> → methionine (M), and it is also the usual start codon.</li>
+    <li><code>GCT</code> → alanine (A).</li>
+    <li><code>TAA</code> → stop (<code>*</code>), which terminates translation.</li>
+  </ul>
+  <p>The chart is not a lookup by amino acid name alone: several amino acids are encoded by
+     multiple codons (leucine and serine have six each), and the same amino acid can appear in
+     different rows of a codon wheel. Use the full triplet, not just the first two bases.</p>
+
+  <h2>Amino acid decoder</h2>
+  <p>The one-letter codes in the output are the standard IUPAC amino acid codes. This table maps
+     them to the three-letter abbreviations used in protein databases and papers:</p>
+  <table>
+    <thead><tr><th>One-letter</th><th>Three-letter</th><th>Amino acid</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>Ala</td><td>Alanine</td></tr>
+      <tr><td>R</td><td>Arg</td><td>Arginine</td></tr>
+      <tr><td>N</td><td>Asn</td><td>Asparagine</td></tr>
+      <tr><td>D</td><td>Asp</td><td>Aspartic acid</td></tr>
+      <tr><td>C</td><td>Cys</td><td>Cysteine</td></tr>
+      <tr><td>Q</td><td>Gln</td><td>Glutamine</td></tr>
+      <tr><td>E</td><td>Glu</td><td>Glutamic acid</td></tr>
+      <tr><td>G</td><td>Gly</td><td>Glycine</td></tr>
+      <tr><td>H</td><td>His</td><td>Histidine</td></tr>
+      <tr><td>I</td><td>Ile</td><td>Isoleucine</td></tr>
+      <tr><td>L</td><td>Leu</td><td>Leucine</td></tr>
+      <tr><td>K</td><td>Lys</td><td>Lysine</td></tr>
+      <tr><td>M</td><td>Met</td><td>Methionine</td></tr>
+      <tr><td>F</td><td>Phe</td><td>Phenylalanine</td></tr>
+      <tr><td>P</td><td>Pro</td><td>Proline</td></tr>
+      <tr><td>S</td><td>Ser</td><td>Serine</td></tr>
+      <tr><td>T</td><td>Thr</td><td>Threonine</td></tr>
+      <tr><td>W</td><td>Trp</td><td>Tryptophan</td></tr>
+      <tr><td>Y</td><td>Tyr</td><td>Tyrosine</td></tr>
+      <tr><td>V</td><td>Val</td><td>Valine</td></tr>
+      <tr><td>*</td><td>Stop</td><td>Termination codon</td></tr>
+    </tbody>
+  </table>
+
   <h2>Reading frames</h2>
-  <p>A sequence has three forward reading frames, depending on whether translation starts at
-     the first, second or third base. Choosing a frame changes the protein completely, so try
-     all three when the correct frame is unknown.</p>
+  <p>A sequence has three forward reading frames, depending on whether translation starts at the
+     first, second or third base. Choosing a frame changes the protein completely, so try all
+     three when the correct frame is unknown. The reverse strand adds three more frames; reverse
+     complement the sequence first and then translate.</p>
+  <p>This tool translates from the beginning of the selected frame. It does not search for an
+     open reading frame (ORF), and it does not trim the sequence to the first ATG. If you need ORF
+     prediction, use a dedicated annotation tool and then paste the ORF here.</p>
 
   <h2>Codon usage is not considered</h2>
-  <p>Translation uses the standard genetic code. Mitochondrial codes, where TGA can encode
-     tryptophan, are not applied.</p>
+  <p>Translation uses the standard genetic code and treats every codon equally. Codon usage bias,
+     tRNA abundance and wobble pairing affect translation efficiency in a cell, but they do not
+     change the amino acid sequence, so they are not part of this calculation.</p>
 
   <h2>Frequently asked questions</h2>
   <h3>What does X mean in the output?</h3>
-  <p><code>X</code> marks a codon containing an ambiguous base (such as N) that cannot be
-     resolved to a single amino acid.</p>
+  <p><code>X</code> marks a codon containing an ambiguous base (such as N) that cannot be resolved
+     to a single amino acid. Replace the ambiguous base with a concrete base if you know it.</p>
   <h3>Does it handle RNA?</h3>
-  <p>Yes — U is treated as T.</p>
+  <p>Yes — U is treated as T. The output is the same protein sequence; the only difference is the
+     alphabet of the input.</p>
+  <h3>Does it find the start codon automatically?</h3>
+  <p>No. The tool translates the whole sequence in the selected frame. To translate an ORF, paste
+     the ORF starting at its ATG, or trim the sequence first.</p>
+  <h3>Can I translate multiple sequences?</h3>
+  <p>Yes. Paste a multi-record FASTA file; each record is translated independently and the headers
+     are preserved. For large files, use the <a href="/api">API</a> with the <code>translate</code>
+     operation.</p>
+  <h3>Does it apply mitochondrial or alternative genetic codes?</h3>
+  <p>No. The standard genetic code is used for every sequence. Alternative codes, such as the
+     vertebrate mitochondrial code where TGA encodes tryptophan, are not applied.</p>
+  <h3>Why does the protein end with an asterisk?</h3>
+  <p>The asterisk marks a stop codon. If the sequence continues past it, the downstream codons are
+     still translated because the tool processes the whole input; trim the sequence at the stop
+     codon if you want the mature protein only.</p>
 </div>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"What does X mean in the protein output?","acceptedAnswer":{"@type":"Answer","text":"X marks a codon containing an ambiguous base such as N that cannot be resolved to a single amino acid. Replace the ambiguous base with a concrete base if you know it."}},
+{"@type":"Question","name":"Does the DNA to protein translator handle RNA?","acceptedAnswer":{"@type":"Answer","text":"Yes. U is treated as T. The output is the same protein sequence; the only difference is the alphabet of the input."}},
+{"@type":"Question","name":"Does it find the start codon automatically?","acceptedAnswer":{"@type":"Answer","text":"No. The tool translates the whole sequence in the selected frame. To translate an ORF, paste the ORF starting at its ATG, or trim the sequence first."}},
+{"@type":"Question","name":"Can I translate multiple sequences?","acceptedAnswer":{"@type":"Answer","text":"Yes. Paste a multi-record FASTA file; each record is translated independently and the headers are preserved. For large files, use the API with the translate operation."}},
+{"@type":"Question","name":"Does it apply mitochondrial or alternative genetic codes?","acceptedAnswer":{"@type":"Answer","text":"No. The standard genetic code is used for every sequence. Alternative codes, such as the vertebrate mitochondrial code where TGA encodes tryptophan, are not applied."}},
+{"@type":"Question","name":"Why does the protein end with an asterisk?","acceptedAnswer":{"@type":"Answer","text":"The asterisk marks a stop codon. If the sequence continues past it, the downstream codons are still translated because the tool processes the whole input; trim the sequence at the stop codon if you want the mature protein only."}}
+]}
+</script>
 {% endblock %}

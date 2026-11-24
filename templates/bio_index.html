@@ -2,7 +2,8 @@
 {% block content %}
 <h1 class="page-title">FASTA / FASTQ Sequence Tools</h1>
 <p class="lead">Free online bioinformatics tools for DNA and RNA sequences: format conversion,
-   GC content analysis, reverse complement and six-frame translation.</p>
+   GC content analysis, reverse complement, codon chart, translation and protein/DNA molecular
+   weight calculators.</p>
 
 <div class="tool-grid">
   <a class="tool-card" href="/bio/fasta-to-fastq">
@@ -30,6 +31,26 @@
     <h3>DNA to Protein</h3>
     <p>Translate nucleotide sequences into amino acids in all three reading frames.</p>
   </a>
+  <a class="tool-card" href="/codon-chart">
+    <div class="tool-icon">▦</div>
+    <h3>Codon Chart</h3>
+    <p>A printable chart of all 64 codons, amino acids, start and stop signals.</p>
+  </a>
+  <a class="tool-card" href="/protein-molecular-weight-calculator">
+    <div class="tool-icon">⚖</div>
+    <h3>Protein Molecular Weight</h3>
+    <p>Average and monoisotopic mass of a protein or peptide from its sequence.</p>
+  </a>
+  <a class="tool-card" href="/dna-molecular-weight-calculator">
+    <div class="tool-icon">⚖</div>
+    <h3>DNA Molecular Weight</h3>
+    <p>ssDNA, dsDNA and RNA mass with base composition and GC content.</p>
+  </a>
+  <a class="tool-card" href="/primer-tm-calculator">
+    <div class="tool-icon">🌡</div>
+    <h3>Primer Tm</h3>
+    <p>Estimate primer melting temperature, GC content and 3′ end GC.</p>
+  </a>
 </div>
 
 <div class="prose">
@@ -50,6 +71,8 @@
   <ul>
     <li>Everything runs server-side; nothing is stored or logged.</li>
     <li>All tools accept multi-record files and preserve record order.</li>
+    <li>The molecular weight calculators use standard residue masses; modifications and
+        counter-ions are not included.</li>
     <li>IUPAC ambiguity codes (N, R, Y, K, M, S, W, B, D, H, V) are handled by the reverse complement tool.</li>
   </ul>
 </div>

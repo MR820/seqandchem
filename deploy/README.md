@@ -7,10 +7,11 @@ Production runs on a single Debian/Ubuntu host.
 | `chemtools.service` | `/etc/systemd/system/` | gunicorn, 2 workers, `127.0.0.1:8080`, 900 MB memory cap |
 | `nginx.conf` | `/etc/nginx/sites-available/seqchem` | TLS termination, headers, proxies to gunicorn |
 | `nginx-main.conf` | `/etc/nginx/nginx.conf` | stream layer: SNI routing on 443 + PROXY protocol |
-| `daily-report.sh` | `/opt/seqchem-monitor/` | cron `0 1 * * *`; needs `feishu.env` alongside |
+| `daily-report.sh` | `/opt/seqchem-monitor/` | cron `0 1 * * *`; includes Cloudflare PV/visits; needs `feishu.env` and `cloudflare-analytics.env` |
+| `cf_daily.py` | `/opt/seqchem-monitor/` | helper: Cloudflare page views/visits for one UTC date |
 | `backup.sh` | `/opt/seqchem-monitor/` | cron `30 1 * * *`; SQLite + configs, newest 7 in `/var/backups/seqchem` |
 | `uptime-check.sh` | `/opt/seqchem-monitor/` | cron `*/5 * * * *`; main site + api `/health` + services, Feishu on state change |
-| `seo-weekly.py` | `/opt/seqchem-monitor/` | cron `0 2 * * 1`; GSC + Bing + GoatCounter → Feishu interactive card; needs `gsc-service-account.json` and `bing-webmaster.env` |
+| `seo-weekly.py` | `/opt/seqchem-monitor/` | cron `0 2 * * 1`; GSC + Bing + Cloudflare Web Analytics → Feishu interactive card; needs `gsc-service-account.json`, `bing-webmaster.env` and `cloudflare-analytics.env` |
 | `feedback-digest.py` | `/opt/seqchem-monitor/` | cron `15 1 * * *`; yesterday's feedback → Feishu, only when count > 0 |
 | `cloudflare-uptime-worker/` | Cloudflare account (Worker + KV) | Worker `seqchem-uptime`, KV `seqchem_uptime`, cron `*/5 * * * *`; primary external check |
 
@@ -84,6 +85,25 @@ curl -X POST "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/purge_cache" \
   --data '{"files":["https://seqandchem.com/","https://seqandchem.com/privacy"]}'
 ```
 
+## Cloudflare Web Analytics
+
+The Web Analytics site (`seqandchem.com`) exists in the Cloudflare account and its
+`auto_install` setting is **false**. The beacon is injected by the app instead, so it works
+regardless of edge cache state:
+
+- `/opt/chemtools/cf_beacon_token` (mode 600) contains the public site token.
+- `base.html` injects the beacon only when that file (or `CF_BEACON_TOKEN`) is present.
+- If the token changes, update the file and restart `chemtools`.
+
+The nginx CSP allows the beacon explicitly:
+
+- `script-src` includes `https://static.cloudflareinsights.com`
+- `connect-src` includes `https://cloudflareinsights.com`
+
+Both are present in `deploy/nginx.conf`. Web Analytics is cookie-free and does not use local
+storage or cross-site identifiers; EU visitors are included in the aggregate counts. It is not an
+EU-only data-localization product. Keep `/privacy` disclosed for Cloudflare Web Analytics.
+
 ## Real client IPs
 
 TLS is routed by SNI in an nginx `stream` block, so without help every request reaches the HTTP
@@ -103,8 +123,7 @@ at `127.0.0.1:12100` — a local stream listener that accepts the header and for
 `127.0.0.1:12005`.
 
 Result: nginx access logs, `fail2ban`-style analysis and the app's per-IP rate limiter all see the
-real client address. GeoIP is still unavailable — GoatCounter needs a MaxMind database
-(`-geodb`) for country data.
+real client address. GeoIP is not available (no MaxMind database).
 
 ## Cloudflare CDN
 
@@ -118,7 +137,7 @@ Cloudflare-side settings:
 
 - SSL/TLS: Full (strict), Always Use HTTPS
 - Brotli and HTTP/3 on; Rocket Loader off
-- Cache Rule: bypass `/api/*`, `/count`, `/count.js`, `/user/*`, `/health`
+- Cache Rule: bypass `/api/*`, `/health`
 - Optional HTML cache: the app sends `s-maxage=300` on HTML; add a Cache Rule for
   `text/html` (edge TTL 5 minutes, browser TTL 60 seconds) and purge the zone after a deploy
 - Versioned assets (`?v=...`) are served with one-year `immutable` caching; unversioned
@@ -153,14 +172,15 @@ the Flask limiter remains as a second layer and returns `X-RateLimit-*` headers.
 - Google Search Console: indexed progress bar, 28-day totals, 7-day impression/click
   sparklines, top query/page, URL Inspection failures
 - Bing Webmaster: sitemap status, queries, crawl issues, submission quota
-- GoatCounter: last-7-day PV/UV sparklines, top-page bars and tool events
+- Cloudflare Web Analytics: 7-day page views/visits with sparklines (Analytics Read token)
 - 12-week indexing history from `/opt/seqchem-monitor/seo-history.json` (mode 600)
 
-Credentials live outside the repo, both mode 600:
+Credentials live outside the repo, all mode 600:
 
 ```
-/opt/seqchem-monitor/gsc-service-account.json   # GSC Full user on sc-domain:seqandchem.com
-/opt/seqchem-monitor/bing-webmaster.env         # BING_WEBMASTER_API_KEY=...
+/opt/seqchem-monitor/gsc-service-account.json      # GSC Full user on sc-domain:seqandchem.com
+/opt/seqchem-monitor/bing-webmaster.env            # BING_WEBMASTER_API_KEY=...
+/opt/seqchem-monitor/cloudflare-analytics.env      # CF_ANALYTICS_TOKEN=... (Account Analytics Read)
 ```
 
 Dependencies are installed in `/opt/seqchem-monitor/venv`. Run manually with:

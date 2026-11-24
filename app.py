@@ -29,7 +29,8 @@ from flask import (Flask, Response, abort, jsonify, redirect, render_template,
                    request, send_from_directory)
 from flask_compress import Compress
 
-from bio import (fasta_to_fastq, fastq_to_fasta, parse_fasta, parse_fastq,
+from bio import (dna_molecular_weight, fasta_to_fastq, fastq_to_fasta,
+                 parse_fasta, parse_fastq, primer_tm, protein_molecular_weight,
                  reverse_complement, sequence_stats, translate)
 from formula import (FormulaError, composition, hill_notation, molecular_weight,
                      parse_formula)
@@ -52,6 +53,27 @@ Compress(app)
 # 静态资源缓存 1 天；模板里带 ?v=<mtime> 版本号，改文件即失效
 app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 86400
 app.config["MAX_CONTENT_LENGTH"] = MAX_BATCH_INPUT
+
+
+def _read_cf_beacon_token():
+    """Cloudflare Web Analytics token, from env or a 600 file on the server."""
+    token = os.environ.get("CF_BEACON_TOKEN", "").strip()
+    if token:
+        return token
+    try:
+        with open("/opt/chemtools/cf_beacon_token", encoding="utf-8") as fh:
+            return fh.read().strip()
+    except OSError:
+        return ""
+
+
+CF_BEACON_TOKEN = _read_cf_beacon_token()
+
+
+@app.context_processor
+def _inject_analytics():
+    return {"cf_beacon_token": CF_BEACON_TOKEN}
+
 
 def _asset_v(name):
     try:
@@ -413,8 +435,9 @@ PAGE_META = {
         "page": "properties",
         "template": "properties.html",
         "title": "Molecular Property Calculator — MW, logP, TPSA, HBD, HBA",
-        "description": "Calculate molecular weight, molecular formula, logP, TPSA, hydrogen bond "
-                       "donors and acceptors, rotatable bonds, InChI and InChIKey from SMILES.",
+        "description": "Calculate molecular weight, logP, TPSA, hydrogen bond donors and "
+                       "acceptors, rotatable bonds, InChI and InChIKey from SMILES or a structure "
+                       "file. Includes descriptor definitions and a worked example.",
     },
     "depict": {
         "page": "depict",
@@ -427,8 +450,9 @@ PAGE_META = {
         "page": "3d",
         "template": "three_d.html",
         "title": "3D Molecular Structure Generator — SMILES to 3D Conformer",
-        "description": "Generate an interactive 3D molecular conformer from SMILES with OpenBabel "
-                       "force-field optimisation, rotate it in your browser and download it as SDF.",
+        "description": "Generate an interactive 3D molecular conformer from SMILES, InChI, MOL, "
+                       "SDF or PDB. OpenBabel force-field optimisation, browser viewer and SDF "
+                       "download.",
     },
     "substructure": {
         "page": "substructure",
@@ -440,9 +464,10 @@ PAGE_META = {
     "similarity": {
         "page": "similarity",
         "template": "similarity.html",
-        "title": "Molecular Similarity — Tanimoto Coefficient Calculator",
-        "description": "Compute Tanimoto similarity between two molecules using FP2, FP3, FP4 "
-                       "or MACCS fingerprints. Free online molecular similarity calculator.",
+        "title": "Tanimoto Similarity Calculator — Molecular Similarity Online",
+        "description": "Compare two molecules with the Tanimoto coefficient using FP2, FP3, FP4 "
+                       "or MACCS fingerprints. Includes score interpretation, fingerprint guide "
+                       "and worked example.",
     },
 }
 
@@ -491,8 +516,9 @@ PAGE_META.update({
     "sdf-to-smiles": {
         "page": "convert", "nav": "", "template": "sdf_to_smiles.html",
         "title": "SDF to SMILES Converter — Free Online Chemistry Tool",
-        "description": "Convert SDF and SD structure files to SMILES strings. Multi-record SDF "
-                       "files are supported — one SMILES per molecule in the same order.",
+        "description": "Convert SDF and SD structure files to SMILES strings. Multi-record files "
+                       "are supported — one SMILES per molecule in the same order, with "
+                       "stereochemistry preserved and an optional canonical output.",
         "h1": "SDF to SMILES Converter",
         "lead": "Flatten an SDF / SD compound library into one SMILES per molecule. Paste a "
                 "multi-record file or upload it — the order is preserved.",
@@ -502,8 +528,9 @@ PAGE_META.update({
     "mol-to-smiles": {
         "page": "convert", "nav": "", "template": "mol_to_smiles.html",
         "title": "MOL to SMILES Converter — Free Online Chemistry Tool",
-        "description": "Convert MDL MOL files to SMILES strings online. Works with MOL files "
-                       "exported from ChemDraw, Marvin, Avogadro and most drawing tools.",
+        "description": "Convert MDL MOL files to SMILES strings online. Preserves connectivity, "
+                       "charges and defined stereochemistry; works with ChemDraw, Marvin, "
+                       "Avogadro and V2000/V3000 files.",
         "h1": "MOL to SMILES Converter",
         "lead": "Convert a single-molecule MDL MOL file into a SMILES string, ready for "
                 "database search or modelling.",
@@ -524,8 +551,9 @@ PAGE_META.update({
     "smiles-to-png": {
         "page": "convert", "nav": "", "template": "smiles_to_png.html",
         "title": "SMILES to PNG — Draw Molecule Structure Images Online",
-        "description": "Generate a PNG structure image from a SMILES string. Free online molecule "
-                       "depiction tool, no registration required.",
+        "description": "Generate a 300 × 300 PNG structure image from a SMILES string. Free online "
+                       "molecule depiction tool with a white background; use SVG for scalable "
+                       "figures.",
         "h1": "SMILES to PNG",
         "lead": "Render a SMILES string as a 300 × 300 PNG structure image you can paste into a "
                 "slide or a report.",
@@ -537,7 +565,7 @@ PAGE_META.update({
         "title": "Lipinski Rule of Five Calculator — Drug-likeness Checker",
         "description": "Check a molecule against Lipinski's rule of five and the Veber rules: "
                        "molecular weight, logP, hydrogen bond donors and acceptors, TPSA and "
-                       "rotatable bonds.",
+                       "rotatable bonds. Free online calculator with worked examples.",
     },
 })
 
@@ -725,36 +753,79 @@ BIO_PAGES = {
     },
     "bio-gc-content": {
         "path": "/bio/gc-content", "op": "stats", "template": "bio_gc_content.html",
-        "title": "GC Content Calculator — Sequence Statistics Online",
-        "description": "Calculate GC content, AT content, sequence length, N count and GC/AT skew "
-                       "for DNA sequences. Free online bioinformatics calculator.",
+        "title": "GC Content Calculator — Formula, Primer & Sequence Stats",
+        "description": "Calculate GC content, AT content, length, N count and GC/AT skew for DNA "
+                       "or RNA sequences. Includes the GC formula, primer guidance and "
+                       "multi-FASTA support.",
         "h1": "GC Content Calculator",
         "lead": "Get GC content, AT content, length, ambiguous base count and skew statistics for "
-                "each sequence in a FASTA file.",
+                "each sequence in a FASTA file, with the formula and primer guidance below.",
         "input_label": "FASTA input", "action": "Calculate statistics", "show_frame": False,
         "placeholder": ">seq1\nATGGCCATTGTAATGGGCCGCTGAAAGGGTGCCCGATAG",
     },
     "bio-reverse-complement": {
         "path": "/bio/reverse-complement", "op": "revcomp", "template": "bio_reverse_complement.html",
-        "title": "Reverse Complement Tool — DNA Sequence Converter",
-        "description": "Compute the reverse complement of DNA sequences online. Supports IUPAC "
-                       "ambiguity codes and multi-record FASTA input.",
-        "h1": "Reverse Complement",
-        "lead": "Get the reverse complement of one or many DNA sequences, with IUPAC ambiguity "
-                "codes handled correctly.",
+        "title": "Reverse Complement Calculator — DNA Sequence Tool",
+        "description": "Calculate the reverse complement of a DNA sequence online. Supports IUPAC "
+                       "ambiguity codes, lowercase bases and multi-record FASTA input.",
+        "h1": "Reverse Complement Calculator",
+        "lead": "Paste a DNA sequence or FASTA file to get its reverse complement in the 5′→3′ "
+                "direction, with IUPAC ambiguity codes handled correctly.",
         "input_label": "DNA sequence or FASTA", "action": "Reverse complement", "show_frame": False,
         "placeholder": "ATGGCCATTGTAATGGGCCGCTGAAAGGGTGCCCGATAG",
     },
     "bio-translate": {
         "path": "/bio/translate", "op": "translate", "template": "bio_translate.html",
-        "title": "DNA to Protein Translation — Codon Chart & Translator",
+        "title": "DNA to Protein Translation — Codon Chart & Amino Acid Decoder",
         "description": "Translate DNA or RNA sequences to amino acids in all three reading frames. "
-                       "Includes a full codon chart and codon table for the standard genetic code.",
+                       "Includes a full codon chart, amino acid decoder and multi-FASTA support.",
         "h1": "DNA to Protein Translation",
         "lead": "Translate nucleotide sequences into amino acid chains using the standard genetic "
-                "code, and look up any triplet in the codon chart below.",
+                "code, with a full codon chart and amino acid decoder below.",
         "input_label": "DNA or RNA sequence", "action": "Translate", "show_frame": True,
         "placeholder": ">seq1\nATGGCCATTGTAATGGGCCGCTGAAAGGGTGCCCGATAG",
+    },
+    "bio-protein-mw": {
+        "path": "/protein-molecular-weight-calculator", "op": "protein_mw",
+        "template": "bio_protein_mw.html",
+        "title": "Protein Molecular Weight Calculator — Sequence to kDa",
+        "description": "Calculate the average and monoisotopic molecular weight of a protein or "
+                       "peptide from its amino acid sequence or FASTA file. Free online calculator "
+                       "with worked examples and ambiguity notes.",
+        "h1": "Protein Molecular Weight Calculator",
+        "lead": "Paste a protein or peptide sequence in one-letter code or FASTA to get its "
+                "average and monoisotopic molecular weight in Da and kDa.",
+        "input_label": "Protein sequence (one-letter code or FASTA)",
+        "action": "Calculate molecular weight", "show_frame": False,
+        "placeholder": ">peptide\nDRVYIHPF",
+    },
+    "bio-dna-mw": {
+        "path": "/dna-molecular-weight-calculator", "op": "dna_mw",
+        "template": "bio_dna_mw.html",
+        "title": "DNA Molecular Weight Calculator — ssDNA & dsDNA",
+        "description": "Calculate the molecular weight of single-stranded and double-stranded DNA "
+                       "or RNA from a sequence, with base composition and GC content. Free online "
+                       "calculator with worked examples.",
+        "h1": "DNA Molecular Weight Calculator",
+        "lead": "Paste a DNA or RNA sequence to get single-stranded and double-stranded molecular "
+                "weights, base composition and GC content.",
+        "input_label": "DNA or RNA sequence", "action": "Calculate molecular weight",
+        "show_frame": False,
+        "placeholder": "ATGGCCATTGTAATGGGCCGCTGAAAGGGTGCCCGATAG",
+    },
+    "bio-primer-tm": {
+        "path": "/primer-tm-calculator", "op": "primer_tm",
+        "template": "bio_primer_tm.html",
+        "title": "Primer Tm Calculator — Melting Temperature & GC Content",
+        "description": "Calculate primer melting temperature (Tm) and GC content from a sequence. "
+                       "Includes Wallace and salt-adjusted estimates, 3′ end GC and batch FASTA "
+                       "support. Free online primer design calculator.",
+        "h1": "Primer Tm Calculator",
+        "lead": "Paste one or more primer sequences to estimate melting temperature with the "
+                "Wallace and salt-adjusted formulas, along with GC content and 3′ end GC.",
+        "input_label": "Primer sequence (one per line or FASTA)",
+        "action": "Calculate Tm", "show_frame": False,
+        "placeholder": "ATGGCCATTGTAATGGGCCG",
     },
 }
 
@@ -767,27 +838,43 @@ PAGE_META.update({
     },
     "formula": {
         "page": "formula", "template": "formula.html",
-        "title": "Molecular Formula and Weight Calculator",
+        "title": "Molecular Weight Calculator — Formula, SMILES & Exact Mass",
         "description": "Calculate molecular weight and elemental composition from a chemical "
-                       "formula, or get formula and weight from a SMILES string.",
+                       "formula or SMILES string. Includes average vs monoisotopic mass, worked "
+                       "examples and common molecular weights.",
     },
     "iupac": {
         "page": "iupac", "template": "iupac.html",
-        "title": "IUPAC Name to Structure — Chemical Structure Generator",
-        "description": "Convert an IUPAC chemical name into a structure: SMILES, InChI, "
-                       "InChIKey and a drawn 2D image. Powered by OPSIN with a PubChem fallback.",
+        "title": "IUPAC Name Generator — Convert Name to Structure Online",
+        "description": "Convert an IUPAC name or common chemical name into a structure: SMILES, "
+                       "InChI, InChIKey and a 2D image. Powered by OPSIN with a PubChem fallback. "
+                       "Free online name-to-structure tool.",
     },
     "bio": {
         "page": "bio", "template": "bio_index.html",
         "title": "FASTA / FASTQ Sequence Tools — Free Bioinformatics Utilities",
         "description": "Free online bioinformatics tools: FASTA to FASTQ, FASTQ to FASTA, GC "
-                       "content, reverse complement and DNA to protein translation.",
+                       "content, reverse complement, DNA to protein translation, codon chart and "
+                       "protein/DNA molecular weight calculators.",
+    },
+    "codon-chart": {
+        "page": "codon-chart", "template": "codon_chart.html",
+        "title": "Codon Chart — Printable DNA & RNA Codon Table",
+        "description": "A complete codon chart for the standard genetic code: 64 codons, amino "
+                       "acids, start and stop codons, one-letter and three-letter codes, and a "
+                       "printable reference.",
     },
     "privacy": {
         "page": "privacy", "template": "privacy.html",
         "title": "Privacy Policy — How SeqChem Handles Data",
         "description": "What SeqChem stores: anonymous feedback and aggregate analytics. "
                        "No accounts, no advertising cookies, and no sale of personal data.",
+    },
+    "about": {
+        "page": "about", "template": "about.html",
+        "title": "About SeqChem — Free Chemistry & Bioinformatics Tools",
+        "description": "Who maintains SeqChem, how the tools work (OpenBabel, OPSIN, PubChem), "
+                       "how data is handled, and the limits of the service.",
     },
 })
 
@@ -844,6 +931,11 @@ def page_bio_index():
     return _render("bio")
 
 
+@app.get("/codon-chart")
+def page_codon_chart():
+    return _render("codon-chart")
+
+
 # ---------------------------------------------------------------- 教程文章
 GUIDE_DATE = "2026-11-16"
 
@@ -866,6 +958,11 @@ for _slug, _g in GUIDES.items():
 @app.get("/privacy")
 def page_privacy():
     return _render("privacy")
+
+
+@app.get("/about")
+def page_about():
+    return _render("about")
 
 
 @app.get("/guides/")
@@ -1008,12 +1105,19 @@ def sitemap():
         ("/bio/gc-content", "0.8", "monthly"),
         ("/bio/reverse-complement", "0.8", "monthly"),
         ("/bio/translate", "0.8", "monthly"),
+        ("/codon-chart", "0.8", "monthly"),
+        ("/protein-molecular-weight-calculator", "0.8", "monthly"),
+        ("/dna-molecular-weight-calculator", "0.8", "monthly"),
+        ("/primer-tm-calculator", "0.8", "monthly"),
         ("/guides/", "0.8", "monthly"),
         ("/guides/smiles-inchi-inchikey", "0.8", "monthly"),
         ("/guides/lipinski-rule-of-five", "0.8", "monthly"),
         ("/guides/fasta-vs-fastq", "0.8", "monthly"),
+        ("/guides/smiles-to-pdbqt-autodock-vina", "0.8", "monthly"),
+        ("/guides/molecular-weight-average-vs-monoisotopic", "0.8", "monthly"),
         ("/api", "0.8", "monthly"),
         ("/embed", "0.7", "monthly"),
+        ("/about", "0.5", "yearly"),
         ("/privacy", "0.3", "yearly"),
     ]
     entries += [(f"/{slug}", "0.7", "monthly") for slug in PRESETS]
@@ -1021,7 +1125,54 @@ def sitemap():
     # "today" on every request makes lastmod meaningless to crawlers.
     lastmod = "2026-11-16"
     body = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
-    special_lastmod = {"/bio/translate": "2026-11-16", "/privacy": "2026-11-16"}
+    special_lastmod = {
+        "/formula": "2026-11-24",
+        "/bio/reverse-complement": "2026-11-24",
+        "/pdb-to-smiles": "2026-11-24",
+        "/3d": "2026-11-24",
+        "/similarity": "2026-11-24",
+        "/lipinski": "2026-11-24",
+        "/bio/gc-content": "2026-11-24",
+        "/bio/translate": "2026-11-24",
+        "/properties": "2026-11-24",
+        "/guides/lipinski-rule-of-five": "2026-11-24",
+        "/iupac-to-structure": "2026-11-24",
+        "/smiles-to-mol": "2026-11-24",
+        "/mol-to-smiles": "2026-11-24",
+        "/smiles-to-png": "2026-11-24",
+        "/sdf-to-smiles": "2026-11-24",
+        "/codon-chart": "2026-11-24",
+        "/protein-molecular-weight-calculator": "2026-11-24",
+        "/dna-molecular-weight-calculator": "2026-11-24",
+        "/primer-tm-calculator": "2026-11-24",
+        "/smiles-to-pdbqt": "2026-11-24",
+        "/sdf-to-mol": "2026-11-24",
+        "/inchi-to-mol": "2026-11-24",
+        "/sdf-to-pdb": "2026-11-24",
+        "/sdf-to-inchi": "2026-11-24",
+        "/pdb-to-inchi": "2026-11-24",
+        "/mol-to-sdf": "2026-11-24",
+        "/inchi-to-inchikey": "2026-11-24",
+        "/pdb-to-sdf": "2026-11-24",
+        "/smiles-to-cml": "2026-11-24",
+        "/guides/smiles-to-pdbqt-autodock-vina": "2026-11-24",
+        "/guides/molecular-weight-average-vs-monoisotopic": "2026-11-24",
+        "/depict": "2026-11-24",
+        "/substructure": "2026-11-24",
+        "/convert": "2026-11-24",
+        "/batch": "2026-11-24",
+        "/bio/fasta-to-fastq": "2026-11-24",
+        "/bio/fastq-to-fasta": "2026-11-24",
+        "/mol-to-inchi": "2026-11-24",
+        "/inchi-to-smiles": "2026-11-24",
+        "/smiles-to-sdf": "2026-11-24",
+        "/smiles-to-inchi": "2026-11-24",
+        "/mol2-to-sdf": "2026-11-24",
+        "/smiles-to-inchikey": "2026-11-24",
+        "/xyz-to-sdf": "2026-11-24",
+        "/about": "2026-11-24",
+        "/privacy": "2026-11-24",
+    }
     for path, prio, freq in entries:
         # Per-page date for content that changed after the initial launch.
         lm = special_lastmod.get(path, lastmod)
@@ -1842,6 +1993,55 @@ def api_bio():
                 return err("No sequence found")
             return jsonify({"ok": True, "rows": rows})
 
+        if op == "protein_mw":
+            rows = protein_molecular_weight(text)
+            lines = []
+            for r in rows:
+                lines.append(f'>{r["header"]}')
+                lines.append(f'Length: {r["length"]} aa ({r["residues"]} residues)')
+                lines.append(f'Average molecular weight: {r["mw"]} Da ({r["kda"]} kDa)')
+                lines.append(f'Monoisotopic mass: {r["mono"]} Da')
+                if r["unknown"]:
+                    lines.append(f'Unknown residues ignored: {r["unknown"]} ({r["unknown_codes"]})')
+                lines.append("")
+            return jsonify({"ok": True, "result": "\n".join(lines).rstrip(), "rows": rows})
+
+        if op == "dna_mw":
+            rows = dna_molecular_weight(text)
+            lines = []
+            for r in rows:
+                counts = " ".join(f"{k}={v}" for k, v in r["counts"].items())
+                lines.append(f'>{r["header"]}')
+                lines.append(f'{r["type"]} · {r["length"]} nt · GC {r["gc_pct"]}%')
+                lines.append(f'Composition: {counts}')
+                lines.append(f'ss{r["type"]} MW: {r["ss_mw"]} Da ({r["ss_kda"]} kDa)')
+                lines.append(f'ds{r["type"]} MW: {r["ds_mw"]} Da ({r["ds_kda"]} kDa)')
+                if r["unknown"]:
+                    lines.append(f'Unknown bases ignored: {r["unknown"]}')
+                lines.append("")
+            return jsonify({"ok": True, "result": "\n".join(lines).rstrip(), "rows": rows})
+
+        if op == "primer_tm":
+            try:
+                na_mm = float(data.get("na_mm", 50) or 50)
+            except (TypeError, ValueError):
+                na_mm = 50.0
+            rows = primer_tm(text, na_mm)
+            lines = []
+            for r in rows:
+                lines.append(f'>{r["header"]}')
+                lines.append(f'Length: {r["length"]} nt · GC {r["gc_pct"]}%')
+                lines.append(f'Wallace Tm: {r["wallace"]:.1f} °C (short-primer estimate)')
+                if r["tm_salt"] is None:
+                    lines.append('Salt-adjusted Tm: not calculated (sequence shorter than 14 nt)')
+                else:
+                    lines.append(f'Salt-adjusted Tm ({r["na_mm"]:g} mM Na+): {r["tm_salt"]:.1f} °C')
+                lines.append(f'3′ end (last 5 nt: {r["last5"]}): {r["gc3"]}/5 GC')
+                if r["warnings"]:
+                    lines.append('Notes: ' + " ".join(r["warnings"]))
+                lines.append("")
+            return jsonify({"ok": True, "result": "\n".join(lines).rstrip(), "rows": rows})
+
         return err("Unknown operation")
     except Exception as exc:  # noqa: BLE001
         return err("Processing failed", 422, str(exc)[:1000])
@@ -1985,13 +2185,16 @@ def _openapi_spec():
                                "data": data_prop, "from": from_prop}, []))},
         "/api/v1/bio": {"post": op(
             "bio", "FASTA / FASTQ operations",
-            "op is one of fasta2fastq, fastq2fasta, revcomp, translate, stats.",
+            "op is one of fasta2fastq, fastq2fasta, revcomp, translate, stats, "
+            "protein_mw, dna_mw, primer_tm.",
             tags=["bioinformatics"],
             request_body=body({"op": {"type": "string",
                                       "enum": ["fasta2fastq", "fastq2fasta",
-                                               "revcomp", "translate", "stats"]},
+                                               "revcomp", "translate", "stats",
+                                               "protein_mw", "dna_mw", "primer_tm"]},
                                "data": data_prop,
-                               "frame": {"type": "integer", "default": 0}}, ["op", "data"]))},
+                               "frame": {"type": "integer", "default": 0},
+                               "na_mm": {"type": "number", "default": 50}}, ["op", "data"]))},
     }
 
     servers = [{"url": base, "description": "CDN endpoint (100s origin timeout)"}]

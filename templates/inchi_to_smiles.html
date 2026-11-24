@@ -1,26 +1,82 @@
 {% extends "preset.html" %}
 {% block prose %}
 <div class="prose">
-  <h2>Convert InChI back to SMILES</h2>
+  <h2>What this InChI to SMILES converter does</h2>
   <p>InChI is great for storing and comparing structures, but many toolkits, machine-learning
-     pipelines and cheminformatics scripts expect SMILES. This page converts an InChI string
-     into a standard SMILES representation using OpenBabel.</p>
+     pipelines and cheminformatics scripts expect SMILES. This page converts an InChI string into
+     a standard SMILES representation using OpenBabel.</p>
+  <p>Paste one or more InChI strings, one per line. The output is a SMILES string for each
+     structure, in the same order. To go the other way, use
+     <a href="/smiles-to-inchi">SMILES to InChI</a>; for a fixed-length key, use
+     <a href="/inchi-to-inchikey">InChI to InChIKey</a>.</p>
 
   <h2>When do you need this?</h2>
   <ul>
     <li>You downloaded a compound list from PubChem and need SMILES for a model.</li>
     <li>Your database stores InChI but your viewer or editor only accepts SMILES.</li>
     <li>You want to inspect or edit the structure in a drawing tool.</li>
+    <li>You need a compact string for a script or a machine-learning pipeline.</li>
   </ul>
 
-  <h2>Notes</h2>
+  <h2>What is preserved</h2>
+  <ul>
+    <li><strong>Connectivity</strong> — the atom and bond graph encoded in the InChI.</li>
+    <li><strong>Formal charges</strong> — the charge layer.</li>
+    <li><strong>Stereochemistry</strong> — the stereo layer, including tetrahedral and double-bond
+        geometry when specified.</li>
+    <li><strong>Isotopes</strong> — the isotopic layer, when present.</li>
+  </ul>
+  <p>Coordinates are not part of InChI, so the SMILES cannot carry a specific geometry. If you
+     need coordinates, convert the InChI to MOL or SDF and generate a layout or conformer.</p>
+
+  <h2>Notes on the result</h2>
   <p>InChI encodes connectivity, tautomers and stereochemistry together. When converting back to
      SMILES, the result is one valid representation — it may differ textually from the original
-     SMILES but describes the same molecule.</p>
+     SMILES but describes the same molecule. SMILES is not unique, so do not compare strings for
+     identity; compare InChI, InChIKey or the structure itself.</p>
+  <p>Standard InChI normalises mobile hydrogens, so a tautomer may come back as a different
+     tautomeric form than the one you started with. Check the structure if tautomer identity
+     matters.</p>
+
+  <h2>Worked example</h2>
+  <p>Aspirin is
+     <code>InChI=1S/C9H8O4/c1-6(10)13-8-5-3-2-4-7(8)9(11)12/h2-5H,1H3,(H,11,12)</code>. Converting
+     it to SMILES gives a valid representation of aspirin, such as
+     <code>CC(=O)Oc1ccccc1C(=O)O</code>. The string may differ from the one in a database, but the
+     connectivity and stereochemistry are the same.</p>
 
   <h2>Frequently asked questions</h2>
   <h3>Can I convert an InChIKey to SMILES?</h3>
   <p>No. InChIKey is a one-way hash — you cannot recover the structure from it. You need the full
      InChI string or the structure itself.</p>
+  <h3>Why is the SMILES different from the original?</h3>
+  <p>SMILES is not unique; the same molecule can be written in many valid ways. The converter may
+     produce a different valid SMILES. Compare connectivity and stereochemistry, not string
+     equality.</p>
+  <h3>Are coordinates preserved?</h3>
+  <p>No. InChI does not store coordinates. Use <a href="/inchi-to-mol">InChI to MOL</a> and
+     generate a 2D layout or a 3D conformer if you need geometry.</p>
+  <h3>Does it preserve stereochemistry?</h3>
+  <p>Yes, when the InChI has a stereo layer. The SMILES carries the stereo information as
+     <code>@</code>/<code>@@</code> markers and directional bonds.</p>
+  <h3>What about salts and mixtures?</h3>
+  <p>A multi-component InChI produces a SMILES with dot-separated components. If you want the
+     parent compound only, remove the counter-ion first.</p>
+  <h3>Can I convert multiple InChIs at once?</h3>
+  <p>Yes — paste one InChI per line. The output contains one SMILES per structure in the same
+     order.</p>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Can I convert an InChIKey to SMILES?","acceptedAnswer":{"@type":"Answer","text":"No. InChIKey is a one-way hash and you cannot recover the structure from it. You need the full InChI string or the structure itself."}},
+{"@type":"Question","name":"Why is the SMILES different from the original?","acceptedAnswer":{"@type":"Answer","text":"SMILES is not unique; the same molecule can be written in many valid ways. The converter may produce a different valid SMILES. Compare connectivity and stereochemistry, not string equality."}},
+{"@type":"Question","name":"Are coordinates preserved when converting InChI to SMILES?","acceptedAnswer":{"@type":"Answer","text":"No. InChI does not store coordinates. Use InChI to MOL and generate a 2D layout or a 3D conformer if you need geometry."}},
+{"@type":"Question","name":"Does the InChI to SMILES converter preserve stereochemistry?","acceptedAnswer":{"@type":"Answer","text":"Yes, when the InChI has a stereo layer. The SMILES carries the stereo information as at-sign markers and directional bonds."}},
+{"@type":"Question","name":"What about salts and mixtures?","acceptedAnswer":{"@type":"Answer","text":"A multi-component InChI produces a SMILES with dot-separated components. If you want the parent compound only, remove the counter-ion first."}},
+{"@type":"Question","name":"Can I convert multiple InChIs at once?","acceptedAnswer":{"@type":"Answer","text":"Yes, paste one InChI per line. The output contains one SMILES per structure in the same order."}}
+]}
+</script>
 {% endblock %}

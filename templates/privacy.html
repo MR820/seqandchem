@@ -14,10 +14,11 @@
   </ul>
 
   <h2>Page analytics</h2>
-  <p>Page views are counted with a self-hosted <a href="https://www.goatcounter.com/">GoatCounter</a>
-     instance at <code>stats.seqandchem.com</code>. It records aggregate page views and referrers;
-     it does not use advertising cookies or build a personal profile. The analytics script is
-     loaded asynchronously and does not block the tools.</p>
+  <p>Page analytics are provided by <a href="https://www.cloudflare.com/web-analytics/">Cloudflare
+     Web Analytics</a>, a cookie-free analytics service provided by our CDN provider. It reports
+     aggregate page views, referrers and Core Web Vitals without using cookies, local storage or
+     cross-site identifiers. EU visitors are included in these aggregate counts; the beacon does
+     not build a personal profile or track you across other websites.</p>
 
   <h2>Anonymous feedback</h2>
   <p>When you submit the feedback form, the following are stored in a private SQLite database on
@@ -33,9 +34,11 @@
      processed to produce the response and are not intentionally stored as user records.</p>
 
   <h2>Third-party requests</h2>
-  <p>Chemical name lookups use OPSIN at the University of Cambridge. For common or trivial names,
-     the IUPAC tool can also query PubChem directly from your browser; that request is subject to
-     PubChem's own privacy policy. The site does not require an account or a login.</p>
+  <p>The site is served through Cloudflare, which processes requests as a content delivery network
+     and provides the cookie-free Web Analytics described above. Chemical name lookups use OPSIN at
+     the University of Cambridge. For common or trivial names, the IUPAC tool can also query
+     PubChem directly from your browser; that request is subject to PubChem's own privacy policy.
+     The site does not require an account or a login.</p>
 
   <h2>API</h2>
   <p>The public API is keyless. It has no user accounts or profiles, but it applies fair-use rate
@@ -46,6 +49,6 @@
   <p>Questions about this policy can be sent through the anonymous
      <a href="#" data-feedback-open>feedback form</a>.</p>
 
-  <p class="hint">Last updated: 2026-11-16.</p>
+  <p class="hint">Last updated: 2026-11-24.</p>
 </div>
 {% endblock %}

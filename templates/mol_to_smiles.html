@@ -1,22 +1,104 @@
 {% extends "preset.html" %}
 {% block prose %}
 <div class="prose">
-  <h2>MOL to SMILES converter</h2>
+  <h2>What this MOL to SMILES converter does</h2>
   <p>A MOL file is a single-molecule structure file in the MDL format — the same record format
      used inside SDF files, just without the property block and without the record separator.
-     This converter turns one MOL file into a SMILES string.</p>
+     This converter turns one MOL file into a SMILES string that you can paste into a database,
+     a script or another chemistry tool.</p>
+  <p>The converter reads the atom and bond tables, perceives aromaticity where possible and writes
+     a SMILES string. If the MOL file has 2D or 3D coordinates, they are used to understand the
+     structure but are not part of the SMILES output; SMILES carries connectivity and bond orders,
+     not coordinates.</p>
 
   <h2>Common use cases</h2>
   <ul>
     <li>You drew a structure in ChemDraw, Marvin or Avogadro and need the SMILES.</li>
     <li>You have a MOL file from a vendor catalogue and want to search it in a database.</li>
     <li>You are building a dataset and need a uniform text representation.</li>
+    <li>You want to compare a structure with a SMILES-based similarity or substructure tool
+        (<a href="/similarity">Tanimoto similarity</a>,
+        <a href="/substructure">substructure search</a>).</li>
   </ul>
+
+  <h2>What is preserved</h2>
+  <ul>
+    <li><strong>Connectivity</strong> — atoms and bonds from the MOL bond block.</li>
+    <li><strong>Bond orders</strong> — single, double and triple bonds; aromatic rings are written
+        in Kekulé form or as aromatic atoms where the toolkit can perceive them.</li>
+    <li><strong>Formal charges</strong> — charge fields in the atom block become charged atoms in
+        the SMILES.</li>
+    <li><strong>Stereochemistry</strong> — wedge/hash bonds and atom stereo flags are converted to
+        <code>@</code> or <code>@@</code> when the MOL file defines them.</li>
+    <li><strong>Isotopes</strong> — isotope labels, when present, are written into the SMILES.</li>
+  </ul>
+
+  <h2>What can go wrong</h2>
+  <ul>
+    <li><strong>Missing bond orders</strong> — a MOL file without bond orders (for example, a
+        file built only from coordinates) can produce a SMILES with the wrong bond orders.
+        Check the structure before using it for registration.</li>
+    <li><strong>Hydrogens</strong> — explicit hydrogens in the MOL file become explicit atoms in
+        the SMILES unless the converter removes them. Use the “Remove hydrogens” option for a
+        compact string.</li>
+    <li><strong>Salts and mixtures</strong> — a MOL file with disconnected components produces a
+        SMILES with multiple components separated by dots. Split the file if you need one
+        molecule.</li>
+    <li><strong>Aromaticity</strong> — different toolkits perceive aromaticity differently, so the
+        same MOL file can produce a Kekulé or an aromatic SMILES depending on the converter.</li>
+    <li><strong>Large or malformed files</strong> — a truncated MOL file or a V3000 file with
+        unsupported features may fail; check the error message and the atom count line.</li>
+  </ul>
+
+  <h2>Worked example</h2>
+  <p>Aspirin drawn in ChemDraw or downloaded as a MOL file has the connectivity of
+     <code>CC(=O)Oc1ccccc1C(=O)O</code>. Paste the MOL file into the converter and you get a SMILES
+     with the same acetyl, aromatic ring and carboxylic acid groups. The exact string may differ
+     from the one in a database because SMILES is not unique; the molecule is the same. To go back
+     the other way, use <a href="/smiles-to-mol">SMILES to MOL</a>.</p>
+
+  <h2>MOL, SDF and other formats</h2>
+  <p>SDF is essentially a MOL file followed by data fields and a <code>$$$$</code> separator, so
+     one SDF file can hold many molecules while a MOL file holds exactly one. If your file has
+     multiple records, use <a href="/sdf-to-smiles">SDF to SMILES</a> instead. For a different
+     output format, the <a href="/convert">format converter</a> accepts MOL, SDF, PDB, XYZ, MOL2
+     and more.</p>
 
   <h2>Frequently asked questions</h2>
   <h3>MOL vs SDF — what is the difference?</h3>
   <p>SDF is essentially a MOL file followed by data fields and a <code>$$$$</code> separator, so
      one SDF file can hold many molecules while a MOL file holds exactly one. If your file has
      multiple records, use <a href="/sdf-to-smiles">SDF to SMILES</a> instead.</p>
+  <h3>Why is my SMILES different from the original?</h3>
+  <p>SMILES is not a unique string: the same molecule can be written in many valid ways. The
+     converter may produce a different valid SMILES from the one you started with. Compare
+     connectivity and stereochemistry, not string equality.</p>
+  <h3>Does it preserve stereochemistry?</h3>
+  <p>Yes, when the MOL file has wedge/hash bonds or atom stereo flags. A flat 2D MOL file without
+     stereo information cannot define stereochemistry, so the output will be unspecified.</p>
+  <h3>Can I convert multiple MOL files at once?</h3>
+  <p>This page converts one MOL record. For a multi-record SDF file, use
+     <a href="/sdf-to-smiles">SDF to SMILES</a>; for a library, use the
+     <a href="/batch">batch converter</a> or the <a href="/api">API</a>.</p>
+  <h3>Does it handle V3000 MOL files?</h3>
+  <p>OpenBabel reads V2000 and V3000 MOL files. If a V3000 file uses a feature that the converter
+     does not support, the conversion may fail or lose that feature; check the result.</p>
+  <h3>What about charges and salts?</h3>
+  <p>Formal charges are preserved. Salts and counter-ions appear as separate dot-separated
+     components in the SMILES. If you want the parent compound only, remove the counter-ion before
+     converting.</p>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"MOL vs SDF — what is the difference?","acceptedAnswer":{"@type":"Answer","text":"SDF is essentially a MOL file followed by data fields and a record separator, so one SDF file can hold many molecules while a MOL file holds exactly one. If your file has multiple records, use the SDF to SMILES converter instead."}},
+{"@type":"Question","name":"Why is my SMILES different from the original?","acceptedAnswer":{"@type":"Answer","text":"SMILES is not a unique string: the same molecule can be written in many valid ways. The converter may produce a different valid SMILES from the one you started with. Compare connectivity and stereochemistry, not string equality."}},
+{"@type":"Question","name":"Does the MOL to SMILES converter preserve stereochemistry?","acceptedAnswer":{"@type":"Answer","text":"Yes, when the MOL file has wedge or hash bonds or atom stereo flags. A flat 2D MOL file without stereo information cannot define stereochemistry, so the output will be unspecified."}},
+{"@type":"Question","name":"Can I convert multiple MOL files at once?","acceptedAnswer":{"@type":"Answer","text":"This page converts one MOL record. For a multi-record SDF file, use the SDF to SMILES converter; for a library, use the batch converter or the API."}},
+{"@type":"Question","name":"Does it handle V3000 MOL files?","acceptedAnswer":{"@type":"Answer","text":"OpenBabel reads V2000 and V3000 MOL files. If a V3000 file uses a feature that the converter does not support, the conversion may fail or lose that feature; check the result."}},
+{"@type":"Question","name":"What about charges and salts?","acceptedAnswer":{"@type":"Answer","text":"Formal charges are preserved. Salts and counter-ions appear as separate dot-separated components in the SMILES. If you want the parent compound only, remove the counter-ion before converting."}}
+]}
+</script>
 {% endblock %}

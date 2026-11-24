@@ -164,7 +164,7 @@ O=C(O)c1ccccc1OC(=O)C</code></pre>
   <thead><tr><th>Property</th><th>Value</th><th>Pass?</th></tr></thead>
   <tbody>
     <tr><td>MW</td><td>180.16</td><td>✅</td></tr>
-    <tr><td>logP</td><td>1.19</td><td>✅</td></tr>
+    <tr><td>logP</td><td>1.31</td><td>✅</td></tr>
     <tr><td>HBD</td><td>1 (the carboxylic acid OH)</td><td>✅</td></tr>
     <tr><td>HBA</td><td>4 (three O, one carbonyl O counted separately)</td><td>✅</td></tr>
   </tbody>
@@ -314,14 +314,360 @@ IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII</code></pre>
    on this server — nothing is sent to a third party.</p>
 """,
     },
+"smiles-to-pdbqt-autodock-vina": {
+        "path": "/guides/smiles-to-pdbqt-autodock-vina",
+        "h1": "SMILES to PDBQT for AutoDock Vina: A Practical Ligand Preparation Guide",
+        "title": "SMILES to PDBQT for AutoDock Vina — Ligand Preparation Guide (2026)",
+        "description": "A practical workflow for turning a SMILES into a docking-ready PDBQT: "
+                       "3D coordinates, protonation, charges, torsions, receptor preparation and "
+                       "validation.",
+        "lead": "Format conversion is the easy part. A docking-ready ligand also needs the right "
+                "protonation, charges and torsions — this guide walks through the whole "
+                "preparation.",
+        "related": [
+            ("/smiles-to-pdbqt", "SMILES → PDBQT"),
+            ("/3d", "SMILES → 3D"),
+            ("/batch", "Batch converter"),
+            ("/api", "API reference"),
+        ],
+        "prose": """
+<p>AutoDock Vina and AutoDock 4 do not read SMILES. They expect a PDBQT file that contains the
+   ligand's 3D coordinates, AutoDock atom types, partial charges and a tree of rotatable bonds.
+   Converting the text is straightforward; preparing a ligand that behaves correctly in docking is
+   the part that needs attention.</p>
+<p>This guide covers the full workflow: choosing the protonation state, generating 3D coordinates,
+   inspecting the torsion tree, assigning charges, preparing the receptor and validating the
+   result. The <a href="/smiles-to-pdbqt">SMILES to PDBQT converter</a> handles the format
+   conversion and 3D generation; the rest of the steps are about chemistry, not file formats.</p>
+
+<h2>1. Start from the right structure</h2>
+<p>A SMILES string describes connectivity, but docking is sensitive to the protonation state,
+   tautomer and charge. Before converting, decide which form you want to dock:</p>
+<ul>
+  <li><strong>Protonation</strong> — at pH 7.4, carboxylic acids are mostly deprotonated and
+      aliphatic amines are mostly protonated. The binding site may favour a different state; if
+      the site is known, match the state observed in the co-crystal structure or expected from the
+      mechanism.</li>
+  <li><strong>Tautomer</strong> — 2-hydroxypyridine and 2-pyridone are the same formula but
+      different hydrogen positions. Docking one tautomer can miss the binding mode of the other.</li>
+  <li><strong>Salts and counter-ions</strong> — strip counter-ions unless the ion is part of the
+      intended ligand. A sodium salt adds atoms and changes the charge.</li>
+  <li><strong>Stereochemistry</strong> — define chiral centres with <code>@</code> or
+      <code>@@</code>. A flat SMILES cannot produce a stereo-defined 3D conformer.</li>
+</ul>
+<p>If you are not sure which state to use, prepare the most likely physiological form first, then
+   repeat the docking with the alternative if the results are ambiguous.</p>
+
+<h2>2. Generate 3D coordinates</h2>
+<p>A PDBQT ligand needs 3D coordinates. A 2D structure or a SMILES without coordinates produces a
+   file with all atoms at the same position, which is useless for docking.</p>
+<p>The converter generates a force-field-optimised conformer with OpenBabel (MMFF94 when
+   parameters are available, UFF otherwise). That is a reasonable starting geometry for a
+   drug-like molecule, but it is one local minimum, not an ensemble. For a flexible ligand, inspect
+   the conformer and consider generating several starting geometries if the docking protocol
+   supports it.</p>
+
+<h2>3. Convert to PDBQT and inspect the torsion tree</h2>
+<p>The output contains a ROOT section, one or more BRANCH/ENDBRANCH sections and a TORSDOF line.
+   The ROOT is the rigid core; each BRANCH is a flexible branch attached to it; TORSDOF is the
+   number of active torsions. Open the file in a text editor and check:</p>
+<ul>
+  <li>The number of torsions is what you expect. Amide bonds and ring bonds are usually rigid;
+      terminal groups may be treated as rigid.</li>
+  <li>The atom count matches the molecule. Missing hydrogens or a dropped counter-ion will change
+      the count.</li>
+  <li>There are no duplicate atoms from multiple models or alternate locations.</li>
+</ul>
+<p>If the torsion tree looks wrong, fix the structure or adjust the active torsions in
+   AutoDockTools before running Vina.</p>
+
+<h2>4. Charges: the step most conversions skip</h2>
+<p>PDBQT atom records include a partial charge column. Docking scoring depends on those charges,
+   and a file with all zeros is not equivalent to a properly prepared ligand.</p>
+<p>OpenBabel's PDBQT writer can produce the atom types and torsion tree but may leave the charge
+   column at zero. In the <a href="/smiles-to-pdbqt">converter</a>, this is called out explicitly.
+   For production docking, use a preparation tool that assigns Gasteiger or another charge model:</p>
+<ul>
+  <li><strong>Meeko</strong> — the modern Python preparation tool for AutoDock Vina and
+      AutoDock-GPU; it assigns charges and writes PDBQT.</li>
+  <li><strong>AutoDockTools</strong> — the classic GUI/command-line preparation suite; assign
+      Gasteiger charges before saving the PDBQT.</li>
+  <li><strong>Your docking pipeline</strong> — many pipelines wrap ligand preparation and charge
+      assignment; use its documented defaults.</li>
+</ul>
+<p>Whatever tool you use, inspect a few atom records and confirm that the charge column is not all
+   zero.</p>
+
+<h2>5. Prepare the receptor separately</h2>
+<p>The ligand and the receptor are different preparation problems. For the receptor:</p>
+<ol>
+  <li>Remove crystallographic waters unless a water is known to mediate binding.</li>
+  <li>Remove the co-crystallised ligand and unwanted ions, or keep them deliberately.</li>
+  <li>Add hydrogens and assign the protonation state at the intended pH.</li>
+  <li>Assign charges and AutoDock atom types, then write a receptor PDBQT.</li>
+  <li>Define the search box around the binding site, with enough padding for the ligand.</li>
+</ol>
+<p>AutoDockTools, Meeko and established docking pipelines provide receptor preparation steps. Do
+   not use the ligand converter for a protein unless you have completed these steps separately.</p>
+
+<h2>6. Validate before docking</h2>
+<table>
+  <thead>
+    <tr><th>Check</th><th>What to look for</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Coordinates</td><td>Atoms are not all at (0,0,0); the conformer is 3D.</td></tr>
+    <tr><td>Atom count</td><td>Matches the intended protonation and salt form.</td></tr>
+    <tr><td>Charges</td><td>The charge column is not all zero; the model is documented.</td></tr>
+    <tr><td>Torsions</td><td>TORSDOF is sensible; amide and ring bonds are not freely rotating.</td></tr>
+    <tr><td>Protonation</td><td>Acids, amines and heterocycles match the intended state.</td></tr>
+    <tr><td>Receptor</td><td>Waters, co-ligands, hydrogens and charges are intentional.</td></tr>
+  </tbody>
+</table>
+
+<h2>Common mistakes</h2>
+<table>
+  <thead>
+    <tr><th>Mistake</th><th>Consequence</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Converting a 2D SMILES without 3D generation</td><td>All atoms at the same coordinates; docking cannot run correctly.</td></tr>
+    <tr><td>Accepting zero charges</td><td>Scoring and pose ranking are wrong; results are not comparable to a properly prepared run.</td></tr>
+    <tr><td>Docking the wrong tautomer or protonation state</td><td>The correct binding mode may be missed or scored poorly.</td></tr>
+    <tr><td>Leaving the counter-ion in the ligand</td><td>Extra atoms and a different net charge; the ligand is no longer the intended molecule.</td></tr>
+    <tr><td>Too many active torsions</td><td>A larger search space, slower runs and more false positives.</td></tr>
+    <tr><td>Unprepared receptor</td><td>Waters, missing hydrogens or wrong charges distort the site and the score.</td></tr>
+  </tbody>
+</table>
+
+<h2>Automating the conversion</h2>
+<p>For a single ligand, the web page is enough. For a series, the API accepts a SMILES and returns
+   a PDBQT:</p>
+<pre><code>curl -s https://api.seqandchem.com/api/v1/convert \\
+  -H 'Content-Type: application/json' \\
+  -d '{"from":"smi","to":"pdbqt","data":"CCO","opts":["--gen3d"]}'</code></pre>
+<p>The response contains the PDBQT text in <code>result</code>. The same caveat applies: check the
+   charges and protonation before using the output in a production docking campaign. For a
+   library, use the <a href="/batch">batch converter</a> and then run a charge-assignment step.</p>
+
+<h2>Frequently asked questions</h2>
+<h3>Can I use the SMILES to PDBQT converter for a production docking campaign?</h3>
+<p>Use it to generate the 3D structure and the PDBQT skeleton, then assign charges and verify the
+   protonation with Meeko, AutoDockTools or your docking pipeline. The converter is a starting
+   point, not a complete ligand-preparation protocol.</p>
+<h3>Why are the charges in my PDBQT all zero?</h3>
+<p>OpenBabel's PDBQT writer does not always assign Gasteiger charges. Use a preparation tool that
+   does, or add charges in your pipeline before docking.</p>
+<h3>How many torsions should a ligand have?</h3>
+<p>There is no fixed number. A rigid ligand may have zero; a flexible drug-like molecule often has
+   three to ten. Too many torsions increase the search space and can slow the run or produce more
+   false positives.</p>
+<h3>Does the converter work for peptides or large ligands?</h3>
+<p>The conversion can run, but docking a flexible peptide is a different problem: the search space
+   is much larger and the preparation requirements are stricter. Use a protocol designed for
+   peptides rather than treating them as small molecules.</p>
+<h3>Can I convert a receptor PDB to PDBQT with the same tool?</h3>
+<p>The page is intended for small-molecule ligands. Receptor preparation requires removing waters,
+   adding hydrogens, assigning charges and defining the search box; use AutoDockTools, Meeko or a
+   docking pipeline.</p>
+<h3>Is PDBQT the same as PDB?</h3>
+<p>No. PDBQT extends PDB with AutoDock atom types, partial charges and a torsion tree. A PDB file
+   does not contain the information docking needs.</p>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Can I use the SMILES to PDBQT converter for a production docking campaign?","acceptedAnswer":{"@type":"Answer","text":"Use it to generate the 3D structure and the PDBQT skeleton, then assign charges and verify the protonation with Meeko, AutoDockTools or your docking pipeline. The converter is a starting point, not a complete ligand-preparation protocol."}},
+{"@type":"Question","name":"Why are the charges in my PDBQT all zero?","acceptedAnswer":{"@type":"Answer","text":"OpenBabel's PDBQT writer does not always assign Gasteiger charges. Use a preparation tool that does, or add charges in your pipeline before docking."}},
+{"@type":"Question","name":"How many torsions should a ligand have?","acceptedAnswer":{"@type":"Answer","text":"There is no fixed number. A rigid ligand may have zero; a flexible drug-like molecule often has three to ten. Too many torsions increase the search space and can slow the run or produce more false positives."}},
+{"@type":"Question","name":"Does the converter work for peptides or large ligands?","acceptedAnswer":{"@type":"Answer","text":"The conversion can run, but docking a flexible peptide is a different problem: the search space is much larger and the preparation requirements are stricter. Use a protocol designed for peptides rather than treating them as small molecules."}},
+{"@type":"Question","name":"Can I convert a receptor PDB to PDBQT with the same tool?","acceptedAnswer":{"@type":"Answer","text":"The page is intended for small-molecule ligands. Receptor preparation requires removing waters, adding hydrogens, assigning charges and defining the search box; use AutoDockTools, Meeko or a docking pipeline."}},
+{"@type":"Question","name":"Is PDBQT the same as PDB?","acceptedAnswer":{"@type":"Answer","text":"No. PDBQT extends PDB with AutoDock atom types, partial charges and a torsion tree. A PDB file does not contain the information docking needs."}}
+]}
+</script>
+""",
+    },
+"molecular-weight-average-vs-monoisotopic": {
+        "path": "/guides/molecular-weight-average-vs-monoisotopic",
+        "h1": "Molecular Weight: Average vs Monoisotopic Mass",
+        "title": "Molecular Weight vs Monoisotopic Mass — A Practical Guide (2026)",
+        "description": "What average molecular weight and monoisotopic mass actually measure, "
+                       "when to use each, and how to calculate them for small molecules, "
+                       "proteins and DNA.",
+        "lead": "The same molecule has several different \"molecular weights\". Using the wrong one "
+                "is a common source of off-by-a-few-daltons errors in mass spectrometry, protein "
+                "work and concentration calculations.",
+        "related": [
+            ("/formula", "Molecular weight calculator"),
+            ("/protein-molecular-weight-calculator", "Protein MW calculator"),
+            ("/dna-molecular-weight-calculator", "DNA MW calculator"),
+            ("/properties", "Property calculator"),
+        ],
+        "prose": """
+<p>\"Molecular weight\" sounds like one number, but a molecule actually has several: the average
+   mass, the monoisotopic mass, the nominal mass and the molar mass. They are close for small
+   molecules and can differ by tens of daltons for a protein. Using the wrong one is a common
+   source of errors in mass spectrometry, gel analysis and concentration calculations.</p>
+<p>This guide explains what each number means, how to calculate it from a formula, a SMILES, a
+   protein sequence or a DNA sequence, and which one to use for a given task.</p>
+
+<h2>The four numbers</h2>
+<table>
+  <thead>
+    <tr><th>Name</th><th>What it uses</th><th>Typical units</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Average molecular weight</td><td>Natural isotopic abundance of each element</td><td>Da or g/mol</td></tr>
+    <tr><td>Monoisotopic mass</td><td>The most abundant isotope of each element</td><td>Da</td></tr>
+    <tr><td>Nominal mass</td><td>Integer mass number of the most abundant isotopes</td><td>Da (integer)</td></tr>
+    <tr><td>Molar mass</td><td>Mass of one mole of the substance</td><td>g/mol</td></tr>
+  </tbody>
+</table>
+<p>For practical purposes, average molecular weight and molar mass are the same number with
+   different units. Molecular weight is dimensionless and is often reported in daltons; molar mass
+   is the mass of one mole and is reported in g/mol. The monoisotopic mass is the one used in
+   high-resolution mass spectrometry.</p>
+
+<h2>Why isotopes create the difference</h2>
+<p>Most elements are mixtures of isotopes. Carbon, for example, is about 98.9% <sup>12</sup>C and
+   1.1% <sup>13</sup>C. The average atomic weight (12.011) reflects that mixture. The monoisotopic
+   mass uses only <sup>12</sup>C (exactly 12.000000), so it is slightly lower for a molecule that
+   contains carbon.</p>
+<p>The difference grows with the number of atoms. For water it is about 0.004 Da; for glucose it is
+   about 0.09 Da; for a protein it can be tens of daltons. A mass spectrometer with high resolution
+   can resolve the isotope envelope, which is why monoisotopic mass is the right value for MS
+   matching.</p>
+
+<h2>Calculating from a formula</h2>
+<p>For a formula, sum the atomic weights (average) or the isotope masses (monoisotopic) for every
+   atom. For glucose, C<sub>6</sub>H<sub>12</sub>O<sub>6</sub>:</p>
+<ul>
+  <li><strong>Average:</strong> 6 × 12.011 + 12 × 1.008 + 6 × 15.999 = <strong>180.156 g/mol</strong></li>
+  <li><strong>Monoisotopic:</strong> 6 × 12.000000 + 12 × 1.007825 + 6 × 15.994915 =
+      <strong>180.0634 Da</strong></li>
+</ul>
+<p>The <a href="/formula">molecular weight calculator</a> reports the average value and the
+   elemental composition. For monoisotopic mass, use a dedicated MS calculator or a tool that
+   exposes the isotope masses.</p>
+
+<h2>Calculating from a structure</h2>
+<p>For a SMILES or a structure file, the formula is first perceived by OpenBabel and then summed.
+   Salts, hydrates and disconnected fragments are included in the total, so strip counter-ions
+   first if you want the parent compound. The <a href="/properties">property calculator</a>
+   reports molecular weight and formula from a structure; the
+   <a href="/formula">molecular weight calculator</a> accepts both formula and SMILES input.</p>
+
+<h2>Proteins and peptides</h2>
+<p>A protein is a polymer of amino acids. Its mass is the sum of the residue masses plus one water
+   molecule for the free termini. The same calculation applies to a short peptide. For example,
+   angiotensin II (<code>DRVYIHPF</code>) has an average mass of <strong>1046.19 Da</strong> and a
+   monoisotopic mass of <strong>1045.54 Da</strong>. The
+   <a href="/protein-molecular-weight-calculator">protein molecular weight calculator</a> handles
+   FASTA input and reports both values.</p>
+<p>Post-translational modifications and disulfide bonds are not included in the residue sum. Each
+   disulfide bond removes about 2.016 Da; phosphorylation adds about 79.97 Da; acetylation adds
+   about 42.01 Da. Add those corrections separately if they are part of the molecule you are
+   describing.</p>
+
+<h2>DNA and RNA</h2>
+<p>DNA and RNA are polymers of nucleotides. The mass is the sum of the nucleotide residue masses
+   plus one water molecule for the free ends. For a double-stranded molecule, the complementary
+   strand has the same composition, so the duplex mass is twice the single-strand mass. For the
+   39-base sequence <code>ATGGCCATTGTAATGGGCCGCTGAAAGGGTGCCCGATAG</code>, the
+   <a href="/dna-molecular-weight-calculator">DNA molecular weight calculator</a> reports
+   <strong>12,192.89 Da</strong> for ssDNA and <strong>24,385.77 Da</strong> for dsDNA.</p>
+<p>Counter-ions, modified bases and a 5′ phosphate change the mass. Vendors often quote the sodium
+   salt or a modified oligo; compare the same form.</p>
+
+<h2>Which number should I use?</h2>
+<table>
+  <thead>
+    <tr><th>Task</th><th>Use</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Weighing a sample, preparing a solution</td><td>Average molecular weight / molar mass</td></tr>
+    <tr><td>SDS-PAGE, gel mobility</td><td>Average molecular weight</td></tr>
+    <tr><td>High-resolution mass spectrometry</td><td>Monoisotopic mass</td></tr>
+    <tr><td>Peptide mass fingerprinting</td><td>Monoisotopic mass</td></tr>
+    <tr><td>Database registration</td><td>Formula and InChI; report the mass method if needed</td></tr>
+    <tr><td>Comparing with a vendor's value</td><td>Check which number and which salt form they report</td></tr>
+  </tbody>
+</table>
+
+<h2>Why two tools give different values</h2>
+<ul>
+  <li><strong>Average vs monoisotopic</strong> — the most common reason; check which one the tool
+      reports.</li>
+  <li><strong>Different atomic weight tables</strong> — older tables and newer IUPAC values differ
+      slightly.</li>
+  <li><strong>Predicted vs measured</strong> — a predicted mass is a calculation; an experimental
+      mass includes the actual isotopes and any modifications.</li>
+  <li><strong>Salt form and counter-ions</strong> — a sodium salt is heavier than the free acid.</li>
+  <li><strong>Modifications and tags</strong> — a His-tag, phosphorylation or a signal peptide
+      changes the mass.</li>
+</ul>
+
+<h2>Worked examples</h2>
+<table>
+  <thead>
+    <tr><th>Molecule</th><th>Average</th><th>Monoisotopic</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Water (H<sub>2</sub>O)</td><td>18.015</td><td>18.0106</td></tr>
+    <tr><td>Glucose (C<sub>6</sub>H<sub>12</sub>O<sub>6</sub>)</td><td>180.156</td><td>180.0634</td></tr>
+    <tr><td>Aspirin (C<sub>9</sub>H<sub>8</sub>O<sub>4</sub>)</td><td>180.159</td><td>180.0423</td></tr>
+    <tr><td>Angiotensin II (DRVYIHPF)</td><td>1046.19</td><td>1045.54</td></tr>
+    <tr><td>39-mer DNA (single strand)</td><td>12,192.89</td><td>—</td></tr>
+  </tbody>
+</table>
+<p>The DNA row reports the average mass from the calculator; a monoisotopic value would require the
+   isotope masses for every nucleotide. For oligonucleotide MS, use a dedicated oligonucleotide
+   mass calculator.</p>
+
+<h2>Frequently asked questions</h2>
+<h3>What is the difference between molecular weight and monoisotopic mass?</h3>
+<p>Molecular weight (average mass) uses the natural abundance of each element. Monoisotopic mass
+   uses the most abundant isotope of each element. The monoisotopic value is the one used in
+   high-resolution mass spectrometry; the average value is used for weighing and general lab
+   calculations.</p>
+<h3>Is molecular weight the same as molar mass?</h3>
+<p>For practical purposes, yes — the same number, with different units. Molecular weight is
+   dimensionless and often reported in Da; molar mass is the mass of one mole and reported in
+   g/mol.</p>
+<h3>Why is the monoisotopic mass lower than the average mass?</h3>
+<p>Because the average includes heavier isotopes such as <sup>13</sup>C and <sup>15</sup>N, while the
+   monoisotopic mass uses only the most abundant isotope. For a molecule containing carbon, the
+   average is usually slightly higher.</p>
+<h3>How do I calculate a protein's molecular weight?</h3>
+<p>Sum the residue masses of the amino acids and add one water molecule. The
+   <a href="/protein-molecular-weight-calculator">protein molecular weight calculator</a> does
+   this from a sequence or FASTA file and reports average and monoisotopic mass.</p>
+<h3>How do I calculate DNA molecular weight?</h3>
+<p>Sum the nucleotide residue masses and add one water molecule; for double-stranded DNA, double
+   the single-strand value. The <a href="/dna-molecular-weight-calculator">DNA molecular weight
+   calculator</a> reports both.</p>
+<h3>Why do two calculators give different values?</h3>
+<p>They may use average vs monoisotopic mass, different atomic weight tables, different salt forms
+   or different treatment of modifications. Check the method and the input form before comparing.</p>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"What is the difference between molecular weight and monoisotopic mass?","acceptedAnswer":{"@type":"Answer","text":"Molecular weight, or average mass, uses the natural abundance of each element. Monoisotopic mass uses the most abundant isotope of each element. The monoisotopic value is used in high-resolution mass spectrometry; the average value is used for weighing and general lab calculations."}},
+{"@type":"Question","name":"Is molecular weight the same as molar mass?","acceptedAnswer":{"@type":"Answer","text":"For practical purposes, yes, the same number with different units. Molecular weight is dimensionless and often reported in daltons; molar mass is the mass of one mole and reported in grams per mole."}},
+{"@type":"Question","name":"Why is the monoisotopic mass lower than the average mass?","acceptedAnswer":{"@type":"Answer","text":"Because the average includes heavier isotopes such as carbon-13 and nitrogen-15, while the monoisotopic mass uses only the most abundant isotope. For a molecule containing carbon, the average is usually slightly higher."}},
+{"@type":"Question","name":"How do I calculate a protein's molecular weight?","acceptedAnswer":{"@type":"Answer","text":"Sum the residue masses of the amino acids and add one water molecule. The protein molecular weight calculator does this from a sequence or FASTA file and reports average and monoisotopic mass."}},
+{"@type":"Question","name":"How do I calculate DNA molecular weight?","acceptedAnswer":{"@type":"Answer","text":"Sum the nucleotide residue masses and add one water molecule; for double-stranded DNA, double the single-strand value. The DNA molecular weight calculator reports both."}},
+{"@type":"Question","name":"Why do two molecular weight calculators give different values?","acceptedAnswer":{"@type":"Answer","text":"They may use average versus monoisotopic mass, different atomic weight tables, different salt forms or different treatment of modifications. Check the method and the input form before comparing."}}
+]}
+</script>
+""",
+    },
 }
 
 GUIDE_INDEX = {
     "path": "/guides/",
     "h1": "Guides",
     "title": "Chemistry & Bioinformatics Guides — SeqChem",
-    "description": "Practical guides on chemical file formats, molecular descriptors and sequence "
-                   "formats: SMILES vs InChI, Lipinski's rule of five, FASTA vs FASTQ.",
+    "description": "Practical guides on chemical file formats, molecular descriptors, docking "
+                   "preparation and sequence formats: SMILES vs InChI, Lipinski's rule of five, "
+                   "molecular weight, SMILES to PDBQT, FASTA vs FASTQ.",
 }
 
 # Additional practical sections for the guide pages (see seo_copy.py).

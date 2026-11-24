@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="page-title">Codon Chart</h1>
+<p class="lead">A complete codon chart for the standard genetic code — all 64 codons, the amino
+   acid they encode, one-letter and three-letter codes, and the start and stop signals. Printable
+   and free to use as a reference.</p>
+
+<div class="prose">
+  <h2>How to read a codon chart</h2>
+  <p>A codon is a triplet of nucleotide bases read in the 5′→3′ direction. Take the first three
+     bases of your sequence in the chosen reading frame and find the triplet in the chart. For
+     example, <code>ATG</code> encodes methionine (M) and is the usual start codon;
+     <code>GCT</code> encodes alanine (A); <code>TAA</code> is a stop codon.</p>
+  <p>The chart below is sorted alphabetically by codon. The same data is grouped by amino acid on
+     the <a href="/bio/translate">DNA to protein translation</a> page, and you can paste a sequence
+     there to translate it directly.</p>
+
+  <h2>Codon chart (standard genetic code)</h2>
+  <table>
+    <thead>
+      <tr><th>Codon</th><th>Amino acid</th><th>Three-letter</th><th>One-letter</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>AAA</code></td><td>Lysine</td><td>Lys</td><td>K</td></tr>
+      <tr><td><code>AAC</code></td><td>Asparagine</td><td>Asn</td><td>N</td></tr>
+      <tr><td><code>AAG</code></td><td>Lysine</td><td>Lys</td><td>K</td></tr>
+      <tr><td><code>AAT</code></td><td>Asparagine</td><td>Asn</td><td>N</td></tr>
+      <tr><td><code>ACA</code></td><td>Threonine</td><td>Thr</td><td>T</td></tr>
+      <tr><td><code>ACC</code></td><td>Threonine</td><td>Thr</td><td>T</td></tr>
+      <tr><td><code>ACG</code></td><td>Threonine</td><td>Thr</td><td>T</td></tr>
+      <tr><td><code>ACT</code></td><td>Threonine</td><td>Thr</td><td>T</td></tr>
+      <tr><td><code>AGA</code></td><td>Arginine</td><td>Arg</td><td>R</td></tr>
+      <tr><td><code>AGC</code></td><td>Serine</td><td>Ser</td><td>S</td></tr>
+      <tr><td><code>AGG</code></td><td>Arginine</td><td>Arg</td><td>R</td></tr>
+      <tr><td><code>AGT</code></td><td>Serine</td><td>Ser</td><td>S</td></tr>
+      <tr><td><code>ATA</code></td><td>Isoleucine</td><td>Ile</td><td>I</td></tr>
+      <tr><td><code>ATC</code></td><td>Isoleucine</td><td>Ile</td><td>I</td></tr>
+      <tr><td><code>ATG</code></td><td>Methionine</td><td>Met</td><td>M</td></tr>
+      <tr><td><code>ATT</code></td><td>Isoleucine</td><td>Ile</td><td>I</td></tr>
+      <tr><td><code>CAA</code></td><td>Glutamine</td><td>Gln</td><td>Q</td></tr>
+      <tr><td><code>CAC</code></td><td>Histidine</td><td>His</td><td>H</td></tr>
+      <tr><td><code>CAG</code></td><td>Glutamine</td><td>Gln</td><td>Q</td></tr>
+      <tr><td><code>CAT</code></td><td>Histidine</td><td>His</td><td>H</td></tr>
+      <tr><td><code>CCA</code></td><td>Proline</td><td>Pro</td><td>P</td></tr>
+      <tr><td><code>CCC</code></td><td>Proline</td><td>Pro</td><td>P</td></tr>
+      <tr><td><code>CCG</code></td><td>Proline</td><td>Pro</td><td>P</td></tr>
+      <tr><td><code>CCT</code></td><td>Proline</td><td>Pro</td><td>P</td></tr>
+      <tr><td><code>CGA</code></td><td>Arginine</td><td>Arg</td><td>R</td></tr>
+      <tr><td><code>CGC</code></td><td>Arginine</td><td>Arg</td><td>R</td></tr>
+      <tr><td><code>CGG</code></td><td>Arginine</td><td>Arg</td><td>R</td></tr>
+      <tr><td><code>CGT</code></td><td>Arginine</td><td>Arg</td><td>R</td></tr>
+      <tr><td><code>CTA</code></td><td>Leucine</td><td>Leu</td><td>L</td></tr>
+      <tr><td><code>CTC</code></td><td>Leucine</td><td>Leu</td><td>L</td></tr>
+      <tr><td><code>CTG</code></td><td>Leucine</td><td>Leu</td><td>L</td></tr>
+      <tr><td><code>CTT</code></td><td>Leucine</td><td>Leu</td><td>L</td></tr>
+      <tr><td><code>GAA</code></td><td>Glutamic acid</td><td>Glu</td><td>E</td></tr>
+      <tr><td><code>GAC</code></td><td>Aspartic acid</td><td>Asp</td><td>D</td></tr>
+      <tr><td><code>GAG</code></td><td>Glutamic acid</td><td>Glu</td><td>E</td></tr>
+      <tr><td><code>GAT</code></td><td>Aspartic acid</td><td>Asp</td><td>D</td></tr>
+      <tr><td><code>GCA</code></td><td>Alanine</td><td>Ala</td><td>A</td></tr>
+      <tr><td><code>GCC</code></td><td>Alanine</td><td>Ala</td><td>A</td></tr>
+      <tr><td><code>GCG</code></td><td>Alanine</td><td>Ala</td><td>A</td></tr>
+      <tr><td><code>GCT</code></td><td>Alanine</td><td>Ala</td><td>A</td></tr>
+      <tr><td><code>GGA</code></td><td>Glycine</td><td>Gly</td><td>G</td></tr>
+      <tr><td><code>GGC</code></td><td>Glycine</td><td>Gly</td><td>G</td></tr>
+      <tr><td><code>GGG</code></td><td>Glycine</td><td>Gly</td><td>G</td></tr>
+      <tr><td><code>GGT</code></td><td>Glycine</td><td>Gly</td><td>G</td></tr>
+      <tr><td><code>GTA</code></td><td>Valine</td><td>Val</td><td>V</td></tr>
+      <tr><td><code>GTC</code></td><td>Valine</td><td>Val</td><td>V</td></tr>
+      <tr><td><code>GTG</code></td><td>Valine</td><td>Val</td><td>V</td></tr>
+      <tr><td><code>GTT</code></td><td>Valine</td><td>Val</td><td>V</td></tr>
+      <tr><td><code>TAA</code></td><td>Stop</td><td>Stop</td><td>*</td></tr>
+      <tr><td><code>TAC</code></td><td>Tyrosine</td><td>Tyr</td><td>Y</td></tr>
+      <tr><td><code>TAG</code></td><td>Stop</td><td>Stop</td><td>*</td></tr>
+      <tr><td><code>TAT</code></td><td>Tyrosine</td><td>Tyr</td><td>Y</td></tr>
+      <tr><td><code>TCA</code></td><td>Serine</td><td>Ser</td><td>S</td></tr>
+      <tr><td><code>TCC</code></td><td>Serine</td><td>Ser</td><td>S</td></tr>
+      <tr><td><code>TCG</code></td><td>Serine</td><td>Ser</td><td>S</td></tr>
+      <tr><td><code>TCT</code></td><td>Serine</td><td>Ser</td><td>S</td></tr>
+      <tr><td><code>TGA</code></td><td>Stop</td><td>Stop</td><td>*</td></tr>
+      <tr><td><code>TGC</code></td><td>Cysteine</td><td>Cys</td><td>C</td></tr>
+      <tr><td><code>TGG</code></td><td>Tryptophan</td><td>Trp</td><td>W</td></tr>
+      <tr><td><code>TGT</code></td><td>Cysteine</td><td>Cys</td><td>C</td></tr>
+      <tr><td><code>TTA</code></td><td>Leucine</td><td>Leu</td><td>L</td></tr>
+      <tr><td><code>TTC</code></td><td>Phenylalanine</td><td>Phe</td><td>F</td></tr>
+      <tr><td><code>TTG</code></td><td>Leucine</td><td>Leu</td><td>L</td></tr>
+      <tr><td><code>TTT</code></td><td>Phenylalanine</td><td>Phe</td><td>F</td></tr>
+    </tbody>
+  </table>
+  <p>For RNA, replace T with U: <code>AUG</code> instead of <code>ATG</code>, <code>UAA</code>
+     instead of <code>TAA</code>, and so on. The amino acid assignment does not change.</p>
+
+  <h2>Start and stop codons</h2>
+  <table>
+    <thead>
+      <tr><th>Signal</th><th>DNA codon</th><th>RNA codon</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Start</td><td><code>ATG</code></td><td><code>AUG</code></td></tr>
+      <tr><td>Stop</td><td><code>TAA</code></td><td><code>UAA</code></td></tr>
+      <tr><td>Stop</td><td><code>TAG</code></td><td><code>UAG</code></td></tr>
+      <tr><td>Stop</td><td><code>TGA</code></td><td><code>UGA</code></td></tr>
+    </tbody>
+  </table>
+  <p>In the standard code, ATG also encodes methionine, so the first methionine of a protein is
+     usually the start codon. Alternative start codons (GTG, TTG) are used by some bacteria, but
+     they are not treated specially by a standard translation tool.</p>
+
+  <h2>Why there are 64 codons but only 20 amino acids</h2>
+  <p>Four bases in three positions give 4³ = 64 possible codons. Sixty-one encode amino acids and
+     three are stop signals. The code is degenerate: most amino acids are encoded by several
+     codons, which is why leucine and serine each have six. Degeneracy makes the code robust to
+     some point mutations, because a change in the third base often leaves the amino acid
+     unchanged.</p>
+
+  <h2>Codon chart vs codon wheel</h2>
+  <p>A codon wheel arranges the same information as concentric circles: the first base is the
+     inner ring, the second base the middle ring and the third base the outer ring. It is popular
+     in teaching because it is compact. A table is easier to search and to read on a screen; both
+     contain the same 64 codons.</p>
+
+  <h2>Is the genetic code universal?</h2>
+  <p>The standard code is used by the vast majority of organisms, but there are exceptions.
+     Vertebrate mitochondria, for example, read <code>TGA</code> as tryptophan rather than stop,
+     and some ciliates reassign stop codons. This chart shows the standard code; check the
+     organism-specific code if you are working with mitochondrial or non-standard genomes.</p>
+
+  <h2>Related tools</h2>
+  <ul>
+    <li><a href="/bio/translate">DNA to protein translation</a> — translate a sequence in all
+        three reading frames.</li>
+    <li><a href="/bio/reverse-complement">Reverse complement calculator</a> — get the opposite
+        strand before translating.</li>
+    <li><a href="/protein-molecular-weight-calculator">Protein molecular weight calculator</a> —
+        calculate the mass of the translated protein.</li>
+    <li><a href="/bio/gc-content">GC content calculator</a> — check the composition of the
+        coding sequence.</li>
+  </ul>
+
+  <h2>Frequently asked questions</h2>
+  <h3>How many codons are there?</h3>
+  <p>There are 64 codons: 61 encode the 20 standard amino acids and 3 are stop codons (TAA, TAG
+     and TGA in DNA; UAA, UAG and UGA in RNA).</p>
+  <h3>Which codon is the start codon?</h3>
+  <p>ATG (AUG in RNA) is the standard start codon and also encodes methionine. Some bacteria use
+     alternative start codons such as GTG or TTG, but the standard chart treats ATG as the start.</p>
+  <h3>What are the stop codons?</h3>
+  <p>TAA, TAG and TGA in DNA; UAA, UAG and UGA in RNA. They terminate translation and are marked
+     with an asterisk in protein output.</p>
+  <h3>Why does the chart show T instead of U?</h3>
+  <p>The chart uses DNA codons because DNA sequences are the usual input. For RNA, replace every T
+     with U; the amino acid assignment is unchanged.</p>
+  <h3>Is the genetic code the same in mitochondria?</h3>
+  <p>No. Mitochondrial codes differ in a few codons — most notably TGA, which encodes tryptophan
+     in vertebrate mitochondria instead of acting as a stop. This chart shows the standard code.</p>
+  <h3>Can I print this codon chart?</h3>
+  <p>Yes. Use your browser's print function (Ctrl+P or Cmd+P). The table is plain HTML and prints
+     without scripts or images.</p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"How many codons are there?","acceptedAnswer":{"@type":"Answer","text":"There are 64 codons: 61 encode the 20 standard amino acids and 3 are stop codons (TAA, TAG and TGA in DNA; UAA, UAG and UGA in RNA)."}},
+{"@type":"Question","name":"Which codon is the start codon?","acceptedAnswer":{"@type":"Answer","text":"ATG (AUG in RNA) is the standard start codon and also encodes methionine. Some bacteria use alternative start codons such as GTG or TTG, but the standard chart treats ATG as the start."}},
+{"@type":"Question","name":"What are the stop codons?","acceptedAnswer":{"@type":"Answer","text":"TAA, TAG and TGA in DNA; UAA, UAG and UGA in RNA. They terminate translation and are marked with an asterisk in protein output."}},
+{"@type":"Question","name":"Why does the chart show T instead of U?","acceptedAnswer":{"@type":"Answer","text":"The chart uses DNA codons because DNA sequences are the usual input. For RNA, replace every T with U; the amino acid assignment is unchanged."}},
+{"@type":"Question","name":"Is the genetic code the same in mitochondria?","acceptedAnswer":{"@type":"Answer","text":"No. Mitochondrial codes differ in a few codons, most notably TGA, which encodes tryptophan in vertebrate mitochondria instead of acting as a stop. This chart shows the standard code."}},
+{"@type":"Question","name":"Can I print this codon chart?","acceptedAnswer":{"@type":"Answer","text":"Yes. Use your browser's print function (Ctrl+P or Cmd+P). The table is plain HTML and prints without scripts or images."}}
+]}
+</script>
+{% endblock %}

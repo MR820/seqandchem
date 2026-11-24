@@ -4,7 +4,6 @@ set -euo pipefail
 source /opt/seqchem-monitor/feishu.env
 
 DOMAIN="seqandchem.com"
-DB="/opt/goatcounter/goatcounter-data/db.sqlite3"
 
 DAY=$(TZ=Asia/Shanghai date -d "yesterday" +%F)
 START=$(TZ=Asia/Shanghai date -d "$DAY 00:00:00" -u +"%Y-%m-%d %H:%M:%S")
@@ -16,14 +15,12 @@ end=$(echo | timeout 15 openssl s_client -connect "$DOMAIN:443" -servername "$DO
 cert_days=$(( ( $(date -d "$end" +%s 2>/dev/null || echo 0) - $(date +%s) ) / 86400 ))
 svc_app=$(systemctl is-active chemtools 2>/dev/null || echo inactive)
 svc_web=$(systemctl is-active nginx 2>/dev/null || echo inactive)
-svc_gc=$(systemctl is-active goatcounter 2>/dev/null || echo inactive)
 mem=$(free -m | awk '/^Mem:/{print $7}')
 disk=$(df -h / | awk 'NR==2{print $5}')
+CF_DAY=$(TZ=UTC date -d "$DAY" +%F)
+read -r CF_PV CF_UV < <(/opt/seqchem-monitor/venv/bin/python /opt/seqchem-monitor/cf_daily.py "$CF_DAY" 2>/dev/null || echo "0 0")
+CF_PV=${CF_PV:-0}; CF_UV=${CF_UV:-0}
 
-pv=$(sqlite3 "$DB" "select coalesce(sum(total),0) from hit_counts where hour >= '$START' and hour <= '$END';" 2>/dev/null || echo 0)
-uv=$(sqlite3 "$DB" "select count(distinct session) from hits where created_at >= '$START' and created_at <= '$END';" 2>/dev/null || echo 0)
-top=$(sqlite3 "$DB" "select p.path || ' (' || sum(hc.total) || ')' from hit_counts hc join paths p on p.path_id = hc.path_id where hc.hour >= '$START' and hc.hour <= '$END' group by p.path order by sum(hc.total) desc limit 5;" 2>/dev/null | paste -sd'|' - || echo "")
-refs=$(sqlite3 "$DB" "select r.ref || ' (' || sum(rc.total) || ')' from ref_counts rc join refs r on r.ref_id = rc.ref_id where rc.hour >= '$START' and rc.hour <= '$END' and r.ref != '' group by r.ref order by sum(rc.total) desc limit 3;" 2>/dev/null | paste -sd'|' - || echo "")
 
 LOG="/var/log/nginx/seqchem.access.log"
 CRAWL=$(python3 - "$LOG" "$START" "$END" <<'PYEOF'
@@ -142,9 +139,9 @@ REBOOT_REQ=$([ -f /var/run/reboot-required ] && echo "yes" || echo "no")
 KERNEL=$(uname -r)
 
 TMPJSON=$(mktemp)
-python3 - "$TMPJSON" "$DAY" "$code" "$rt" "$cert_days" "$svc_app" "$svc_web" "$svc_gc" "$pv" "$uv" "$top" "$refs" "$mem" "$disk" "$CRAW_G" "$CRAW_B" "$CRAW_P" "$CRAW_E" "$SEC_UPD" "$FAIL_LOGIN" "$F2B_BAN" "$REBOOT_REQ" "$KERNEL" "$COV_T" "$COV_G" "$COV_B" "$COV_MISS" "$COV_LIST" <<'PY'
+python3 - "$TMPJSON" "$DAY" "$code" "$rt" "$cert_days" "$svc_app" "$svc_web" "$mem" "$disk" "$CF_PV" "$CF_UV" "$CRAW_G" "$CRAW_B" "$CRAW_P" "$CRAW_E" "$SEC_UPD" "$FAIL_LOGIN" "$F2B_BAN" "$REBOOT_REQ" "$KERNEL" "$COV_T" "$COV_G" "$COV_B" "$COV_MISS" "$COV_LIST" <<'PY'
 import json, sys
-(out, day, code, rt, cert, app, web, gc, pv, uv, top, refs, mem, disk, cg, cb, cp, ce,
+(out, day, code, rt, cert, app, web, mem, disk, cf_pv, cf_uv, cg, cb, cp, ce,
  sec_upd, fail_login, f2b, reboot_req, kernel, cov_t, cov_g, cov_b, cov_miss, cov_list) = sys.argv[1:29]
 
 def num(x):
@@ -165,8 +162,6 @@ if app != "active":
     problems.append("app not running")
 if web != "active":
     problems.append("nginx not running")
-if gc != "active":
-    problems.append("goatcounter not running")
 if int(cert or 0) < 14:
     problems.append(f"cert expires in {cert} days")
 if num(sec_upd) > 0:
@@ -181,8 +176,8 @@ elements = [
         "content": f"**{day}（北京时间）**　https://seqandchem.com · HTTP {code} · {float(rt):.2f}s"}},
     {"tag": "hr"},
     {"tag": "div", "fields": [
-        short("📄 PV", num(pv)),
-        short("👤 UV", num(uv), "green" if num(uv) > 0 else None),
+        short("📊 Cloudflare PV", num(cf_pv)),
+        short("👤 visits", num(cf_uv), "green" if num(cf_uv) > 0 else None),
         short("🔐 证书剩余", f"{cert} 天", "red" if int(cert or 0) < 14 else None),
         short("💾 磁盘使用", disk),
     ]},
@@ -190,17 +185,9 @@ elements = [
     {"tag": "div", "fields": [
         short("App", app, "green" if app == "active" else "red"),
         short("Nginx", web, "green" if web == "active" else "red"),
-        short("GoatCounter", gc, "green" if gc == "active" else "red"),
         short("内存可用", f"{mem}MB"),
     ]},
 ]
-if top:
-    elements += [{"tag": "hr"},
-                 {"tag": "div", "text": {"tag": "lark_md",
-                  "content": "**热门页面**　" + top.replace("|", "  ·  ")}}]
-if refs:
-    elements.append({"tag": "div", "text": {"tag": "lark_md",
-                     "content": "**访问来源**　" + refs.replace("|", "  ·  ")}})
 crawl_line = f"**爬虫抓取**　Google {cg} 次 · Bing {cb} 次 · 覆盖 {cp} 个页面"
 if int(ce or 0) > 0:
     crawl_line += f" · <font color='red'>{ce} 个 4xx</font>"

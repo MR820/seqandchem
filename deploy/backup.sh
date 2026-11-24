@@ -1,5 +1,5 @@
 #!/bin/bash
-# SeqChem daily backup: GoatCounter + feedback SQLite, configs and app source.
+# SeqChem daily backup: feedback SQLite, configs and app source.
 # Backups stay on this server, newest 7 kept.
 set -euo pipefail
 umask 077
@@ -12,11 +12,6 @@ trap 'rm -rf "$TMP"' EXIT
 mkdir -p "$DEST"
 
 # 1) Consistent SQLite snapshot (WAL-safe)
-sqlite3 /opt/goatcounter/goatcounter-data/db.sqlite3 ".backup '$TMP/goatcounter.sqlite3'"
-if [ "$(sqlite3 "$TMP/goatcounter.sqlite3" 'PRAGMA integrity_check;')" != "ok" ]; then
-    echo "$(date '+%F %T') FAIL goatcounter integrity_check" >&2
-    exit 1
-fi
 if [ -f /opt/chemtools/data/feedback.sqlite3 ]; then
     sqlite3 /opt/chemtools/data/feedback.sqlite3 ".backup '$TMP/feedback.sqlite3'"
     if [ "$(sqlite3 "$TMP/feedback.sqlite3" 'PRAGMA integrity_check;')" != "ok" ]; then
@@ -32,10 +27,8 @@ tar -czf "$TMP/config.tar.gz" --ignore-failed-read \
     --exclude='__pycache__' \
     /etc/nginx/nginx.conf \
     /etc/nginx/sites-available/seqchem \
-    /etc/nginx/sites-available/stats \
     /etc/resolv.conf \
     /etc/systemd/system/chemtools.service \
-    /etc/systemd/system/goatcounter.service \
     /opt/seqchem-monitor \
     /opt/chemtools/app.py \
     /opt/chemtools/bio.py \
@@ -45,7 +38,6 @@ tar -czf "$TMP/config.tar.gz" --ignore-failed-read \
     /opt/chemtools/templates \
     /opt/chemtools/static \
     /etc/letsencrypt/renewal/seqandchem.com.conf \
-    /etc/letsencrypt/renewal/stats.seqandchem.com.conf \
     /etc/letsencrypt/renewal/api.seqandchem.com.conf \
     /etc/logrotate.d/seqchem-monitor \
     -C "$TMP" root-crontab.txt \

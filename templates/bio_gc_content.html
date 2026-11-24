@@ -2,24 +2,102 @@
 {% block prose %}
 <div class="prose">
   <h2>What is GC content?</h2>
-  <p>GC content is the percentage of guanine and cytosine bases in a sequence. Because G–C pairs
-     share three hydrogen bonds while A–T pairs share two, GC-rich DNA is more thermally stable.
-     GC content is used to estimate melting temperature, predict PCR success and characterise
-     genomes — bacterial genomes typically sit between 20% and 80% GC.</p>
+  <p>GC content is the percentage of guanine and cytosine bases in a DNA or RNA sequence. Because
+     G–C pairs share three hydrogen bonds while A–T pairs share two, GC-rich DNA is more thermally
+     stable. GC content is used to estimate melting temperature, predict PCR success, compare
+     genomes and check sequencing data for bias.</p>
+
+  <h2>GC content formula</h2>
+  <p>The calculator uses the straightforward definition:</p>
+  <p><code>GC% = (G + C) / (A + T + G + C + other bases) × 100</code></p>
+  <p>Every base in the record counts toward the denominator, including ambiguous codes such as N.
+     That means a sequence with many N bases will have a lower reported GC percentage than the
+     same sequence with the Ns removed. If you need the GC percentage of the known bases only,
+     remove the ambiguous positions first.</p>
+  <p>Example: the 39-base sequence
+     <code>ATGGCCATTGTAATGGGCCGCTGAAAGGGTGCCCGATAG</code> contains 22 G/C bases, so its GC
+     content is 22 ÷ 39 × 100 = <strong>56.4%</strong>.</p>
+
+  <h2>How to interpret GC content</h2>
+  <table>
+    <thead>
+      <tr><th>GC content</th><th>Typical description</th><th>Context</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>&lt; 40%</td><td>AT-rich</td><td>Common in some genomes and regulatory regions; lower melting temperature</td></tr>
+      <tr><td>40–60%</td><td>Moderate</td><td>Typical range for many coding sequences and PCR primers</td></tr>
+      <tr><td>&gt; 60%</td><td>GC-rich</td><td>Higher melting temperature; can form secondary structures that interfere with PCR</td></tr>
+    </tbody>
+  </table>
+  <p>These ranges are rough. A whole genome, a gene, a promoter and a primer each have their own
+     expected GC content; compare a sequence with others from the same context rather than with a
+     universal target.</p>
+
+  <h2>GC content for PCR primers</h2>
+  <p>For a typical PCR primer, a GC content of 40–60% is a common starting point. Primers that are
+     too AT-rich tend to have low melting temperatures and weak binding; primers that are too
+     GC-rich can form stable secondary structures or misprime. Also check the 3′ end: a run of
+     G/C bases at the 3′ end can increase non-specific extension. The
+     <a href="/bio/reverse-complement">reverse complement tool</a> is useful for checking the
+     reverse primer once the forward sequence is chosen, and the
+     <a href="/primer-tm-calculator">primer Tm calculator</a> estimates melting temperature from
+     the sequence.</p>
 
   <h2>Other metrics reported</h2>
   <ul>
     <li><strong>Length</strong> — number of bases in the record.</li>
+    <li><strong>AT content</strong> — the complementary percentage (A + T + U).</li>
     <li><strong>N count</strong> — ambiguous bases, usually assembly gaps.</li>
-    <li><strong>GC skew</strong> — (G−C)/(G+C), used to locate origins of replication.</li>
-    <li><strong>AT skew</strong> — (A−T)/(A+T), same idea for the other pair.</li>
+    <li><strong>GC skew</strong> — (G − C) / (G + C), used to locate origins of replication and
+        strand asymmetries.</li>
+    <li><strong>AT skew</strong> — (A − T) / (A + T), the same idea for the other pair.</li>
+  </ul>
+  <p>GC skew is a ratio, not a percentage: a value near 0 means G and C are balanced, a positive
+     value means G is more frequent, and a negative value means C is more frequent.</p>
+
+  <h2>Common uses</h2>
+  <ul>
+    <li>Characterising a genome or a genomic region.</li>
+    <li>Designing and checking PCR primers.</li>
+    <li>Detecting GC bias in sequencing data.</li>
+    <li>Comparing codon usage or nucleotide composition between organisms.</li>
+    <li>Estimating the melting behaviour of a duplex before running an experiment.</li>
   </ul>
 
   <h2>Frequently asked questions</h2>
   <h3>Does it handle RNA?</h3>
-  <p>Yes — U is counted the same way as T for the AT statistic.</p>
+  <p>Yes. U is counted the same way as T for the AT statistic, so an RNA sequence is processed
+     without conversion. The GC calculation itself is unchanged.</p>
   <h3>Can I analyse a whole genome?</h3>
-  <p>Yes, as long as the pasted text stays under the input limit. For multi-FASTA files each
-     record is reported separately.</p>
+  <p>Yes, as long as the pasted text stays under the input limit. For multi-FASTA files, each
+     record is reported separately, which is useful for comparing contigs or chromosomes.</p>
+  <h3>What is a good GC content?</h3>
+  <p>There is no universal answer. For PCR primers, 40–60% is a common range; for a whole genome,
+     the expected value depends on the organism. Compare your sequence with the appropriate
+     reference set rather than applying one cutoff everywhere.</p>
+  <h3>Why is GC-rich DNA more stable?</h3>
+  <p>G–C pairs form three hydrogen bonds, while A–T pairs form two. More hydrogen bonds mean more
+     energy is needed to separate the strands, so GC-rich duplexes generally have higher melting
+     temperatures.</p>
+  <h3>What is GC skew?</h3>
+  <p>GC skew is (G − C) / (G + C). It highlights strand asymmetry: a positive value means G is
+     more frequent than C on the analysed strand, a negative value means C is more frequent. In
+     bacterial genomes, skew changes are often used to locate the origin and terminus of
+     replication.</p>
+  <h3>Are ambiguous bases included?</h3>
+  <p>Yes. N and other ambiguous codes count toward the sequence length in the denominator, so they
+     lower the reported GC percentage. Remove them first if you want GC content over known bases
+     only.</p>
 </div>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Does the GC content calculator handle RNA?","acceptedAnswer":{"@type":"Answer","text":"Yes. U is counted the same way as T for the AT statistic, so an RNA sequence is processed without conversion. The GC calculation itself is unchanged."}},
+{"@type":"Question","name":"Can I analyse a whole genome?","acceptedAnswer":{"@type":"Answer","text":"Yes, as long as the pasted text stays under the input limit. For multi-FASTA files, each record is reported separately, which is useful for comparing contigs or chromosomes."}},
+{"@type":"Question","name":"What is a good GC content?","acceptedAnswer":{"@type":"Answer","text":"There is no universal answer. For PCR primers, 40 to 60 percent is a common range; for a whole genome, the expected value depends on the organism. Compare your sequence with the appropriate reference set rather than applying one cutoff everywhere."}},
+{"@type":"Question","name":"Why is GC-rich DNA more stable?","acceptedAnswer":{"@type":"Answer","text":"G-C pairs form three hydrogen bonds, while A-T pairs form two. More hydrogen bonds mean more energy is needed to separate the strands, so GC-rich duplexes generally have higher melting temperatures."}},
+{"@type":"Question","name":"What is GC skew?","acceptedAnswer":{"@type":"Answer","text":"GC skew is (G minus C) divided by (G plus C). It highlights strand asymmetry: a positive value means G is more frequent than C on the analysed strand, a negative value means C is more frequent."}},
+{"@type":"Question","name":"Are ambiguous bases included?","acceptedAnswer":{"@type":"Answer","text":"Yes. N and other ambiguous codes count toward the sequence length in the denominator, so they lower the reported GC percentage. Remove them first if you want GC content over known bases only."}}
+]}
+</script>
 {% endblock %}

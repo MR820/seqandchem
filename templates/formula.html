@@ -1,8 +1,9 @@
 {% extends "base.html" %}
 {% block content %}
-<h1 class="page-title">Molecular Formula &amp; Weight Calculator</h1>
-<p class="lead">Calculate the molecular weight and elemental composition from a chemical formula,
-   or get the formula and weight from a SMILES string.</p>
+<h1 class="page-title">Molecular Weight Calculator</h1>
+<p class="lead">Calculate average molecular weight and elemental composition from a chemical
+   formula or a SMILES string. Includes worked examples, common molecular weights and the
+   difference between average and monoisotopic mass.</p>
 
 <div class="card">
   <div class="row" style="margin-top:0">
@@ -41,26 +42,110 @@
 <div class="card" id="f-result" style="display:none"></div>
 
 <div class="prose">
+  <h2>What this molecular weight calculator does</h2>
+  <p>Enter a formula such as <code>C6H12O6</code> or a structure in SMILES, MOL, SDF, PDB or
+     InChI format. The calculator returns the <strong>average molecular weight</strong> in g/mol,
+     the <strong>Hill-notation formula</strong>, the total atom count and the
+     <strong>elemental composition</strong> as a mass percentage for each element.</p>
+  <p>For logP, TPSA, hydrogen-bond donors and acceptors, and rotatable bonds, use the
+     <a href="/properties">molecular property calculator</a>. For 3D coordinates, use
+     <a href="/3d">SMILES to 3D</a>. To convert between chemical file formats, use the
+     <a href="/convert">chemical format converter</a>.</p>
+
   <h2>How molecular weight is calculated</h2>
-  <p>The calculator sums the IUPAC standard atomic weights of every atom in the formula.
-     This is the <strong>average molecular weight</strong> — the value used for concentration
-     calculations (e.g. "dissolve 1 mmol in 1 mL"). The monoisotopic mass used in mass
-     spectrometry is slightly different because it uses the most abundant isotope of each element.</p>
+  <p>The calculator sums the IUPAC standard atomic weights of every atom in the formula. This is
+     the <strong>average molecular weight</strong> — the value used for concentration
+     calculations (for example, "dissolve 1 mmol in 1 mL"). For glucose:</p>
+  <pre><code>C6H12O6 = 6 × 12.011 + 12 × 1.008 + 6 × 15.999
+        = 72.066 + 12.096 + 95.994
+        = 180.156 g/mol</code></pre>
+  <p>When you enter a structure, the formula is first perceived by OpenBabel and then summed.
+     Explicit hydrogens, salts and disconnected fragments are included in the total.</p>
+
+  <h2>Common molecular weights</h2>
+  <table>
+    <thead>
+      <tr><th>Compound</th><th>Formula</th><th>Average MW (g/mol)</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Water</td><td>H2O</td><td>18.015</td></tr>
+      <tr><td>Methane</td><td>CH4</td><td>16.043</td></tr>
+      <tr><td>Ethanol</td><td>C2H6O</td><td>46.069</td></tr>
+      <tr><td>Sodium chloride</td><td>NaCl</td><td>58.44</td></tr>
+      <tr><td>Benzene</td><td>C6H6</td><td>78.114</td></tr>
+      <tr><td>Ammonium sulfate</td><td>(NH4)2SO4</td><td>132.134</td></tr>
+      <tr><td>Glucose</td><td>C6H12O6</td><td>180.156</td></tr>
+      <tr><td>Aspirin</td><td>C9H8O4</td><td>180.159</td></tr>
+      <tr><td>Caffeine</td><td>C8H10N4O2</td><td>194.194</td></tr>
+    </tbody>
+  </table>
+  <p>These values use IUPAC average atomic weights and may differ slightly from values calculated
+     with older tables or with isotopic masses.</p>
+
+  <h2>Average molecular weight vs monoisotopic mass</h2>
+  <p>Average molecular weight uses the natural abundance of each isotope. It is the number you
+     want when weighing a sample, preparing a solution or reporting a yield. Monoisotopic mass
+     uses the most abundant isotope of each element — for example, <sup>12</sup>C is taken as
+     12.000000 rather than 12.011. It is the value used for high-resolution mass spectrometry and
+     for matching a measured m/z to a formula.</p>
+  <p>For small molecules the two values are close: glucose is 180.156 g/mol on average and
+     180.0634 Da monoisotopic. The gap grows with molecule size and with the number of heavy
+     atoms. If you are checking an MS result, do not compare it with the average molecular weight.
+     For a longer explanation and worked examples, see the
+     <a href="/guides/molecular-weight-average-vs-monoisotopic">average vs monoisotopic mass
+     guide</a>.</p>
 
   <h2>Formula syntax</h2>
   <ul>
     <li><code>C6H12O6</code> — glucose</li>
-    <li><code>(NH4)2SO4</code> — ammonium sulfate, brackets multiplied out</li>
+    <li><code>(NH4)2SO4</code> — ammonium sulfate; brackets are multiplied out</li>
     <li><code>Ca(OH)2</code> — calcium hydroxide</li>
-    <li>Element symbols are case sensitive: <code>Co</code> is cobalt, <code>CO</code> is carbon monoxide</li>
+    <li><code>CuSO4(H2O)5</code> — copper(II) sulfate pentahydrate; write hydrates with brackets</li>
+    <li>Element symbols are case sensitive: <code>Co</code> is cobalt, <code>CO</code> is carbon
+        monoxide</li>
   </ul>
+  <p>Charges and radicals are not part of the formula syntax. A charged species has the same
+     molecular weight as its neutral form unless the number of atoms changes.</p>
 
   <h2>Frequently asked questions</h2>
+  <h3>How do you calculate molecular weight from a formula?</h3>
+  <p>Multiply the atomic weight of each element by the number of atoms of that element in the
+     formula, then add the results. For glucose, six carbon atoms contribute 72.066, twelve
+     hydrogens contribute 12.096 and six oxygens contribute 95.994, for a total of
+     180.156 g/mol.</p>
+  <h3>Can I calculate molecular weight from a SMILES string?</h3>
+  <p>Yes. Switch to “From structure”, paste the SMILES and run the calculation. The structure is
+     converted to a formula first, so salts, explicit hydrogens and disconnected fragments are
+     included in the total.</p>
   <h3>Why does the formula change after conversion?</h3>
   <p>OpenBabel outputs the formula in <strong>Hill notation</strong>: carbon first, hydrogen
      second, then all other elements alphabetically. <code>H8N2O4S</code> and
      <code>(NH4)2SO4</code> describe the same compound.</p>
   <h3>Does it account for charge or isotopes?</h3>
-  <p>No — the calculation treats every atom as its neutral, naturally abundant isotope.</p>
+  <p>No — the calculation treats every atom as its neutral, naturally abundant isotope. Use a
+     dedicated monoisotopic mass calculator for isotope-labelled compounds or high-resolution mass
+     spectrometry.</p>
+  <h3>What is the difference between molecular weight and molar mass?</h3>
+  <p>For practical purposes they are the same number. Molecular weight is dimensionless and is
+     often reported in daltons (Da); molar mass is the mass of one mole and is reported in g/mol.
+     This calculator reports g/mol.</p>
+  <h3>Why is the molecular weight of a protein different?</h3>
+  <p>Proteins are polymers of amino acids, so their mass is the sum of residue masses plus water.
+     A formula string is not a practical way to enter a protein; use the
+     <a href="/protein-molecular-weight-calculator">protein molecular weight calculator</a>
+     with the amino-acid sequence instead.</p>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"How do you calculate molecular weight from a formula?","acceptedAnswer":{"@type":"Answer","text":"Multiply the atomic weight of each element by the number of atoms of that element in the formula, then add the results. For glucose, six carbon atoms contribute 72.066, twelve hydrogens contribute 12.096 and six oxygens contribute 95.994, for a total of 180.156 g/mol."}},
+{"@type":"Question","name":"Can I calculate molecular weight from a SMILES string?","acceptedAnswer":{"@type":"Answer","text":"Yes. Switch to From structure, paste the SMILES and run the calculation. The structure is converted to a formula first, so salts, explicit hydrogens and disconnected fragments are included in the total."}},
+{"@type":"Question","name":"Why does the formula change after conversion?","acceptedAnswer":{"@type":"Answer","text":"OpenBabel outputs the formula in Hill notation: carbon first, hydrogen second, then all other elements alphabetically. H8N2O4S and (NH4)2SO4 describe the same compound."}},
+{"@type":"Question","name":"Does it account for charge or isotopes?","acceptedAnswer":{"@type":"Answer","text":"No. The calculation treats every atom as its neutral, naturally abundant isotope. Use a dedicated monoisotopic mass calculator for isotope-labelled compounds or high-resolution mass spectrometry."}},
+{"@type":"Question","name":"What is the difference between molecular weight and molar mass?","acceptedAnswer":{"@type":"Answer","text":"For practical purposes they are the same number. Molecular weight is dimensionless and is often reported in daltons; molar mass is the mass of one mole and is reported in g/mol. This calculator reports g/mol."}},
+{"@type":"Question","name":"Why is the molecular weight of a protein different?","acceptedAnswer":{"@type":"Answer","text":"Proteins are polymers of amino acids, so their mass is the sum of residue masses plus water. A formula string is not a practical way to enter a protein; a sequence-based protein molecular weight calculator is the right tool for that case."}}
+]}
+</script>
 {% endblock %}

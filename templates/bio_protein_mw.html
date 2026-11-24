@@ -1,0 +1,110 @@
+{% extends "bio_tool.html" %}
+{% block prose %}
+<div class="prose">
+  <h2>What this protein molecular weight calculator does</h2>
+  <p>Paste a protein or peptide sequence in one-letter code or FASTA format. The calculator
+     returns the <strong>average molecular weight</strong> and the <strong>monoisotopic mass</strong>
+     in daltons (Da) and kilodaltons (kDa), based on the standard residue masses of the 20
+     proteinogenic amino acids plus selenocysteine (U) and pyrrolysine (O).</p>
+  <p>Multiple records are supported: each FASTA entry is calculated independently and its header is
+     preserved. The same calculation applies to a short peptide and a full protein; the only
+     difference is the sequence length.</p>
+
+  <h2>How the molecular weight is calculated</h2>
+  <p>Each amino acid contributes its <strong>residue mass</strong> — the mass of the free amino
+     acid minus one water molecule, because a water molecule is lost when the peptide bond forms.
+     The chain has one free N-terminus and one free C-terminus, so one water molecule is added back
+     at the end:</p>
+  <p><code>MW = Σ(residue masses) + H₂O</code></p>
+  <p>For example, the peptide angiotensin II has the sequence <code>DRVYIHPF</code>. Summing the
+     residue masses of Asp, Arg, Val, Tyr, Ile, His, Pro and Phe and adding 18.015 Da gives
+     <strong>1046.19 Da</strong> average mass and <strong>1045.54 Da</strong> monoisotopic mass.</p>
+
+  <h2>Average vs monoisotopic mass</h2>
+  <table>
+    <thead>
+      <tr><th>Value</th><th>What it uses</th><th>Typical use</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Average molecular weight</td><td>Natural isotopic abundance of each element</td><td>SDS-PAGE, protein concentration, general chemistry</td></tr>
+      <tr><td>Monoisotopic mass</td><td>The most abundant isotope of each element</td><td>High-resolution mass spectrometry, peptide mass fingerprinting</td></tr>
+    </tbody>
+  </table>
+  <p>The two values differ by a few tenths of a dalton for a short peptide and by tens of daltons
+     for a large protein. Use the monoisotopic mass when comparing with an MS result; use the
+     average mass for gel mobility and general lab calculations. For more detail, see the
+     <a href="/guides/molecular-weight-average-vs-monoisotopic">average vs monoisotopic mass
+     guide</a>.</p>
+
+  <h2>What is not included</h2>
+  <ul>
+    <li><strong>Post-translational modifications</strong> — phosphorylation, glycosylation,
+        acetylation, methylation and lipidation change the mass; add their mass differences
+        separately.</li>
+    <li><strong>Disulfide bonds</strong> — each disulfide bond loses two hydrogen atoms (about
+        2.016 Da). This calculator reports the reduced, unmodified chain.</li>
+    <li><strong>Signal peptides and propeptides</strong> — the sequence you paste is the sequence
+        calculated; remove the signal peptide first if you want the mature protein.</li>
+    <li><strong>Tags and fusion partners</strong> — a His-tag, GST or Fc tag adds mass; include it
+        in the sequence if it is part of the construct.</li>
+    <li><strong>Non-standard residues</strong> — X, B, Z and J are not resolved. They are counted
+        and reported as unknown; the mass excludes them.</li>
+  </ul>
+
+  <h2>Reading the result</h2>
+  <p>The output shows the sequence length, number of resolved residues, average mass, monoisotopic
+     mass and any unknown codes. If the result says “unknown residues ignored”, fix the sequence or
+     interpret the mass as a lower bound for the resolved portion.</p>
+  <p>For a protein with a known sequence, a quick sanity check is to compare the result with the
+     mass you expect from the expression system or the vendor. A difference of a few hundred daltons
+     usually means a tag, a signal peptide or a modification is missing from the input.</p>
+
+  <h2>Common uses</h2>
+  <ul>
+    <li>Checking a peptide before ordering it from a synthesis service.</li>
+    <li>Estimating the expected band position on an SDS-PAGE gel.</li>
+    <li>Preparing for peptide mass fingerprinting or intact-protein MS.</li>
+    <li>Comparing a construct with and without a tag or fusion partner.</li>
+    <li>Converting a protein sequence into a molar concentration calculation.</li>
+  </ul>
+  <p>To translate a DNA sequence into a protein first, use the
+     <a href="/bio/translate">DNA to protein translator</a> and the
+     <a href="/codon-chart">codon chart</a>. For small-molecule molecular weight, use the
+     <a href="/formula">molecular weight calculator</a>. For DNA or RNA mass, use the
+     <a href="/dna-molecular-weight-calculator">DNA molecular weight calculator</a>.</p>
+
+  <h2>Frequently asked questions</h2>
+  <h3>What is the difference between average and monoisotopic mass?</h3>
+  <p>Average mass uses the natural abundance of each element; monoisotopic mass uses the most
+     abundant isotope. They are close for small peptides and diverge as the protein gets larger.
+     Use monoisotopic mass for high-resolution MS and average mass for general lab work.</p>
+  <h3>Does it handle FASTA files?</h3>
+  <p>Yes. Paste one or more FASTA records; each record is calculated separately and the header is
+     preserved. A bare sequence without a header is also accepted.</p>
+  <h3>Does it account for disulfide bonds or modifications?</h3>
+  <p>No. The result is the reduced, unmodified chain. Each disulfide bond removes about 2.016 Da;
+     phosphorylation adds about 79.97 Da, acetylation about 42.01 Da, and glycosylation depends on
+     the glycan. Apply those corrections separately.</p>
+  <h3>Why is my mass different from the vendor's value?</h3>
+  <p>Check for a tag, signal peptide, N- or C-terminal modification, non-standard residue or a
+     different isoform. Also confirm whether the vendor reports average or monoisotopic mass.</p>
+  <h3>Can I calculate a peptide mass?</h3>
+  <p>Yes — a peptide is just a short protein. Paste the one-letter sequence and the same residue
+     calculation applies. For a modified peptide, add the modification mass manually.</p>
+  <h3>What do X, B, Z and J mean in my sequence?</h3>
+  <p>They are ambiguity codes: X is any residue, B is Asx, Z is Glx and J is Leu/Ile. The calculator
+     cannot assign a unique mass to them, so it counts them as unknown and excludes them from the
+     reported mass.</p>
+</div>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"What is the difference between average and monoisotopic mass?","acceptedAnswer":{"@type":"Answer","text":"Average mass uses the natural abundance of each element; monoisotopic mass uses the most abundant isotope. They are close for small peptides and diverge as the protein gets larger. Use monoisotopic mass for high-resolution MS and average mass for general lab work."}},
+{"@type":"Question","name":"Does the protein molecular weight calculator handle FASTA files?","acceptedAnswer":{"@type":"Answer","text":"Yes. Paste one or more FASTA records; each record is calculated separately and the header is preserved. A bare sequence without a header is also accepted."}},
+{"@type":"Question","name":"Does it account for disulfide bonds or modifications?","acceptedAnswer":{"@type":"Answer","text":"No. The result is the reduced, unmodified chain. Each disulfide bond removes about 2.016 Da; phosphorylation adds about 79.97 Da, acetylation about 42.01 Da, and glycosylation depends on the glycan. Apply those corrections separately."}},
+{"@type":"Question","name":"Why is my mass different from the vendor's value?","acceptedAnswer":{"@type":"Answer","text":"Check for a tag, signal peptide, N- or C-terminal modification, non-standard residue or a different isoform. Also confirm whether the vendor reports average or monoisotopic mass."}},
+{"@type":"Question","name":"Can I calculate a peptide mass?","acceptedAnswer":{"@type":"Answer","text":"Yes, a peptide is just a short protein. Paste the one-letter sequence and the same residue calculation applies. For a modified peptide, add the modification mass manually."}},
+{"@type":"Question","name":"What do X, B, Z and J mean in my sequence?","acceptedAnswer":{"@type":"Answer","text":"They are ambiguity codes: X is any residue, B is Asx, Z is Glx and J is Leu/Ile. The calculator cannot assign a unique mass to them, so it counts them as unknown and excludes them from the reported mass."}}
+]}
+</script>
+{% endblock %}

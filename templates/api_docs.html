@@ -285,9 +285,13 @@ console.log(data.rows[0].props.MW);   // 180.159</code></pre>
   <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
   <tbody>
     <tr><td><code>op</code></td><td>string</td><td><strong>Required.</strong> <code>fasta2fastq</code>,
-        <code>fastq2fasta</code>, <code>revcomp</code>, <code>translate</code>, <code>stats</code></td></tr>
+        <code>fastq2fasta</code>, <code>revcomp</code>, <code>translate</code>,
+        <code>stats</code>, <code>protein_mw</code>, <code>dna_mw</code>,
+        <code>primer_tm</code></td></tr>
     <tr><td><code>data</code></td><td>string</td><td><strong>Required.</strong> FASTA, FASTQ or a bare sequence</td></tr>
     <tr><td><code>frame</code></td><td>integer</td><td>Reading frame for <code>translate</code>, 0–2</td></tr>
+    <tr><td><code>na_mm</code></td><td>number</td><td>Optional sodium concentration for
+        <code>primer_tm</code>, in mM (default 50)</td></tr>
   </tbody>
 </table>
 <pre><code>{"ok": true, "result": "ATGGCC...", "count": 3}</code></pre>

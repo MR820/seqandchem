@@ -35,34 +35,117 @@
   <h2>What is Lipinski's rule of five?</h2>
   <p>Christopher Lipinski observed in 1997 that most orally administered drugs satisfy four
      simple physicochemical limits. A compound that violates more than one of them is statistically
-     less likely to reach the market. The "five" comes from the fact that every threshold is a
+     less likely to reach the market. The “five” comes from the fact that every threshold is a
      multiple of five.</p>
 
   <table>
-    <tr><th>Rule</th><th>Limit</th><th>Why it matters</th></tr>
-    <tr><td>Molecular weight</td><td>≤ 500 Da</td><td>Large molecules permeate membranes poorly</td></tr>
-    <tr><td>logP (lipophilicity)</td><td>≤ 5</td><td>Too lipophilic means poor aqueous solubility</td></tr>
-    <tr><td>Hydrogen bond donors</td><td>≤ 5</td><td>Each donor costs energy to desolvate</td></tr>
-    <tr><td>Hydrogen bond acceptors</td><td>≤ 10</td><td>Same, for acceptors</td></tr>
+    <thead>
+      <tr><th>Rule</th><th>Limit</th><th>Why it matters</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Molecular weight</td><td>≤ 500 Da</td><td>Large molecules permeate membranes poorly</td></tr>
+      <tr><td>logP (lipophilicity)</td><td>≤ 5</td><td>Too lipophilic means poor aqueous solubility</td></tr>
+      <tr><td>Hydrogen bond donors</td><td>≤ 5</td><td>Each donor costs energy to desolvate</td></tr>
+      <tr><td>Hydrogen bond acceptors</td><td>≤ 10</td><td>Same, for acceptors</td></tr>
+    </tbody>
   </table>
+  <p>The usual interpretation is “no more than one violation”. Two or more violations is where
+     the probability of poor oral absorption rises sharply.</p>
+
+  <h2>How this calculator works</h2>
+  <p>Paste a SMILES, MOL, SDF, PDB or InChI structure. OpenBabel computes molecular weight, logP,
+     hydrogen-bond donors, hydrogen-bond acceptors, TPSA and rotatable bonds directly from the
+     structure. The page then compares each value with the Lipinski and Veber thresholds and shows
+     which rules pass and which fail. No external database or lookup table is involved, so the
+     result is reproducible from the structure alone.</p>
+  <p>Multiple molecules are accepted — one per line. For a full descriptor table rather than a
+     pass/fail summary, use the <a href="/properties">molecular property calculator</a>. For a
+     library, use the <a href="/batch">batch converter</a> or the
+     <a href="/api/v1/properties">properties API</a>.</p>
+
+  <h2>Worked example: aspirin</h2>
+  <p>SMILES: <code>CC(=O)Oc1ccccc1C(=O)O</code></p>
+  <table>
+    <thead>
+      <tr><th>Property</th><th>Value</th><th>Limit</th><th>Pass?</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Molecular weight</td><td>180.16</td><td>≤ 500</td><td>✅</td></tr>
+      <tr><td>logP</td><td>1.31</td><td>≤ 5</td><td>✅</td></tr>
+      <tr><td>Hydrogen bond donors</td><td>1</td><td>≤ 5</td><td>✅</td></tr>
+      <tr><td>Hydrogen bond acceptors</td><td>4</td><td>≤ 10</td><td>✅</td></tr>
+      <tr><td>TPSA</td><td>63.6 Å²</td><td>≤ 140</td><td>✅</td></tr>
+      <tr><td>Rotatable bonds</td><td>3</td><td>≤ 10</td><td>✅</td></tr>
+    </tbody>
+  </table>
+  <p>Aspirin passes all six checks. Run the same input through the calculator above and you get
+     the same table in one request. The values are calculated by OpenBabel and may differ slightly
+     from values in other databases that use a different logP implementation.</p>
 
   <h2>Veber rules</h2>
   <p>Veber et al. (2002) added two more predictors of oral bioavailability, which this calculator
      also reports:</p>
   <ul>
-    <li><strong>TPSA ≤ 140 Å²</strong> — polar surface area above this usually means poor absorption</li>
-    <li><strong>Rotatable bonds ≤ 10</strong> — more flexibility means more conformational entropy cost</li>
+    <li><strong>TPSA ≤ 140 Å²</strong> — polar surface area above this usually means poor
+        absorption.</li>
+    <li><strong>Rotatable bonds ≤ 10</strong> — more flexibility means a higher conformational
+        entropy cost on binding.</li>
+  </ul>
+  <p>A molecule can pass Lipinski and fail Veber — a long flexible chain with one polar group, for
+     example. Reporting both gives a more honest picture.</p>
+
+  <h2>Common mistakes and limitations</h2>
+  <ul>
+    <li><strong>The rule is a filter, not a verdict.</strong> Passing it does not make a compound a
+        drug; failing it does not make a compound useless.</li>
+    <li><strong>logP is not logD.</strong> The rule uses the neutral-form partition coefficient.
+        At physiological pH, an ionisable acid or base has a different effective lipophilicity.
+        If you are reasoning about absorption, logD is often the more relevant number.</li>
+    <li><strong>HBA counting is easy to get wrong.</strong> Lipinski's acceptor count is the sum of
+        nitrogen and oxygen atoms, not the number of lone pairs or acceptor groups. A nitro group
+        counts as three.</li>
+    <li><strong>Natural products and PROTACs</strong> routinely violate the rule and are still
+        biologically active. The thresholds were derived from synthetic oral drug libraries.</li>
+    <li><strong>Salts and counter-ions</strong> change the molecular weight. Strip them if you want
+        to evaluate the parent compound.</li>
   </ul>
 
   <h2>Frequently asked questions</h2>
-  <h3>Does passing the rules guarantee a drug?</h3>
-  <p>No. The rules are a cheap filter, not a prediction of efficacy or safety. Many approved drugs
-     violate one rule, and many rule-compliant compounds fail in trials.</p>
-  <h3>Are these rules applied to natural products?</h3>
-  <p>Not reliably. Natural products and PROTACs routinely violate the rule of five yet are still
-     biologically active — the rules were derived from synthetic oral drug libraries.</p>
-  <h3>Where do the numbers come from?</h3>
-  <p>All descriptors are calculated by OpenBabel from the structure alone — no external database
-     or lookup table is involved.</p>
+  <h3>Does passing the rule of five guarantee an oral drug?</h3>
+  <p>No. The rule is a cheap triage filter based on historical distributions. Many approved drugs
+     violate one rule, and many rule-compliant compounds fail in clinical trials.</p>
+  <h3>What counts as a violation?</h3>
+  <p>Each property is compared independently. A value beyond the threshold is one violation. The
+     usual guidance is that two or more violations predict poor oral absorption; one violation is
+     common and not automatically disqualifying.</p>
+  <h3>How are hydrogen bond donors and acceptors counted?</h3>
+  <p>Donors are N–H and O–H groups. Acceptors are nitrogen and oxygen atoms. The calculator uses
+     OpenBabel's definitions, which follow the standard Lipinski interpretation.</p>
+  <h3>Can I check a whole library?</h3>
+  <p>Yes. Paste multiple SMILES, one per line, or use the <a href="/batch">batch converter</a>.
+     For large libraries, call the <a href="/api/v1/properties">API</a> and apply the thresholds in
+     your own spreadsheet.</p>
+  <h3>Why does my logP differ from another calculator?</h3>
+  <p>logP is predicted, not measured. Different implementations (OpenBabel, RDKit, Crippen,
+     XLogP) use different atom contributions and can differ by a few tenths. The pass/fail result
+     is usually stable near the threshold, but borderline compounds should be checked with an
+     experimental value.</p>
+  <h3>Are the rules applied to natural products?</h3>
+  <p>Not reliably. Natural products, peptides and PROTACs often fall outside the rule-of-five
+     space yet are biologically active. Use the rule as one signal among several, not as a
+     universal gate.</p>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Does passing the rule of five guarantee an oral drug?","acceptedAnswer":{"@type":"Answer","text":"No. The rule is a cheap triage filter based on historical distributions. Many approved drugs violate one rule, and many rule-compliant compounds fail in clinical trials."}},
+{"@type":"Question","name":"What counts as a violation?","acceptedAnswer":{"@type":"Answer","text":"Each property is compared independently. A value beyond the threshold is one violation. The usual guidance is that two or more violations predict poor oral absorption; one violation is common and not automatically disqualifying."}},
+{"@type":"Question","name":"How are hydrogen bond donors and acceptors counted?","acceptedAnswer":{"@type":"Answer","text":"Donors are N-H and O-H groups. Acceptors are nitrogen and oxygen atoms. The calculator uses OpenBabel definitions, which follow the standard Lipinski interpretation."}},
+{"@type":"Question","name":"Can I check a whole library?","acceptedAnswer":{"@type":"Answer","text":"Yes. Paste multiple SMILES, one per line, or use the batch converter. For large libraries, call the API and apply the thresholds in your own spreadsheet."}},
+{"@type":"Question","name":"Why does my logP differ from another calculator?","acceptedAnswer":{"@type":"Answer","text":"logP is predicted, not measured. Different implementations use different atom contributions and can differ by a few tenths. The pass or fail result is usually stable near the threshold, but borderline compounds should be checked with an experimental value."}},
+{"@type":"Question","name":"Are the rules applied to natural products?","acceptedAnswer":{"@type":"Answer","text":"Not reliably. Natural products, peptides and PROTACs often fall outside the rule-of-five space yet are biologically active. Use the rule as one signal among several, not as a universal gate."}}
+]}
+</script>
 {% endblock %}

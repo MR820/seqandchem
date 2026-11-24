@@ -2,25 +2,87 @@
 {% block prose %}
 <div class="prose">
   <h2>What is InChI?</h2>
-  <p>InChI (International Chemical Identifier) is a standard, non-proprietary text identifier
-     for chemical substances maintained by IUPAC. Unlike SMILES, which can be written in many
+  <p>InChI (International Chemical Identifier) is a standard, non-proprietary text identifier for
+     chemical substances maintained by IUPAC. Unlike SMILES, which can be written in many
      equivalent ways for the same molecule, InChI is <strong>canonical</strong>: every valid
      representation of the same structure produces the same InChI string.</p>
+  <p>An InChI is built from layers: formula, connectivity, hydrogen, charge, stereochemistry and
+     isotopes. A full InChI can be long, which is why the fixed-length InChIKey exists; use
+     <a href="/smiles-to-inchikey">SMILES to InChIKey</a> if you need the 27-character hash
+     directly.</p>
 
   <h2>Why convert SMILES to InChI?</h2>
   <ul>
-    <li><strong>Deduplication</strong> — two different SMILES for the same molecule give one InChI.</li>
-    <li><strong>Database lookup</strong> — PubChem, ChEMBL and Wikidata index compounds by InChI and InChIKey.</li>
-    <li><strong>Regulatory and patent filing</strong> — InChI is the IUPAC standard for structure registration.</li>
-    <li><strong>Stable keys</strong> — the 27-character InChIKey is a fixed-length hash you can use as a primary key.</li>
+    <li><strong>Deduplication</strong> — two different SMILES for the same molecule give one
+        InChI.</li>
+    <li><strong>Database lookup</strong> — PubChem, ChEMBL and Wikidata index compounds by InChI
+        and InChIKey.</li>
+    <li><strong>Regulatory and patent filing</strong> — InChI is the IUPAC standard for structure
+        registration.</li>
+    <li><strong>Stable keys</strong> — the 27-character InChIKey is a fixed-length hash you can use
+        as a primary key.</li>
   </ul>
+
+  <h2>What is preserved and what is not</h2>
+  <table>
+    <thead>
+      <tr><th>Information</th><th>In the InChI?</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Connectivity and bond orders</td><td>Yes</td></tr>
+      <tr><td>Formal charges</td><td>Yes</td></tr>
+      <tr><td>Defined stereochemistry</td><td>Yes, in the stereo layer</td></tr>
+      <tr><td>Isotopes</td><td>Yes, in the isotopic layer</td></tr>
+      <tr><td>Coordinates</td><td>No — SMILES has no coordinates and InChI does not store them</td></tr>
+      <tr><td>Comments or properties</td><td>No</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Worked example</h2>
+  <p>Aspirin, <code>CC(=O)Oc1ccccc1C(=O)O</code>, converts to
+     <code>InChI=1S/C9H8O4/c1-6(10)13-8-5-3-2-4-7(8)9(11)12/h2-5H,1H3,(H,11,12)</code>. A
+     different SMILES for the same molecule produces the same InChI. The InChIKey for this
+     structure is <code>BSYNRYMUTXBXSQ-UHFFFAOYSA-N</code>.</p>
+
+  <h2>Salts, charges and tautomers</h2>
+  <p>A salt appears as multiple components in the InChI. If you want the parent compound only,
+     remove the counter-ion from the SMILES first. Formal charges are encoded in the charge layer.
+     Standard InChI normalises mobile hydrogens, so some tautomers map to the same identifier; if
+     tautomer identity matters, check the result and consider a non-standard InChI or an explicit
+     tautomer workflow.</p>
 
   <h2>Frequently asked questions</h2>
   <h3>Does it preserve stereochemistry?</h3>
-  <p>Yes. OpenBabel reads stereo information from the SMILES (@ and @@ markers) and encodes it in
-     the InChI layer, so chiral centres are preserved.</p>
+  <p>Yes. OpenBabel reads stereo information from the SMILES (<code>@</code> and <code>@@</code>
+     markers) and encodes it in the InChI layer, so chiral centres are preserved.</p>
   <h3>Will I get the InChIKey too?</h3>
-  <p>The output is InChI. To get the InChIKey, run the same input with the output format set to
-     <a href="/convert">InChIKey</a>, or use the <a href="/properties">property calculator</a>.</p>
+  <p>The output is InChI. To get the InChIKey, use <a href="/smiles-to-inchikey">SMILES to
+     InChIKey</a> or the <a href="/properties">property calculator</a>.</p>
+  <h3>Are coordinates preserved?</h3>
+  <p>No. SMILES does not contain coordinates, and InChI does not store them. Use an SDF or MOL file
+     if you need a specific geometry.</p>
+  <h3>Why is the InChI so long?</h3>
+  <p>The string encodes several layers (formula, connectivity, hydrogens, charge, stereo,
+     isotopes). Large or highly connected molecules produce longer strings. Use the InChIKey when
+     you need a fixed-length identifier.</p>
+  <h3>Can I convert the InChI back to SMILES?</h3>
+  <p>Yes — use <a href="/inchi-to-smiles">InChI to SMILES</a>. The round trip preserves
+     connectivity and defined stereochemistry; the exact SMILES string may differ.</p>
+  <h3>Does it handle salts?</h3>
+  <p>Yes — the salt appears as multiple components. Remove the counter-ion first if you want the
+     parent compound only.</p>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Does the SMILES to InChI converter preserve stereochemistry?","acceptedAnswer":{"@type":"Answer","text":"Yes. OpenBabel reads stereo information from the SMILES at-sign markers and encodes it in the InChI layer, so chiral centres are preserved."}},
+{"@type":"Question","name":"Will I get the InChIKey too?","acceptedAnswer":{"@type":"Answer","text":"The output is InChI. To get the InChIKey, use the SMILES to InChIKey converter or the property calculator."}},
+{"@type":"Question","name":"Are coordinates preserved when converting SMILES to InChI?","acceptedAnswer":{"@type":"Answer","text":"No. SMILES does not contain coordinates, and InChI does not store them. Use an SDF or MOL file if you need a specific geometry."}},
+{"@type":"Question","name":"Why is the InChI so long?","acceptedAnswer":{"@type":"Answer","text":"The string encodes several layers: formula, connectivity, hydrogens, charge, stereo and isotopes. Large or highly connected molecules produce longer strings. Use the InChIKey when you need a fixed-length identifier."}},
+{"@type":"Question","name":"Can I convert the InChI back to SMILES?","acceptedAnswer":{"@type":"Answer","text":"Yes, use the InChI to SMILES converter. The round trip preserves connectivity and defined stereochemistry; the exact SMILES string may differ."}},
+{"@type":"Question","name":"Does the SMILES to InChI converter handle salts?","acceptedAnswer":{"@type":"Answer","text":"Yes, the salt appears as multiple components. Remove the counter-ion first if you want the parent compound only."}}
+]}
+</script>
 {% endblock %}

@@ -1,0 +1,116 @@
+{% extends "bio_tool.html" %}
+{% block prose %}
+<div class="prose">
+  <h2>What this primer Tm calculator does</h2>
+  <p>Paste one or more primer sequences — one per line or in FASTA format — and the calculator
+     returns the length, GC content, Wallace melting temperature, salt-adjusted melting temperature
+     and the GC content of the last five bases at the 3′ end. It is intended for quick primer
+     checks, not as a replacement for a nearest-neighbor design tool.</p>
+  <p>The salt-adjusted estimate assumes 50 mM Na⁺ by default. The page does not add Mg²⁺, dNTPs or
+     primer concentration to the calculation; those factors can shift the real Tm by several
+     degrees.</p>
+
+  <h2>What melting temperature means</h2>
+  <p>Tm is the temperature at which half of the primer–template duplexes are dissociated. In a PCR
+     reaction, the annealing temperature is usually set 3–5 °C below the primer Tm. A primer that
+     is too short or too AT-rich has a low Tm and may bind weakly; a primer that is too GC-rich can
+     form stable secondary structures or misprime.</p>
+  <p>Typical design targets are 18–25 nucleotides, 40–60% GC and a Tm around 55–65 °C. These are
+     starting points, not rules — the right values depend on the polymerase, buffer and cycling
+     conditions.</p>
+
+  <h2>The two formulas</h2>
+  <h3>Wallace rule</h3>
+  <p>For short primers (roughly 14–20 nucleotides), the Wallace rule is:</p>
+  <p><code>Tm = 2 × (A + T) + 4 × (G + C)</code></p>
+  <p>It is simple and ignores salt, so it is best used as a quick sanity check. For longer primers
+     it tends to overestimate the Tm.</p>
+
+  <h3>Salt-adjusted formula</h3>
+  <p>For primers of roughly 14–30 nucleotides, a common salt-adjusted estimate is:</p>
+  <p><code>Tm = 81.5 + 16.6 × log₁₀[Na⁺] + 0.41 × GC% − 600 / N</code></p>
+  <p>Here [Na⁺] is the sodium concentration in mol/L and N is the primer length. The calculator uses
+     50 mM Na⁺ (0.05 M). If your buffer has a different salt concentration, the real Tm will
+     differ; for critical design, use a nearest-neighbor calculator that accepts your exact
+     buffer composition.</p>
+
+  <h2>Worked example</h2>
+  <p>Take the 20-nucleotide primer <code>ATGGCCATTGTAATGGGCCG</code>:</p>
+  <ul>
+    <li>Length: 20 nt</li>
+    <li>GC content: 55.0%</li>
+    <li>Wallace Tm: 62.0 °C</li>
+    <li>Salt-adjusted Tm at 50 mM Na⁺: 52.5 °C</li>
+    <li>3′ end (last five bases, <code>GGCCG</code>): 5/5 GC</li>
+  </ul>
+  <p>The two estimates differ because they model the duplex differently. The Wallace rule counts
+     only base composition; the salt-adjusted formula includes the sodium concentration and the
+     length term. A 3′ end with five G/C bases is also a warning sign: it can promote non-specific
+     extension. In a real design, adjust the length or the 3′ end and check the result with a
+     nearest-neighbor tool.</p>
+
+  <h2>Reading the 3′ end</h2>
+  <p>The last five bases at the 3′ end are where the polymerase begins extension. A common guideline
+     is to avoid more than three G/C bases in the last five, and to avoid a 3′ end that is
+     complementary to another primer (primer-dimer risk). The calculator reports the count so you
+     can spot a strong GC clamp quickly.</p>
+
+  <h2>What the calculator does not model</h2>
+  <ul>
+    <li><strong>Nearest-neighbor stacking</strong> — the most accurate Tm methods use the enthalpy
+        and entropy of each dinucleotide step, not just GC content.</li>
+    <li><strong>Mg²⁺ and dNTPs</strong> — divalent cations stabilize the duplex and raise the Tm;
+        the default calculation does not include them.</li>
+    <li><strong>Primer concentration</strong> — higher primer concentrations shift the equilibrium
+        and change the Tm.</li>
+    <li><strong>Mismatches and secondary structure</strong> — a mismatch lowers the Tm; hairpins
+        and primer-dimers compete with the intended duplex.</li>
+  </ul>
+  <p>For critical primer design, use Primer3, IDT OligoAnalyzer or a nearest-neighbor implementation
+     with your actual buffer composition. This page is for quick checks and for comparing candidate
+     primers before that step.</p>
+
+  <h2>Common uses</h2>
+  <ul>
+    <li>Checking a primer before ordering it.</li>
+    <li>Comparing several candidate primers by length, GC and Tm.</li>
+    <li>Estimating the annealing temperature range for a PCR run.</li>
+    <li>Spotting a GC-rich 3′ end or an unusually AT-rich primer.</li>
+    <li>Pairing with the <a href="/bio/gc-content">GC content calculator</a> and
+        <a href="/bio/reverse-complement">reverse complement tool</a>.</li>
+  </ul>
+
+  <h2>Frequently asked questions</h2>
+  <h3>What is primer Tm?</h3>
+  <p>Tm is the melting temperature — the temperature at which half of the primer–template duplexes
+     are separated. PCR annealing temperatures are usually set a few degrees below the primer Tm.</p>
+  <h3>Which formula should I use?</h3>
+  <p>Use the Wallace rule for short primers (about 14–20 nt) and the salt-adjusted formula for
+     14–30 nt. For critical design, use a nearest-neighbor calculator; both formulas here are
+     approximations.</p>
+  <h3>What salt concentration does it assume?</h3>
+  <p>The salt-adjusted estimate uses 50 mM Na⁺. If your buffer has a different sodium
+     concentration, the Tm will differ; use a tool that accepts your exact buffer composition.</p>
+  <h3>Does it account for Mg²⁺?</h3>
+  <p>No. Magnesium stabilizes the duplex and raises the Tm. The calculator does not include Mg²⁺,
+     dNTPs or primer concentration, so treat the result as an estimate.</p>
+  <h3>What is a good Tm for a primer?</h3>
+  <p>Many protocols target 55–65 °C, but the right value depends on the polymerase and buffer.
+     More important is that the forward and reverse primers have similar Tm values, so both anneal
+     efficiently at the same temperature.</p>
+  <h3>Can I calculate Tm for multiple primers?</h3>
+  <p>Yes — paste one primer per line or a multi-record FASTA file. Each primer is reported
+     separately with its own length, GC content and Tm.</p>
+</div>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"What is primer Tm?","acceptedAnswer":{"@type":"Answer","text":"Tm is the melting temperature, the temperature at which half of the primer-template duplexes are separated. PCR annealing temperatures are usually set a few degrees below the primer Tm."}},
+{"@type":"Question","name":"Which Tm formula should I use?","acceptedAnswer":{"@type":"Answer","text":"Use the Wallace rule for short primers of about 14 to 20 nucleotides and the salt-adjusted formula for 14 to 30 nucleotides. For critical design, use a nearest-neighbor calculator; both formulas here are approximations."}},
+{"@type":"Question","name":"What salt concentration does the primer Tm calculator assume?","acceptedAnswer":{"@type":"Answer","text":"The salt-adjusted estimate uses 50 mM sodium. If your buffer has a different sodium concentration, the Tm will differ; use a tool that accepts your exact buffer composition."}},
+{"@type":"Question","name":"Does it account for magnesium?","acceptedAnswer":{"@type":"Answer","text":"No. Magnesium stabilizes the duplex and raises the Tm. The calculator does not include magnesium, dNTPs or primer concentration, so treat the result as an estimate."}},
+{"@type":"Question","name":"What is a good Tm for a primer?","acceptedAnswer":{"@type":"Answer","text":"Many protocols target 55 to 65 degrees Celsius, but the right value depends on the polymerase and buffer. More important is that the forward and reverse primers have similar Tm values, so both anneal efficiently at the same temperature."}},
+{"@type":"Question","name":"Can I calculate Tm for multiple primers?","acceptedAnswer":{"@type":"Answer","text":"Yes. Paste one primer per line or a multi-record FASTA file. Each primer is reported separately with its own length, GC content and Tm."}}
+]}
+</script>
+{% endblock %}

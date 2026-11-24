@@ -1,0 +1,102 @@
+{% extends "bio_tool.html" %}
+{% block prose %}
+<div class="prose">
+  <h2>What this DNA molecular weight calculator does</h2>
+  <p>Paste a DNA or RNA sequence and the calculator returns the base composition, GC content, and
+     the molecular weight of the single-stranded and double-stranded molecules. It supports FASTA
+     input, one record per sequence, and reports the result in Da and kDa.</p>
+  <p>The calculation uses average nucleotide residue masses. DNA and RNA are detected from the
+     letters in the sequence: T means DNA, U means RNA. A sequence that contains both T and U is
+     rejected because it cannot be both molecules at once. For the difference between average and
+     monoisotopic mass, see the
+     <a href="/guides/molecular-weight-average-vs-monoisotopic">molecular weight guide</a>.</p>
+
+  <h2>How the molecular weight is calculated</h2>
+  <p>Each nucleotide contributes its residue mass — the mass of the free nucleotide minus one water
+     molecule, because a water molecule is lost when the phosphodiester bond forms. The chain has
+     one free 5′ end and one free 3′ end, so one water molecule is added back:</p>
+  <p><code>ssMW = Σ(nucleotide residue masses) + H₂O</code></p>
+  <p>For a double-stranded molecule, the complementary strand has the same base composition and the
+     same length, so:</p>
+  <p><code>dsMW = 2 × ssMW</code></p>
+  <p>This is the standard approximation for a perfectly complementary duplex. It does not include
+     counter-ions, modified bases or a 5′ phosphate that is absent from the residue model.</p>
+
+  <h2>Worked example</h2>
+  <p>The 39-base sequence
+     <code>ATGGCCATTGTAATGGGCCGCTGAAAGGGTGCCCGATAG</code> has the composition A=9, T=8, G=14,
+     C=8 and a GC content of 56.41%. Using DNA residue masses:</p>
+  <ul>
+    <li><strong>Single-stranded DNA:</strong> 12,192.89 Da (12.193 kDa)</li>
+    <li><strong>Double-stranded DNA:</strong> 24,385.77 Da (24.386 kDa)</li>
+  </ul>
+  <p>The same sequence with U instead of T is RNA: the single-stranded RNA mass is
+     12,704.65 Da and the double-stranded RNA mass is 25,409.29 Da. The difference comes from the
+     extra oxygen in the ribose and the different base masses.</p>
+
+  <h2>DNA vs RNA</h2>
+  <table>
+    <thead>
+      <tr><th>Feature</th><th>DNA</th><th>RNA</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Bases</td><td>A, T, G, C</td><td>A, U, G, C</td></tr>
+      <tr><td>Sugar</td><td>Deoxyribose</td><td>Ribose</td></tr>
+      <tr><td>Typical form</td><td>Double-stranded</td><td>Usually single-stranded</td></tr>
+      <tr><td>Residue mass difference</td><td>—</td><td>About 16 Da per nucleotide</td></tr>
+    </tbody>
+  </table>
+  <p>For RNA, the double-stranded value is reported as dsRNA, but most RNA molecules in a cell are
+     single-stranded; use the ssRNA value unless you are specifically working with a duplex.</p>
+
+  <h2>Ambiguous and modified bases</h2>
+  <p>IUPAC ambiguity codes such as N, R, Y, K, M, S, W, B, D, H and V do not have a unique mass.
+     The calculator counts them as unknown, excludes them from the mass, and reports how many were
+     ignored. For a sequence with many Ns, the reported mass is a lower bound for the known
+     positions only.</p>
+  <p>Modified bases (methylation, biotin, fluorophores, phosphorothioate linkages) are not modeled.
+     If you are ordering a modified oligonucleotide, use the vendor's calculator or add the
+     modification mass manually.</p>
+
+  <h2>Common uses</h2>
+  <ul>
+    <li>Checking the expected mass of an oligonucleotide before ordering.</li>
+    <li>Converting between sequence length and molecular weight for a molecular-biology protocol.</li>
+    <li>Estimating the mass of a DNA or RNA sample for mass spectrometry.</li>
+    <li>Comparing ssDNA and dsDNA values for the same sequence.</li>
+    <li>Pairing with the <a href="/bio/gc-content">GC content calculator</a> for primer design.</li>
+  </ul>
+
+  <h2>Frequently asked questions</h2>
+  <h3>What is the difference between ssDNA and dsDNA molecular weight?</h3>
+  <p>ssDNA is one strand; dsDNA is the duplex of the sequence and its complement. For a perfectly
+     complementary duplex of equal length, the dsDNA mass is exactly twice the ssDNA mass.</p>
+  <h3>Does it handle RNA?</h3>
+  <p>Yes. If the sequence contains U and no T, it is treated as RNA and the RNA residue masses are
+     used. A sequence containing both T and U is rejected.</p>
+  <h3>What about N and other ambiguous bases?</h3>
+  <p>They are counted as unknown, excluded from the mass, and reported separately. The GC percentage
+     still uses the full sequence length, so N bases lower the reported GC content.</p>
+  <h3>Why does my vendor's molecular weight differ?</h3>
+  <p>Vendors may include counter-ions (usually sodium), a 5′ phosphate, modified bases or a
+     different terminal group. Check whether the vendor reports the sodium salt, the free acid or a
+     modified oligo, and compare the same form.</p>
+  <h3>Does it calculate melting temperature (Tm)?</h3>
+  <p>No — this page reports mass and base composition. Tm depends on salt concentration, primer
+     concentration and the nearest-neighbor stacking interactions, not just GC content.</p>
+  <h3>Can I calculate the mass of a plasmid or a whole genome?</h3>
+  <p>Yes, if the sequence fits in the input box. Very large sequences are better handled with a
+     script or the <a href="/api">API</a>; the calculation grows linearly with length.</p>
+</div>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"What is the difference between ssDNA and dsDNA molecular weight?","acceptedAnswer":{"@type":"Answer","text":"ssDNA is one strand; dsDNA is the duplex of the sequence and its complement. For a perfectly complementary duplex of equal length, the dsDNA mass is exactly twice the ssDNA mass."}},
+{"@type":"Question","name":"Does the DNA molecular weight calculator handle RNA?","acceptedAnswer":{"@type":"Answer","text":"Yes. If the sequence contains U and no T, it is treated as RNA and the RNA residue masses are used. A sequence containing both T and U is rejected."}},
+{"@type":"Question","name":"What about N and other ambiguous bases?","acceptedAnswer":{"@type":"Answer","text":"They are counted as unknown, excluded from the mass, and reported separately. The GC percentage still uses the full sequence length, so N bases lower the reported GC content."}},
+{"@type":"Question","name":"Why does my vendor's molecular weight differ?","acceptedAnswer":{"@type":"Answer","text":"Vendors may include counter-ions, usually sodium, a 5-prime phosphate, modified bases or a different terminal group. Check whether the vendor reports the sodium salt, the free acid or a modified oligo, and compare the same form."}},
+{"@type":"Question","name":"Does it calculate melting temperature?","acceptedAnswer":{"@type":"Answer","text":"No. This page reports mass and base composition. Melting temperature depends on salt concentration, primer concentration and nearest-neighbor stacking interactions, not just GC content."}},
+{"@type":"Question","name":"Can I calculate the mass of a plasmid or a whole genome?","acceptedAnswer":{"@type":"Answer","text":"Yes, if the sequence fits in the input box. Very large sequences are better handled with a script or the API; the calculation grows linearly with length."}}
+]}
+</script>
+{% endblock %}

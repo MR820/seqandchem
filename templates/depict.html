@@ -34,15 +34,107 @@
 </div>
 
 <div class="prose">
-  <h2>About 2D depiction</h2>
-  <p>OpenBabel lays the molecule out on a plane using a ring-aware layout algorithm, so
-     fused rings and side chains are drawn in a readable orientation. The output is vector
-     SVG — infinitely scalable, ideal for papers, slides, patents and web pages.</p>
-  <h2>Typical use cases</h2>
+  <h2>What this 2D structure generator does</h2>
+  <p>Paste a SMILES string, InChI, MOL, SDF, PDB or another supported structure and the tool
+     draws a clean 2D skeletal structure. OpenBabel lays the molecule out on a plane using a
+     ring-aware algorithm, so fused rings, side chains and substituents are placed in a readable
+     orientation. The result is a vector SVG you can download and use in a paper, slide, patent or
+     web page.</p>
+  <p>The drawing is a <strong>2D depiction</strong>, not a 3D conformer. If you need geometry,
+     use the <a href="/3d">3D structure generator</a>; if you need a raster image, use
+     <a href="/smiles-to-png">SMILES to PNG</a>.</p>
+
+  <h2>How the layout works</h2>
+  <p>The converter first perceives bonds and aromaticity from the input, then assigns 2D
+     coordinates. The layout tries to keep bond lengths uniform, avoid atom overlaps and draw
+     rings as regular polygons. For most drug-like molecules the result is publication-ready
+     without manual adjustment.</p>
+  <p>Automatic layout is a heuristic. Crowded structures, macrocycles, overlapping side chains and
+     unusual ring systems may need a structure editor for a final clean-up. Use this tool for a
+     quick figure or a sanity check, and a dedicated editor for a camera-ready drawing.</p>
+
+  <h2>What the image shows</h2>
   <ul>
-    <li>Turn a SMILES string from a database into a figure for a report</li>
-    <li>Verify that a SMILES string matches the intended structure</li>
-    <li>Produce structure images for a website or patent filing</li>
+    <li><strong>Atom labels</strong> — heteroatoms and charged groups are labelled; carbons are
+        usually unlabelled.</li>
+    <li><strong>Bonds</strong> — single, double, triple and aromatic/Kekulé representations.</li>
+    <li><strong>Stereochemistry</strong> — wedge and hash bonds when the input defines chiral
+        centres or double-bond geometry.</li>
+    <li><strong>Charges</strong> — formal charges shown next to the atom.</li>
+    <li><strong>Hydrogens</strong> — implicit hydrogens are not drawn unless needed for stereo or
+        a charged group.</li>
   </ul>
+
+  <h2>SVG vs PNG</h2>
+  <table>
+    <thead>
+      <tr><th>Format</th><th>Best for</th><th>Trade-off</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>SVG</td><td>Papers, posters, patents, scalable web figures</td><td>Vector; some old tools do not import it</td></tr>
+      <tr><td>PNG</td><td>Slides, chat, quick documents</td><td>Fixed 300 × 300 pixels; white background</td></tr>
+    </tbody>
+  </table>
+  <p>Use SVG when the figure will be printed or scaled. Use
+     <a href="/smiles-to-png">SMILES to PNG</a> when you need a simple raster image.</p>
+
+  <h2>Common uses</h2>
+  <ul>
+    <li>Turning a SMILES from a database into a figure for a report.</li>
+    <li>Checking that a SMILES string matches the intended structure.</li>
+    <li>Producing structure images for a website or a patent filing.</li>
+    <li>Illustrating a reaction scheme or comparing analogues.</li>
+    <li>Creating a clean structure for a slide or a lecture.</li>
+  </ul>
+
+  <h2>What to check</h2>
+  <ul>
+    <li><strong>Aromatic rings</strong> — confirm the Kekulé/aromatic representation matches the
+        intended structure.</li>
+    <li><strong>Charges</strong> — a missing or extra formal charge changes the molecule; check
+        the label.</li>
+    <li><strong>Stereochemistry</strong> — if the source has no stereo information, the drawing
+        cannot invent it.</li>
+    <li><strong>Salts</strong> — counter-ions appear as separate fragments; strip them if you want
+        the parent compound only.</li>
+  </ul>
+  <p>For a machine-readable structure, use <a href="/smiles-to-inchi">SMILES to InChI</a> or the
+     <a href="/convert">format converter</a>. For molecular properties, use the
+     <a href="/properties">property calculator</a>.</p>
+
+  <h2>Frequently asked questions</h2>
+  <h3>Is the drawing a 3D structure?</h3>
+  <p>No. It is a 2D depiction with a flat layout. Use the <a href="/3d">3D structure generator</a>
+     for a conformer with coordinates.</p>
+  <h3>Can I download the image?</h3>
+  <p>Yes — use “Download SVG”. The file is a vector image and can be opened in a browser,
+     Illustrator, Inkscape or a document editor.</p>
+  <h3>Does it preserve stereochemistry?</h3>
+  <p>Yes, when the input defines it. Chiral centres and double-bond geometry are drawn with wedge,
+     hash or directional bonds. A flat input without stereo information cannot produce a
+     stereo-defined drawing.</p>
+  <h3>Why does my molecule look crowded?</h3>
+  <p>Automatic layout is a heuristic. Large or highly branched molecules can overlap; use a
+     structure editor for a final manual adjustment.</p>
+  <h3>Can I draw multiple molecules at once?</h3>
+  <p>This page depicts one structure per run. For a library, use the
+     <a href="/batch">batch converter</a> with an image output format, which packs one image per
+     molecule into a ZIP file.</p>
+  <h3>SVG or PNG — which should I use?</h3>
+  <p>Use SVG for papers, posters and anything that will be scaled. Use PNG for slides, chat and
+     quick documents.</p>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Is the 2D depiction a 3D structure?","acceptedAnswer":{"@type":"Answer","text":"No. It is a 2D depiction with a flat layout. Use the 3D structure generator for a conformer with coordinates."}},
+{"@type":"Question","name":"Can I download the structure image?","acceptedAnswer":{"@type":"Answer","text":"Yes, use Download SVG. The file is a vector image and can be opened in a browser, Illustrator, Inkscape or a document editor."}},
+{"@type":"Question","name":"Does the 2D structure generator preserve stereochemistry?","acceptedAnswer":{"@type":"Answer","text":"Yes, when the input defines it. Chiral centres and double-bond geometry are drawn with wedge, hash or directional bonds. A flat input without stereo information cannot produce a stereo-defined drawing."}},
+{"@type":"Question","name":"Why does my molecule look crowded?","acceptedAnswer":{"@type":"Answer","text":"Automatic layout is a heuristic. Large or highly branched molecules can overlap; use a structure editor for a final manual adjustment."}},
+{"@type":"Question","name":"Can I draw multiple molecules at once?","acceptedAnswer":{"@type":"Answer","text":"This page depicts one structure per run. For a library, use the batch converter with an image output format, which packs one image per molecule into a ZIP file."}},
+{"@type":"Question","name":"SVG or PNG, which should I use?","acceptedAnswer":{"@type":"Answer","text":"Use SVG for papers, posters and anything that will be scaled. Use PNG for slides, chat and quick documents."}}
+]}
+</script>
 {% endblock %}

@@ -30,7 +30,9 @@
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"WebApplication","name":"SeqChem","url":"{{ canonical }}","applicationCategory":"ScienceApplication","operatingSystem":"Any","description":"{{ description }}","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
 </script>
-<script data-goatcounter="https://stats.seqandchem.com/count" async src="https://stats.seqandchem.com/count.js"></script>
+{% if cf_beacon_token %}
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "{{ cf_beacon_token }}"}'></script>
+{% endif %}
 </head>
 <body data-page="{{ page }}" data-three-dmol="{{ v_3dmol }}">
 
@@ -69,7 +71,8 @@
 
 <footer>
   SeqChem · {{ credit }} · <a href="/">All tools</a> · <a href="/api">API</a> ·
-  <a href="/guides/">Guides</a> · <a href="/privacy">Privacy</a> ·
+  <a href="/guides/">Guides</a> · <a href="/about">About</a> ·
+  <a href="/privacy">Privacy</a> ·
   <a href="#" data-feedback-open>Feedback</a>
 </footer>
 

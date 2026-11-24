@@ -22,7 +22,7 @@ usage metering.
 
 ### Chemical formats
 Convert between 190+ formats supported by OpenBabel — SMILES, InChI, InChIKey, MOL, SDF, MOL2,
-PDB, XYZ, CML, PNG, SVG and many more. There are 26 dedicated one-click converter pages plus a
+PDB, XYZ, CML, PNG, SVG and many more. There are 27 dedicated one-click converter pages plus a
 generic converter, and a batch endpoint for whole libraries.
 
 | Tool | URL |
@@ -34,6 +34,7 @@ generic converter, and a batch endpoint for whole libraries.
 | SDF → SMILES | `/sdf-to-smiles` |
 | SMILES → MOL / MOL2 / XYZ / SDF / CML | `/smiles-to-*` |
 | PDB → SMILES / SDF / InChI | `/pdb-to-*` |
+| SMILES → PDBQT (AutoDock) | `/smiles-to-pdbqt` |
 
 ### Structure analysis
 - **Descriptors** — formula, MW, logP, TPSA, HBD, HBA, rotatable bonds, molar refractivity, InChI, InChIKey (`/properties`)
@@ -52,6 +53,10 @@ Pure-Python FASTA/FASTQ utilities — no external services, no data leaves the s
 - GC content and sequence statistics (`/bio/gc-content`)
 - Reverse complement with IUPAC ambiguity codes (`/bio/reverse-complement`)
 - DNA → protein translation in all frames (`/bio/translate`)
+- Codon chart (`/codon-chart`)
+- Protein/peptide molecular weight (`/protein-molecular-weight-calculator`)
+- DNA/RNA molecular weight (`/dna-molecular-weight-calculator`)
+- Primer Tm and GC content (`/primer-tm-calculator`)
 
 ### Guides
 Long-form explainers that back the tools: SMILES vs InChI vs InChIKey, Lipinski's rule of five,
@@ -102,7 +107,7 @@ Full reference with request/response examples: <https://seqandchem.com/api>
 - **OpenBabel 3.1.1** CLI for all molecule work (invoked as a subprocess)
 - **OPSIN** (University of Cambridge) for IUPAC name parsing, over HTTP
 - **3Dmol.js** for client-side 3D rendering
-- **GoatCounter** for privacy-friendly page analytics
+- **Cloudflare Web Analytics** for cookie-free page analytics
 - Stateless Flask app; anonymous feedback is the only stored data (local SQLite)
 
 ## Repository layout
@@ -162,7 +167,7 @@ time-sensitive HTML deploys or wait for the cache to expire.
 
 Molecules and sequences are converted in a subprocess and are not stored. The anonymous feedback
 form stores only the message, category, page path and timestamp in a private local SQLite file.
-Analytics use self-hosted GoatCounter — cookie-free, no advertising profile, no cross-site
+Analytics use Cloudflare Web Analytics — cookie-free, no advertising profile, no cross-site
 tracking. See <https://seqandchem.com/privacy> for the full policy.
 
 ## Citation

@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
-"""Weekly SEO report: GSC + Bing + GoatCounter -> Feishu interactive card."""
+"""Weekly SEO report: GSC + Bing + Cloudflare Web Analytics -> Feishu card."""
 import datetime
 import json
 import os
 import re
-import sqlite3
 import time
 import urllib.parse
 from collections import Counter
@@ -15,12 +14,13 @@ from google.oauth2 import service_account
 
 SITE = "sc-domain:seqandchem.com"
 GSC_KEY = os.environ.get("GSC_KEY", "/opt/seqchem-monitor/gsc-service-account.json")
-GC_DB = os.environ.get("GC_DB", "/opt/goatcounter/goatcounter-data/db.sqlite3")
 FEISHU_ENV = os.environ.get("FEISHU_ENV", "/opt/seqchem-monitor/feishu.env")
 BING_ENV = os.environ.get("BING_ENV", "/opt/seqchem-monitor/bing-webmaster.env")
+CF_ENV = os.environ.get("CF_ENV", "/opt/seqchem-monitor/cloudflare-analytics.env")
+CF_ACCOUNT = os.environ.get("CF_ACCOUNT", "4a63097fa96be9e4cddf77737be16c1c")
 HISTORY = os.environ.get("SEO_HISTORY", "/opt/seqchem-monitor/seo-history.json")
 DRY_RUN = os.environ.get("DRY_RUN") == "1"
-INSPECT_LIMIT = int(os.environ.get("INSPECT_LIMIT", "50"))
+INSPECT_LIMIT = int(os.environ.get("INSPECT_LIMIT", "60"))
 
 SPARK = "▁▂▃▄▅▆▇█"
 
@@ -45,17 +45,6 @@ def spark(values):
     if hi == lo:
         return SPARK[0] * len(values)
     return "".join(SPARK[round((v - lo) / (hi - lo) * (len(SPARK) - 1))] for v in values)
-
-
-def bars(rows, width=10):
-    if not rows:
-        return "—"
-    top = max(c for _, c in rows) or 1
-    out = []
-    for path, count in rows:
-        label = path if len(path) <= 30 else path[:29] + "…"
-        out.append(f"{label}  {'█' * max(1, round(count / top * width))} {count}")
-    return "\n".join(out)
 
 
 def progress(done, total, width=18):
@@ -86,6 +75,7 @@ def save_history(entry):
 
 load_env(FEISHU_ENV)
 load_env(BING_ENV)
+load_env(CF_ENV)
 
 today = datetime.date.today()
 data = {
@@ -98,8 +88,7 @@ data = {
     "daily_impressions": [], "daily_clicks": [],
     "sitemap": {},
     "bing": {},
-    "pv": 0, "uv": 0, "top": [], "events": [],
-    "daily_pv": [], "daily_uv": [],
+    "cf_pv": 0, "cf_uv": 0, "cf_daily_pv": [], "cf_daily_uv": [],
 }
 errors = []
 
@@ -211,35 +200,51 @@ try:
 except Exception as exc:
     errors.append(f"Bing: {exc}")
 
-# ---------- GoatCounter ----------
+# ---------- Cloudflare Web Analytics ----------
 try:
-    conn = sqlite3.connect(GC_DB)
-    cur = conn.cursor()
-    data["pv"], data["uv"] = cur.execute(
-        "select count(*), count(distinct session) from hits "
-        "where created_at >= datetime('now','-7 days')"
-    ).fetchone()
-    data["top"] = cur.execute(
-        "select p.path, count(*) c from hits h join paths p on p.path_id=h.path_id "
-        "where h.created_at >= datetime('now','-7 days') group by p.path order by c desc limit 5"
-    ).fetchall()
-    data["events"] = cur.execute(
-        "select p.path, count(*) c from hits h join paths p on p.path_id=h.path_id "
-        "where h.created_at >= datetime('now','-7 days') and p.event=1 "
-        "group by p.path order by c desc limit 5"
-    ).fetchall()
-    daily_gc = dict(
-        (d, (pv, uv)) for d, pv, uv in cur.execute(
-            "select date(created_at), count(*), count(distinct session) from hits "
-            "where created_at >= datetime('now','-6 days') group by 1"
-        ).fetchall()
+    cf_token = os.environ.get("CF_ANALYTICS_TOKEN", "").strip()
+    if not cf_token:
+        raise RuntimeError("CF_ANALYTICS_TOKEN missing")
+    start_cf = today - datetime.timedelta(days=6)
+    cf_query = """
+query($acc: String!, $start: Date!, $end: Date!) {
+  viewer {
+    accounts(filter: {accountTag: $acc}) {
+      total: rumPageloadEventsAdaptiveGroups(
+        limit: 1, filter: {date_geq: $start, date_leq: $end}
+      ) { count sum { visits } }
+      daily: rumPageloadEventsAdaptiveGroups(
+        limit: 100, filter: {date_geq: $start, date_leq: $end}, orderBy: [date_ASC]
+      ) { count sum { visits } dimensions { date } }
+    }
+  }
+}
+"""
+    cf_resp = requests.post(
+        "https://api.cloudflare.com/client/v4/graphql",
+        headers={"Authorization": f"Bearer {cf_token}", "Content-Type": "application/json"},
+        json={"query": cf_query,
+              "variables": {"acc": CF_ACCOUNT, "start": start_cf.isoformat(),
+                            "end": today.isoformat()}},
+        timeout=30,
     )
-    dates = [(today - datetime.timedelta(days=offset)).isoformat() for offset in range(6, -1, -1)]
-    data["daily_pv"] = [daily_gc.get(d, (0, 0))[0] for d in dates]
-    data["daily_uv"] = [daily_gc.get(d, (0, 0))[1] for d in dates]
-    conn.close()
+    cf_json = cf_resp.json()
+    if cf_resp.status_code != 200 or cf_json.get("errors"):
+        raise RuntimeError(str(cf_json.get("errors") or cf_resp.status_code))
+    accounts = ((cf_json.get("data") or {}).get("viewer") or {}).get("accounts") or []
+    if not accounts:
+        raise RuntimeError("no account data")
+    total = (accounts[0].get("total") or [{}])[0]
+    data["cf_pv"] = int(total.get("count", 0))
+    data["cf_uv"] = int((total.get("sum") or {}).get("visits", 0))
+    daily = {row.get("dimensions", {}).get("date"): row
+             for row in accounts[0].get("daily", [])}
+    dates = [(start_cf + datetime.timedelta(days=i)).isoformat() for i in range(7)]
+    data["cf_daily_pv"] = [int(daily.get(d, {}).get("count", 0)) for d in dates]
+    data["cf_daily_uv"] = [int((daily.get(d, {}).get("sum") or {}).get("visits", 0))
+                           for d in dates]
 except Exception as exc:
-    errors.append(f"GoatCounter: {exc}")
+    errors.append(f"Cloudflare: {exc}")
 
 # ---------- History / previous week ----------
 history = load_history()
@@ -251,8 +256,8 @@ if not DRY_RUN and not any(error.startswith("GSC:") for error in errors):
         "total": data["total"],
         "impressions": data["impressions"],
         "clicks": data["clicks"],
-        "pv": data["pv"],
-        "uv": data["uv"],
+        "cf_pv": data["cf_pv"],
+        "cf_uv": data["cf_uv"],
     })
 
 # ---------- Text log ----------
@@ -275,10 +280,8 @@ if data["pages"]:
 lines += [
     f"Bing: sitemap={data['bing'].get('status', '?')} "
     f"URLs={data['bing'].get('urls', '?')} quota={data['bing'].get('quota', '?')}",
-    f"GoatCounter 7d: PV={data['pv']} · UV={data['uv']}",
+    f"Cloudflare 7d: PV={data['cf_pv']} · visits={data['cf_uv']}",
 ]
-if data["events"]:
-    lines.append("Events: " + " · ".join(f"{p} ({c})" for p, c in data["events"]))
 if errors:
     lines.append("⚠️ " + " · ".join(errors[:4]))
 text = "\n".join(lines)
@@ -297,10 +300,11 @@ def build_card(data, errors):
         {"is_short": True, "text": {"tag": "lark_md",
          "content": f"**GSC 28 天**\n**{data['impressions']}** 展示 · **{data['clicks']}** 点击"}},
         {"is_short": True, "text": {"tag": "lark_md",
-         "content": f"**GoatCounter 7 天**\n**{data['pv']}** PV · **{data['uv']}** UV"}},
-        {"is_short": True, "text": {"tag": "lark_md",
          "content": f"**Bing**\nSitemap {data['bing'].get('status', '?')} · "
                     f"quota {data['bing'].get('quota', '?')}"}},
+        {"is_short": True, "text": {"tag": "lark_md",
+         "content": f"**Cloudflare 7 天**\n**{data['cf_pv']}** PV · "
+                    f"**{data['cf_uv']}** visits"}},
     ]
 
     recent_impressions = data["daily_impressions"][-7:]
@@ -318,6 +322,10 @@ def build_card(data, errors):
          "content": f"**Google · 近 7 天趋势**{period}\n"
                     f"展示 {sum(recent_impressions)}  {spark(recent_impressions)}\n"
                     f"点击 {sum(recent_clicks)}  {spark(recent_clicks)}"}},
+        {"tag": "div", "text": {"tag": "lark_md",
+         "content": f"**Cloudflare · 近 7 天**\n"
+                    f"PV {data['cf_pv']}  {spark(data['cf_daily_pv'])}\n"
+                    f"visits {data['cf_uv']}  {spark(data['cf_daily_uv'])}"}},
     ]
 
     if data["queries"]:
@@ -345,14 +353,7 @@ def build_card(data, errors):
                     f"URLs {data['bing'].get('urls', '?')} · "
                     f"queries {data['bing'].get('queries', 0)} · "
                     f"crawl issues {data['bing'].get('crawl', 0)}"}},
-        {"tag": "div", "text": {"tag": "lark_md",
-         "content": f"**GoatCounter · 7 天**\nPV {data['pv']} · UV {data['uv']}\n"
-                    f"PV 趋势  {spark(data['daily_pv'])}\nUV 趋势  {spark(data['daily_uv'])}\n\n"
-                    f"**Top 页面**\n{bars(data['top'], width=14)}"}},
     ]
-    if data["events"]:
-        elements.append({"tag": "div", "text": {"tag": "lark_md",
-            "content": "**工具事件**\n" + " · ".join(f"{p} ({c})" for p, c in data["events"])}})
     if len(history) >= 2:
         elements.append({"tag": "div", "text": {"tag": "lark_md",
             "content": "**周度收录趋势**  " + spark([h.get("indexed", 0) for h in history])}})

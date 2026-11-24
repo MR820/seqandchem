@@ -2,8 +2,9 @@
 
 {% block content %}
 <h1 class="page-title">3D Molecular Structure Generator</h1>
-<p class="lead">Generate a 3D conformer from a SMILES or any supported format, rotate it
-   interactively in your browser and download the result as an SDF file.</p>
+<p class="lead">Generate a 3D conformer from a SMILES string or any supported structure format,
+   rotate it interactively in your browser and download the result as an SDF file. Free, no
+   registration and no plugin.</p>
 
 <div class="card">
   <div class="grid">
@@ -42,18 +43,98 @@
 </div>
 
 <div class="prose">
-  <h2>How the 3D structure is generated</h2>
-  <p>OpenBabel first builds an initial geometry, then optimises it with a force field
-     (MMFF94 or UFF) to reach a low-energy conformer. The result is written as SDF with
-     explicit 3D coordinates, which is the input most molecular viewers, docking programs
-     and 3D printing pipelines expect.</p>
-  <h2>Notes</h2>
+  <h2>What this 3D molecular structure generator does</h2>
+  <p>Paste a SMILES string, InChI, MOL, SDF, PDB, XYZ, MOL2 or CML structure and the tool builds
+     a three-dimensional conformer. The result is displayed in an interactive viewer — drag to
+     rotate, scroll to zoom — and can be downloaded as an SDF file with explicit 3D coordinates.</p>
+  <p>The same input can be viewed as a flat 2D drawing with the <a href="/depict">2D structure
+     generator</a>. Use 2D when you need a clean figure for a report; use 3D when geometry,
+     conformation or coordinates matter.</p>
+
+  <h2>How the 3D coordinates are generated</h2>
+  <p>OpenBabel first builds an initial geometry from the connection table, then optimises it with
+     a force field (MMFF94 where parameters are available, UFF otherwise). The optimisation moves
+     atoms to reduce strain and produces a low-energy conformer. Hydrogen atoms are added
+     automatically because a 3D geometry needs them.</p>
+  <p>This is a <strong>force-field conformer</strong>, not an experimental structure and not a
+     quantum-mechanical calculation. It is a good starting point for visualisation, docking
+     preparation and teaching, but it is not a substitute for a crystal structure or a
+     high-level conformer search.</p>
+
+  <h2>What to check before using the conformer</h2>
   <ul>
-    <li>Generation can take a few seconds for medium-sized molecules and longer for large ones.</li>
-    <li>Only one low-energy conformer is produced — not an ensemble.</li>
-    <li>Hydrogens are added automatically because 3D geometry needs them.</li>
+    <li><strong>Protonation and charge</strong> — draw the molecule in the protonation state you
+        care about. A carboxylate and a carboxylic acid give different geometries.</li>
+    <li><strong>Stereochemistry</strong> — define chiral centres in the SMILES with <code>@</code>
+        or <code>@@</code>; a flat input cannot invent stereochemistry.</li>
+    <li><strong>Force field</strong> — MMFF94 is preferred for organic molecules; UFF covers
+        elements that MMFF94 does not. Record which one was used if the geometry matters for a
+        publication.</li>
+    <li><strong>Single conformer</strong> — the tool returns one low-energy conformer, not an
+        ensemble. Flexible molecules can have many accessible conformations; use a dedicated
+        conformer generator if you need to sample them.</li>
+    <li><strong>Molecule size</strong> — generation is fast for drug-like small molecules and
+        slower for large, flexible structures. Proteins and nucleic acids are better handled by
+        a dedicated molecular viewer.</li>
   </ul>
+
+  <h2>3D structure vs 2D structure</h2>
+  <p>A 2D structure encodes connectivity and bond orders on a flat canvas. It is ideal for
+     communication and for databases, but it says nothing about the shape of the molecule. A 3D
+     conformer adds coordinates, so you can inspect bond lengths, torsions, ring puckering and
+     steric clashes. For docking or molecular dynamics, the 3D coordinates are the input; a 2D
+     drawing is not enough.</p>
+
+  <h2>Common uses</h2>
+  <ul>
+    <li>Preparing a ligand for docking or molecular dynamics
+        (<a href="/smiles-to-sdf">SMILES to SDF</a> gives the same SDF output in a converter
+        workflow).</li>
+    <li>Checking whether a proposed structure is geometrically reasonable.</li>
+    <li>Generating starting coordinates for a quantum-chemistry calculation
+        (<a href="/smiles-to-xyz">SMILES to XYZ</a>).</li>
+    <li>Making figures for a report, poster or lecture.</li>
+    <li>Feeding a 3D structure into a browser-based viewer without installing software.</li>
+  </ul>
+  <p>For large batches, use the <a href="/batch">batch converter</a> with the “Generate 3D”
+     option, or call the <a href="/api">API</a> from a script.</p>
+
+  <h2>Frequently asked questions</h2>
+  <h3>Is the generated 3D structure accurate?</h3>
+  <p>It is a force-field-optimised conformer, which is usually a reasonable low-energy geometry
+     for a drug-like molecule. It is not an experimental structure and it is not guaranteed to be
+     the global minimum. Treat it as a starting point and check it against experimental data when
+     available.</p>
+  <h3>Which force field does it use?</h3>
+  <p>OpenBabel chooses MMFF94 when parameters are available and falls back to UFF otherwise. The
+     exact force field is not exposed as a separate setting on this page.</p>
+  <h3>Can I generate multiple conformers?</h3>
+  <p>This page generates one conformer per request. For an ensemble, use a dedicated conformer
+     search tool (for example RDKit's ETKDG or OpenBabel's conformer search) and optimise each
+     conformer separately.</p>
+  <h3>Does it work with proteins or DNA?</h3>
+  <p>The tool is intended for small molecules. A protein or a long nucleic acid is usually too
+     large for a single force-field optimisation in the browser; use a molecular viewer or a
+     structure-preparation pipeline instead.</p>
+  <h3>Can I download the coordinates?</h3>
+  <p>Yes — use “Download SDF”. The file contains the 3D coordinates and can be opened in PyMOL,
+     ChimeraX, Avogadro, Discovery Studio and most docking programs.</p>
+  <h3>Why does generation sometimes take a few seconds?</h3>
+  <p>The force-field optimisation is iterative. Small molecules finish quickly; larger or highly
+     flexible molecules need more steps. The page shows a status message while the job runs.</p>
 </div>
 {% endblock %}
 
-{% block scripts %}<script src="/3dmol-min.js?v={{ v_3dmol }}"></script>{% endblock %}
+{% block scripts %}
+<script src="/3dmol-min.js?v={{ v_3dmol }}"></script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Is the generated 3D structure accurate?","acceptedAnswer":{"@type":"Answer","text":"It is a force-field-optimised conformer, usually a reasonable low-energy geometry for a drug-like molecule. It is not an experimental structure and is not guaranteed to be the global minimum. Treat it as a starting point and check it against experimental data when available."}},
+{"@type":"Question","name":"Which force field does it use?","acceptedAnswer":{"@type":"Answer","text":"OpenBabel chooses MMFF94 when parameters are available and falls back to UFF otherwise. The exact force field is not exposed as a separate setting on this page."}},
+{"@type":"Question","name":"Can I generate multiple conformers?","acceptedAnswer":{"@type":"Answer","text":"This page generates one conformer per request. For an ensemble, use a dedicated conformer search tool such as RDKit ETKDG or OpenBabel conformer search and optimise each conformer separately."}},
+{"@type":"Question","name":"Does it work with proteins or DNA?","acceptedAnswer":{"@type":"Answer","text":"The tool is intended for small molecules. A protein or a long nucleic acid is usually too large for a single force-field optimisation in the browser; use a molecular viewer or a structure-preparation pipeline instead."}},
+{"@type":"Question","name":"Can I download the coordinates?","acceptedAnswer":{"@type":"Answer","text":"Yes. Use Download SDF. The file contains the 3D coordinates and can be opened in PyMOL, ChimeraX, Avogadro, Discovery Studio and most docking programs."}},
+{"@type":"Question","name":"Why does generation sometimes take a few seconds?","acceptedAnswer":{"@type":"Answer","text":"The force-field optimisation is iterative. Small molecules finish quickly; larger or highly flexible molecules need more steps. The page shows a status message while the job runs."}}
+]}
+</script>
+{% endblock %}

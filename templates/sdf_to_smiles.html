@@ -1,23 +1,113 @@
 {% extends "preset.html" %}
 {% block prose %}
 <div class="prose">
-  <h2>SDF to SMILES converter</h2>
+  <h2>What this SDF to SMILES converter does</h2>
   <p>SDF (Structure-Data File, also called SD file) is the most common format for compound
      libraries. Each record stores one molecule with its 2D or 3D coordinates plus attached
      properties. Converting to SMILES gives you a compact, one-line representation for each
-     molecule that is easy to store in a CSV or pass to another tool.</p>
+     molecule that is easy to store in a CSV, load into a database or pass to another tool.</p>
+  <p>Paste a whole SDF with many records (separated by <code>$$$$</code>) and you get one SMILES
+     per line, in the same order. This is the usual way to flatten a screening library. The
+     reverse direction is available in <a href="/smiles-to-sdf">SMILES to SDF</a>.</p>
+
+  <h2>Why convert SDF to SMILES?</h2>
+  <ul>
+    <li><strong>Smaller files</strong> — SMILES is a one-line string; an SDF record carries a
+        full atom table, bond table and property block.</li>
+    <li><strong>CSV and spreadsheet friendly</strong> — one SMILES per row is easy to join with
+        assay data or compound IDs.</li>
+    <li><strong>Database search</strong> — most chemistry databases accept SMILES as a query or
+        storage format.</li>
+    <li><strong>Similarity and substructure tools</strong> — SMILES is the input for
+        <a href="/similarity">Tanimoto similarity</a> and
+        <a href="/substructure">substructure search</a>.</li>
+    <li><strong>Scripts and models</strong> — SMILES is the standard text representation in
+        cheminformatics code.</li>
+  </ul>
 
   <h2>Multi-record files are supported</h2>
-  <p>Paste a whole SDF with many records (separated by <code>$$$$</code>) and you get one SMILES
-     per line, in the same order. This is the usual way to flatten a screening library.</p>
+  <p>An SDF file can contain thousands of records. The converter reads each record up to the
+     <code>$$$$</code> separator and writes one SMILES per line. The output order matches the input
+     order, so you can join the result back to a source table by row number. If a record cannot be
+     parsed, check that it has a valid V2000/V3000 header and a complete atom block.</p>
+  <p>For very large libraries, use the <a href="/batch">batch converter</a> or the
+     <a href="/api">API</a>; the web textarea is intended for interactive use.</p>
+
+  <h2>What is preserved and what is lost</h2>
+  <table>
+    <thead>
+      <tr><th>Information</th><th>In SMILES output?</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Connectivity and bond orders</td><td>Yes</td></tr>
+      <tr><td>Formal charges</td><td>Yes</td></tr>
+      <tr><td>Defined stereochemistry</td><td>Yes, when the SDF has wedge/hash bonds or stereo flags</td></tr>
+      <tr><td>2D/3D coordinates</td><td>No — SMILES does not store coordinates</td></tr>
+      <tr><td>Data fields (name, assay values, IDs)</td><td>No — properties are dropped</td></tr>
+      <tr><td>Record order</td><td>Yes — one line per record, same order</td></tr>
+    </tbody>
+  </table>
+  <p>Because properties are lost, keep the source SDF or a separate property table if you need
+     the annotations. Joining by record order is the simplest workflow.</p>
+
+  <h2>SDF vs MOL</h2>
+  <p>A MOL file holds exactly one molecule. An SDF file is essentially a MOL record followed by
+     data fields and a <code>$$$$</code> separator, repeated for as many molecules as needed. If
+     your file contains a single MOL record, use <a href="/mol-to-smiles">MOL to SMILES</a>; for a
+     library, this page is the right tool.</p>
+
+  <h2>Worked example</h2>
+  <p>An SDF with two records — aspirin followed by caffeine — produces two lines: the aspirin
+     SMILES on line 1 and the caffeine SMILES on line 2. The property fields attached to each
+     record are not included. If you enable “Canonicalize”, the output uses a canonical SMILES
+     form, which is useful for deduplication but may differ from the SMILES you started with.</p>
+
+  <h2>Common uses</h2>
+  <ul>
+    <li>Flattening a vendor or screening library into a CSV column.</li>
+    <li>Preparing structures for a similarity search or clustering run.</li>
+    <li>Importing a compound collection into a database that stores SMILES.</li>
+    <li>Deduplicating records by canonical SMILES or InChIKey
+        (<a href="/smiles-to-inchi">SMILES to InChI</a>).</li>
+    <li>Feeding a machine-learning pipeline that expects SMILES strings.</li>
+  </ul>
 
   <h2>Frequently asked questions</h2>
-  <h3>Are properties lost?</h3>
+  <h3>Are SDF properties lost?</h3>
   <p>Yes — SMILES only stores the structure. Any SDF data fields are dropped. If you need to keep
      them, convert to a format that preserves annotations, or join the SMILES back to your source
      table by record order.</p>
   <h3>Which SMILES flavour is produced?</h3>
-  <p>A standard OpenBabel SMILES. Enable <em>Canonicalize</em> if you need the canonical form for
-     deduplication.</p>
+  <p>A standard OpenBabel SMILES. Enable “Canonicalize” if you need the canonical form for
+     deduplication. Canonical SMILES is toolkit-specific, so do not compare strings produced by
+     different toolkits.</p>
+  <h3>Does it preserve stereochemistry?</h3>
+  <p>Yes, when the SDF record defines it through wedge/hash bonds or atom stereo flags. A flat 2D
+     record without stereo information cannot produce a stereo-defined SMILES.</p>
+  <h3>Can I convert a large SDF file?</h3>
+  <p>The web page is intended for interactive files. For a large library, use the
+     <a href="/batch">batch converter</a> or call the <a href="/api">API</a> with the SDF as the
+     input and SMILES as the output.</p>
+  <h3>Why do I get fewer lines than records?</h3>
+  <p>Some records may be empty, malformed or contain only properties without a structure. Check
+     the input around the missing record; the converter skips records it cannot parse. A valid SDF
+     record must have an atom block and a bond block.</p>
+  <h3>Does it handle V3000 SDF files?</h3>
+  <p>OpenBabel reads V2000 and V3000 records. If a V3000 record uses a feature that the converter
+     does not support, that record may fail or lose the feature; check the output and the record
+     count.</p>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Are SDF properties lost when converting to SMILES?","acceptedAnswer":{"@type":"Answer","text":"Yes. SMILES only stores the structure, so any SDF data fields are dropped. If you need to keep them, convert to a format that preserves annotations, or join the SMILES back to your source table by record order."}},
+{"@type":"Question","name":"Which SMILES flavour does the converter produce?","acceptedAnswer":{"@type":"Answer","text":"A standard OpenBabel SMILES. Enable Canonicalize if you need the canonical form for deduplication. Canonical SMILES is toolkit-specific, so do not compare strings produced by different toolkits."}},
+{"@type":"Question","name":"Does the SDF to SMILES converter preserve stereochemistry?","acceptedAnswer":{"@type":"Answer","text":"Yes, when the SDF record defines it through wedge or hash bonds or atom stereo flags. A flat 2D record without stereo information cannot produce a stereo-defined SMILES."}},
+{"@type":"Question","name":"Can I convert a large SDF file?","acceptedAnswer":{"@type":"Answer","text":"The web page is intended for interactive files. For a large library, use the batch converter or call the API with the SDF as the input and SMILES as the output."}},
+{"@type":"Question","name":"Why do I get fewer lines than records?","acceptedAnswer":{"@type":"Answer","text":"Some records may be empty, malformed or contain only properties without a structure. Check the input around the missing record; the converter skips records it cannot parse. A valid SDF record must have an atom block and a bond block."}},
+{"@type":"Question","name":"Does it handle V3000 SDF files?","acceptedAnswer":{"@type":"Answer","text":"OpenBabel reads V2000 and V3000 records. If a V3000 record uses a feature that the converter does not support, that record may fail or lose the feature; check the output and the record count."}}
+]}
+</script>
 {% endblock %}

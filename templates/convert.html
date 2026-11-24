@@ -62,24 +62,113 @@
 </div>
 
 <div class="prose">
+  <h2>What this chemical format converter does</h2>
+  <p>Any format OpenBabel can read can be converted to any format it can write. That covers more
+     than 190 formats, including SMILES, InChI, InChIKey, MOL, SDF, MOL2, PDB, XYZ, CML, PNG and
+     SVG. Paste the structure, choose an input and output format, and convert. For a single-purpose
+     page with a focused explanation, use one of the one-click converters listed above.</p>
+
+  <h2>Format families</h2>
+  <table>
+    <thead>
+      <tr><th>Family</th><th>Examples</th><th>What it is good for</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Line notation</td><td>SMILES, InChI, InChIKey</td><td>Databases, search, compact storage</td></tr>
+      <tr><td>Connection tables</td><td>MOL, SDF, MOL2</td><td>Structure editors, compound libraries</td></tr>
+      <tr><td>Macromolecular</td><td>PDB, mmCIF</td><td>Proteins, ligands in crystal structures</td></tr>
+      <tr><td>Coordinates</td><td>XYZ</td><td>Quantum-chemistry geometries</td></tr>
+      <tr><td>XML</td><td>CML</td><td>XML pipelines and schema validation</td></tr>
+      <tr><td>Images</td><td>PNG, SVG</td><td>Figures, slides and web pages</td></tr>
+    </tbody>
+  </table>
+
   <h2>Supported conversions</h2>
-  <p>Any format OpenBabel can read can be converted to any format it can write. Popular pairs:</p>
+  <p>Popular pairs with dedicated pages:</p>
   <ul>
-    <li><strong>SMILES → InChI</strong> and <strong>InChI → SMILES</strong></li>
-    <li><strong>SDF → SMILES</strong>, <strong>MOL → SMILES</strong></li>
-    <li><strong>SMILES → SDF</strong> with generated 3D coordinates</li>
-    <li><strong>PDB → SDF</strong> for protein ligands</li>
-    <li><strong>SMILES → PNG / SVG</strong> for structure images</li>
+    <li><a href="/smiles-to-inchi">SMILES → InChI</a> and
+        <a href="/inchi-to-smiles">InChI → SMILES</a></li>
+    <li><a href="/sdf-to-smiles">SDF → SMILES</a>,
+        <a href="/mol-to-smiles">MOL → SMILES</a></li>
+    <li><a href="/smiles-to-sdf">SMILES → SDF</a> with generated 3D coordinates</li>
+    <li><a href="/pdb-to-sdf">PDB → SDF</a> for protein ligands</li>
+    <li><a href="/smiles-to-png">SMILES → PNG</a> and the
+        <a href="/depict">SVG depiction tool</a></li>
+    <li><a href="/smiles-to-pdbqt">SMILES → PDBQT</a> for AutoDock Vina</li>
+  </ul>
+
+  <h2>How to choose the right format</h2>
+  <ul>
+    <li><strong>For a database or a script</strong> — SMILES or InChI. InChI is canonical by
+        standard; SMILES is compact and widely accepted.</li>
+    <li><strong>For a structure editor</strong> — MOL or SDF with 2D coordinates.</li>
+    <li><strong>For docking</strong> — SDF or PDBQT, depending on the docking program.</li>
+    <li><strong>For a viewer</strong> — PDB, SDF or MOL2 with 3D coordinates.</li>
+    <li><strong>For a paper or slide</strong> — SVG (scalable) or PNG (raster).</li>
   </ul>
 
   <h2>Options explained</h2>
   <ul>
-    <li><strong>3D coordinates</strong> — runs a force-field conformer search instead of a flat 2D layout.</li>
-    <li><strong>Canonicalize</strong> — outputs the canonical SMILES form, useful for deduplication.</li>
+    <li><strong>3D coordinates</strong> — runs a force-field conformer search instead of a flat 2D
+        layout. It can take a few seconds for a flexible molecule.</li>
+    <li><strong>Canonicalize</strong> — outputs the canonical SMILES form, useful for
+        deduplication. Canonical SMILES is toolkit-specific; do not compare strings from
+        different toolkits.</li>
     <li><strong>Add / remove hydrogens</strong> — controls explicit hydrogen atoms in the output.</li>
     <li><strong>Deduplicate</strong> — removes duplicate structures when converting a list.</li>
   </ul>
+
+  <h2>Worked example</h2>
+  <p>Take aspirin, <code>CC(=O)Oc1ccccc1C(=O)O</code>. Converting to MOL gives a V2000 block you
+     can open in ChemDraw; converting to InChI gives
+     <code>InChI=1S/C9H8O4/c1-6(10)13-8-5-3-2-4-7(8)9(11)12/h2-5H,1H3,(H,11,12)</code>; converting
+     to SDF with 3D coordinates gives a multi-purpose structure file for a viewer or a modelling
+     pipeline. The connectivity is the same in all three; what changes is the representation and
+     the amount of metadata.</p>
+
+  <h2>Limitations</h2>
+  <ul>
+    <li><strong>One molecule vs a library</strong> — this page converts the pasted records; for a
+        large library, use the <a href="/batch">batch converter</a>.</li>
+    <li><strong>Properties are not preserved</strong> — SDF data fields, PDB headers and CML
+        annotations do not survive a conversion to a format that has no place for them.</li>
+    <li><strong>Coordinates are not always preserved</strong> — SMILES and InChI do not store
+        coordinates; a 2D layout or a 3D conformer must be generated.</li>
+    <li><strong>Not every pair is meaningful</strong> — converting a protein PDB to a small-molecule
+        line notation can produce a disconnected string. Convert the ligand fragment instead.</li>
+  </ul>
+
+  <h2>Frequently asked questions</h2>
+  <h3>How many formats are supported?</h3>
+  <p>More than 190, limited by the OpenBabel build on the server. The dropdown lists the formats
+     that can be read or written.</p>
+  <h3>Does conversion preserve stereochemistry?</h3>
+  <p>Yes, when the source format and the target format both represent it. A source without stereo
+     information cannot produce a stereo-defined output.</p>
+  <h3>Why is my SDF larger than my SMILES?</h3>
+  <p>SDF stores an explicit atom table, bond table and coordinates; SMILES is a compact graph
+     notation. The extra bytes are the structure data and metadata.</p>
+  <h3>Can I convert a whole library?</h3>
+  <p>Use the <a href="/batch">batch converter</a> for up to 5,000 records, or the
+     <a href="/api">API</a> for programmatic access.</p>
+  <h3>Can I convert to an image?</h3>
+  <p>Yes — choose PNG or SVG. For a larger raster or a different layout, use the
+     <a href="/smiles-to-png">PNG</a> or <a href="/depict">SVG</a> tool.</p>
+  <h3>Why does the conversion fail for some inputs?</h3>
+  <p>The input may be malformed, unsupported or missing a required block (for example, a MOL file
+     without an atom table). Check the error message and the source file.</p>
 </div>
 {% endblock %}
 
-{% block scripts %}{% endblock %}
+{% block scripts %}
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"How many chemical formats does the converter support?","acceptedAnswer":{"@type":"Answer","text":"More than 190, limited by the OpenBabel build on the server. The dropdown lists the formats that can be read or written."}},
+{"@type":"Question","name":"Does chemical format conversion preserve stereochemistry?","acceptedAnswer":{"@type":"Answer","text":"Yes, when the source format and the target format both represent it. A source without stereo information cannot produce a stereo-defined output."}},
+{"@type":"Question","name":"Why is my SDF larger than my SMILES?","acceptedAnswer":{"@type":"Answer","text":"SDF stores an explicit atom table, bond table and coordinates; SMILES is a compact graph notation. The extra bytes are the structure data and metadata."}},
+{"@type":"Question","name":"Can I convert a whole compound library?","acceptedAnswer":{"@type":"Answer","text":"Use the batch converter for up to 5,000 records, or the API for programmatic access."}},
+{"@type":"Question","name":"Can I convert a molecule to an image?","acceptedAnswer":{"@type":"Answer","text":"Yes, choose PNG or SVG. For a larger raster or a different layout, use the PNG or SVG tool."}},
+{"@type":"Question","name":"Why does the conversion fail for some inputs?","acceptedAnswer":{"@type":"Answer","text":"The input may be malformed, unsupported or missing a required block, for example a MOL file without an atom table. Check the error message and the source file."}}
+]}
+</script>
+{% endblock %}

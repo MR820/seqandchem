@@ -2,25 +2,129 @@
 {% block prose %}
 <div class="prose">
   <h2>What is a reverse complement?</h2>
-  <p>DNA is double-stranded: each strand is the reverse complement of the other. Given
-     <code>ATGGC</code> on one strand, the opposite strand reads <code>GCCAT</code> in the
-     5′→3′ direction. The reverse complement operation flips the sequence and swaps every base
-     for its partner (A↔T, G↔C).</p>
+  <p>DNA is double-stranded, and the two strands run in opposite directions. Each strand is the
+     reverse complement of the other. Given <code>5′-ATGGC-3′</code> on one strand, the opposite
+     strand reads <code>5′-GCCAT-3′</code> when written in the conventional 5′→3′ direction.</p>
+  <p>The operation has two steps:</p>
+  <ol>
+    <li><strong>Complement</strong> every base: A↔T and G↔C.</li>
+    <li><strong>Reverse</strong> the resulting string, because the two strands are antiparallel.</li>
+  </ol>
+  <p>For <code>ATGGC</code>, the complement is <code>TACCG</code> and the reverse complement is
+     <code>GCCAT</code>. If you only complement or only reverse the sequence, you get a string that
+     does not represent the opposite strand.</p>
 
-  <h2>Where it is used</h2>
-  <ul>
-    <li>Designing reverse PCR primers</li>
-    <li>Checking whether a read maps to the forward or reverse strand</li>
-    <li>Analysing genes on the minus strand of a genome</li>
-  </ul>
+  <h2>Reverse complement vs reverse vs complement</h2>
+  <table>
+    <thead>
+      <tr><th>Operation</th><th>Input 5′-ATGGC-3′</th><th>Output</th><th>Use</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Complement</td><td>ATGGC</td><td>TACCG</td><td>Opposite bases, same order</td></tr>
+      <tr><td>Reverse</td><td>ATGGC</td><td>CGGTA</td><td>Same bases, opposite order</td></tr>
+      <tr><td>Reverse complement</td><td>ATGGC</td><td>GCCAT</td><td>The opposite strand, 5′→3′</td></tr>
+    </tbody>
+  </table>
 
   <h2>IUPAC ambiguity codes</h2>
-  <p>Ambiguous bases are complemented correctly: R (A/G) ↔ Y (C/T), K (G/T) ↔ M (A/C),
-     S ↔ S, W ↔ W, B ↔ V, D ↔ H, and N stays N.</p>
+  <p>Real sequences often contain ambiguous bases. The calculator complements them correctly:</p>
+  <table>
+    <thead>
+      <tr><th>Code</th><th>Meaning</th><th>Complement</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>A</td><td>Adenine</td><td>T</td></tr>
+      <tr><td>C</td><td>Cytosine</td><td>G</td></tr>
+      <tr><td>G</td><td>Guanine</td><td>C</td></tr>
+      <tr><td>T</td><td>Thymine</td><td>A</td></tr>
+      <tr><td>U</td><td>Uracil (RNA input)</td><td>A</td></tr>
+      <tr><td>R</td><td>A or G</td><td>Y</td></tr>
+      <tr><td>Y</td><td>C or T</td><td>R</td></tr>
+      <tr><td>K</td><td>G or T</td><td>M</td></tr>
+      <tr><td>M</td><td>A or C</td><td>K</td></tr>
+      <tr><td>S</td><td>G or C</td><td>S</td></tr>
+      <tr><td>W</td><td>A or T</td><td>W</td></tr>
+      <tr><td>B</td><td>C, G or T</td><td>V</td></tr>
+      <tr><td>V</td><td>A, C or G</td><td>B</td></tr>
+      <tr><td>D</td><td>A, G or T</td><td>H</td></tr>
+      <tr><td>H</td><td>A, C or T</td><td>D</td></tr>
+      <tr><td>N</td><td>Any base</td><td>N</td></tr>
+    </tbody>
+  </table>
+  <p>Lowercase and masked bases are complemented and reversed in the same way. Gap characters such
+     as <code>-</code> are preserved but not complemented, so they keep their position relative to
+     the reversed sequence.</p>
+
+  <h2>Why the 5′→3′ direction matters</h2>
+  <p>Sequences are written 5′→3′ by convention. When you copy a sequence from a paper, a primer
+     order form or a genome browser, confirm the direction before using it. A reverse complement
+     is not a cosmetic transformation: it is the sequence of the other strand, and it is what a
+     polymerase reads when it extends a primer on the opposite strand.</p>
+  <p>This matters for primer design. If the forward primer is <code>5′-ATGCGT-3′</code>, the
+     reverse primer is designed from the reverse complement of the target's 3′ end:
+     <code>5′-ACGCAT-3′</code>. Getting the orientation wrong is a common reason a PCR reaction
+     produces no product.</p>
+
+  <h2>Common uses</h2>
+  <ul>
+    <li>Designing and checking reverse PCR primers.</li>
+    <li>Determining whether a sequencing read maps to the forward or reverse strand.</li>
+    <li>Analysing genes on the minus strand of a genome.</li>
+    <li>Converting a coding sequence to the strand a ribosome reads, before
+        <a href="/bio/translate">translation</a>.</li>
+    <li>Preparing insert sequences for cloning when the orientation is fixed by the vector.</li>
+  </ul>
+
+  <h2>Batch and FASTA input</h2>
+  <p>The calculator accepts a bare sequence or a multi-record FASTA file. For each record, the
+     header is kept and only the sequence is reverse-complemented. That makes it possible to
+     process a primer list or a set of gene sequences in one paste. For sequence statistics after
+     the conversion, use the <a href="/bio/gc-content">GC content calculator</a>; for
+     FASTA/FASTQ format conversion, see the
+     <a href="/guides/fasta-vs-fastq">FASTA vs FASTQ guide</a>.</p>
+
+  <h2>Reverse complement in Python</h2>
+  <p>Biopython provides the operation directly:</p>
+  <pre><code>from Bio.Seq import Seq
+
+seq = Seq("ATGGC")
+print(seq.reverse_complement())   # GCCAT</code></pre>
+  <p>Without Biopython, the standard library is enough:</p>
+  <pre><code>seq = "ATGGC"
+table = str.maketrans("ACGTacgt", "TGCAtgca")
+reverse_complement = seq.translate(table)[::-1]
+print(reverse_complement)          # GCCAT</code></pre>
+  <p>The web tool uses the same logic, with additional IUPAC ambiguity codes and FASTA parsing.</p>
 
   <h2>Frequently asked questions</h2>
-  <h3>Does it reverse, complement, or both?</h3>
-  <p>Both — that is the definition of a reverse complement. If you only need the complement,
-     run the tool and reverse the result, or use a sequence editor.</p>
+  <h3>Is reverse complement the same as reverse?</h3>
+  <p>No. Reverse only changes the order of the bases. Reverse complement changes the order and
+     replaces each base with its partner (A↔T, G↔C), which is what the opposite DNA strand
+     contains.</p>
+  <h3>How do I reverse complement a primer?</h3>
+  <p>Paste the primer sequence in the 5′→3′ direction and run the tool. The output is the reverse
+     complement, also written 5′→3′. For a primer order, enter the sequence exactly as you want it
+     synthesized; the synthesizer reads it 5′→3′.</p>
+  <h3>Does it work with RNA?</h3>
+  <p>The tool is designed for DNA and complements A with T. If you are working with RNA, take the
+     DNA result and replace T with U. For RNA-specific work, check that your downstream tool
+     expects U rather than T.</p>
+  <h3>What happens to lowercase or masked bases?</h3>
+  <p>Lowercase bases are complemented to lowercase and reversed with the rest of the sequence.
+     Masked regions therefore stay masked in the output.</p>
+  <h3>Can I process multiple sequences at once?</h3>
+  <p>Yes. Paste a multi-record FASTA file; each record is processed independently and the headers
+     are preserved. For a large file, use the <a href="/api">API</a> with the <code>revcomp</code>
+     operation.</p>
 </div>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Is reverse complement the same as reverse?","acceptedAnswer":{"@type":"Answer","text":"No. Reverse only changes the order of the bases. Reverse complement changes the order and replaces each base with its partner (A to T, G to C), which is what the opposite DNA strand contains."}},
+{"@type":"Question","name":"How do I reverse complement a primer?","acceptedAnswer":{"@type":"Answer","text":"Paste the primer sequence in the 5-prime to 3-prime direction and run the tool. The output is the reverse complement, also written 5-prime to 3-prime. For a primer order, enter the sequence exactly as you want it synthesized."}},
+{"@type":"Question","name":"Does it work with RNA?","acceptedAnswer":{"@type":"Answer","text":"The tool is designed for DNA and complements A with T. If you are working with RNA, take the DNA result and replace T with U."}},
+{"@type":"Question","name":"What happens to lowercase or masked bases?","acceptedAnswer":{"@type":"Answer","text":"Lowercase bases are complemented to lowercase and reversed with the rest of the sequence, so masked regions stay masked in the output."}},
+{"@type":"Question","name":"Can I process multiple sequences at once?","acceptedAnswer":{"@type":"Answer","text":"Yes. Paste a multi-record FASTA file; each record is processed independently and the headers are preserved. For a large file, use the API with the revcomp operation."}}
+]}
+</script>
 {% endblock %}

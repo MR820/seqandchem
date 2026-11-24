@@ -34,20 +34,113 @@
 <div class="card" id="sub-result" style="display:none"></div>
 
 <div class="prose">
+  <h2>What this SMARTS substructure search does</h2>
+  <p>Paste a list of molecules and a SMARTS pattern. The tool converts each molecule to a
+     structure, tests whether the pattern can be mapped onto it, and returns every matching
+     molecule. It is the fastest way to filter a screening library by functional group, ring
+     system or atom environment without writing a script.</p>
+  <p>Inputs can be SMILES, MOL, SDF, PDB, InChI and other readable formats. For a single molecule,
+     the <a href="/similarity">Tanimoto similarity calculator</a> answers a different question:
+     how similar two structures are, rather than whether a specific pattern is present.</p>
+
+  <h2>SMILES vs SMARTS</h2>
+  <p>SMILES describes one specific molecule. SMARTS describes a <em>query</em>: atom properties,
+     bond types, charge, ring membership and connectivity can all be constrained. Substructure
+     matching returns a molecule if the pattern can be mapped onto any part of it.</p>
+  <p>For example, <code>c1ccccc1</code> matches a benzene ring, while <code>[#6]=[#6]</code>
+     matches any carbon–carbon double bond. A SMARTS pattern can be as broad or as specific as the
+     question requires.</p>
+
+  <h2>SMARTS syntax essentials</h2>
+  <table>
+    <thead>
+      <tr><th>Syntax</th><th>Meaning</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>c</code>, <code>C</code></td><td>Aromatic carbon / aliphatic carbon</td></tr>
+      <tr><td><code>[C]</code>, <code>[N]</code>, <code>[O]</code></td><td>Any carbon, nitrogen or oxygen atom with the bracket properties</td></tr>
+      <tr><td><code>=</code>, <code>#</code>, <code>:</code></td><td>Double, triple or aromatic bond</td></tr>
+      <tr><td><code>~</code></td><td>Any bond</td></tr>
+      <tr><td><code>*</code></td><td>Any atom</td></tr>
+      <tr><td><code>[R]</code>, <code>[R2]</code></td><td>Atom in a ring / in two rings</td></tr>
+      <tr><td><code>[+1]</code>, <code>[-1]</code></td><td>Formal charge</td></tr>
+      <tr><td><code>; </code>, <code>, </code>, <code>&amp;</code></td><td>Logical AND, OR, AND (low precedence)</td></tr>
+      <tr><td><code>!$(...)</code></td><td>Recursive SMARTS exclusion</td></tr>
+    </tbody>
+  </table>
+
   <h2>Common SMARTS patterns</h2>
   <ul>
     <li><code>c1ccccc1</code> — benzene ring</li>
     <li><code>[CX3](=O)[OX2H1]</code> — carboxylic acid</li>
-    <li><code>[NX3;H2,H1;!$(NC=O)]</code> — primary or secondary amine</li>
+    <li><code>[NX3;H2,H1;!$(NC=O)]</code> — primary or secondary amine, excluding amides</li>
     <li><code>[OX2H]</code> — hydroxyl group</li>
     <li><code>[#6]=[#6]</code> — carbon–carbon double bond</li>
     <li><code>[F,Cl,Br,I]</code> — any halogen</li>
     <li><code>[R]</code> — any atom in a ring</li>
   </ul>
 
-  <h2>SMILES vs SMARTS</h2>
-  <p>SMILES describes one specific molecule, while SMARTS describes a <em>query</em>: atom
-     properties, bond types and ring membership can all be constrained. Substructure matching
-     returns a molecule if the pattern can be mapped onto any part of it.</p>
+  <h2>How matching works</h2>
+  <p>The matcher looks for a subgraph isomorphism: every atom and bond in the pattern must map to
+     a distinct atom and bond in the molecule, respecting the atom and bond constraints. Aromatic
+     atoms, charges, isotopes and ring membership are part of the match. The result is binary —
+     a molecule either matches or it does not — so the output is a filtered list, not a ranked
+     score.</p>
+
+  <h2>Workflow</h2>
+  <ol>
+    <li>Choose the input format and paste the molecules, one per line or as an SDF.</li>
+    <li>Enter a SMARTS pattern, or start from one of the examples above.</li>
+    <li>Run the match and copy or download the filtered list.</li>
+    <li>For a library, use the <a href="/batch">batch converter</a> or the
+        <a href="/api">API</a>.</li>
+  </ol>
+
+  <h2>Limitations</h2>
+  <ul>
+    <li><strong>Aromaticity perception</strong> — aromatic and Kekulé forms must be perceived
+        consistently; an unusual tautomer may not match the expected pattern.</li>
+    <li><strong>Explicit vs implicit hydrogens</strong> — a pattern that depends on an explicit
+        hydrogen may not match a molecule with implicit hydrogens.</li>
+    <li><strong>Performance</strong> — complex recursive SMARTS on a large library is slower than
+        a simple atom/bond query.</li>
+    <li><strong>Not a 3D pharmacophore search</strong> — matching uses the 2D connection table,
+        not conformation or spatial arrangement.</li>
+  </ul>
+
+  <h2>Frequently asked questions</h2>
+  <h3>What is the difference between SMILES and SMARTS?</h3>
+  <p>SMILES describes one molecule; SMARTS describes a query. A SMARTS pattern can include wildcards,
+     atom properties, charge, ring membership and logical operators, so it matches a family of
+     structures rather than one exact molecule.</p>
+  <h3>Why does my pattern not match a molecule that looks right?</h3>
+  <p>Check aromaticity, explicit hydrogens and charge. A pattern written for a Kekulé structure may
+     not match an aromatic representation, and a pattern that requires an explicit hydrogen will
+     not match implicit hydrogens.</p>
+  <h3>Can I search multiple patterns at once?</h3>
+  <p>This page runs one pattern per query. For multiple patterns, run the search again or use a
+     script with the <a href="/api">API</a>.</p>
+  <h3>Does it return the matching substructure?</h3>
+  <p>The page returns the molecules that match. Use a structure editor or a dedicated substructure
+     highlighter if you need the matched atoms highlighted.</p>
+  <h3>Can I search an SDF library?</h3>
+  <p>Yes — paste the SDF or upload it. Each record is tested independently, and the output keeps
+     the molecules that match.</p>
+  <h3>Is the match case-sensitive?</h3>
+  <p>Yes in the SMARTS sense: <code>c</code> is aromatic carbon and <code>C</code> is aliphatic
+     carbon. Use the correct case for the atom type you mean.</p>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"What is the difference between SMILES and SMARTS?","acceptedAnswer":{"@type":"Answer","text":"SMILES describes one molecule; SMARTS describes a query. A SMARTS pattern can include wildcards, atom properties, charge, ring membership and logical operators, so it matches a family of structures rather than one exact molecule."}},
+{"@type":"Question","name":"Why does my SMARTS pattern not match a molecule that looks right?","acceptedAnswer":{"@type":"Answer","text":"Check aromaticity, explicit hydrogens and charge. A pattern written for a Kekule structure may not match an aromatic representation, and a pattern that requires an explicit hydrogen will not match implicit hydrogens."}},
+{"@type":"Question","name":"Can I search multiple SMARTS patterns at once?","acceptedAnswer":{"@type":"Answer","text":"This page runs one pattern per query. For multiple patterns, run the search again or use a script with the API."}},
+{"@type":"Question","name":"Does the substructure search return the matching atoms?","acceptedAnswer":{"@type":"Answer","text":"The page returns the molecules that match. Use a structure editor or a dedicated substructure highlighter if you need the matched atoms highlighted."}},
+{"@type":"Question","name":"Can I search an SDF library?","acceptedAnswer":{"@type":"Answer","text":"Yes, paste the SDF or upload it. Each record is tested independently, and the output keeps the molecules that match."}},
+{"@type":"Question","name":"Is the SMARTS match case-sensitive?","acceptedAnswer":{"@type":"Answer","text":"Yes in the SMARTS sense: lowercase c is aromatic carbon and uppercase C is aliphatic carbon. Use the correct case for the atom type you mean."}}
+]}
+</script>
 {% endblock %}

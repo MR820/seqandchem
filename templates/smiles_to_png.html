@@ -1,15 +1,66 @@
 {% extends "preset.html" %}
 {% block prose %}
 <div class="prose">
-  <h2>SMILES to PNG — molecule image generator</h2>
-  <p>Turn a SMILES string into a raster structure image you can drop into a slide, a report or a
-     database record. The drawing is laid out by OpenBabel and rendered as a 300 × 300 PNG.</p>
+  <h2>What this SMILES to PNG converter does</h2>
+  <p>Turn a SMILES string into a raster structure image you can drop into a slide, a report, a
+     document or a database record. OpenBabel lays out the 2D coordinates and renders the molecule
+     as a 300 × 300 PNG with a white background.</p>
+  <p>The image shows the 2D depiction: atom labels, bonds, ring systems, formal charges and
+     stereochemistry where the SMILES defines it. It is a picture, not a structure file — if you
+     need coordinates or a machine-readable format, use <a href="/smiles-to-mol">SMILES to MOL</a>
+     or <a href="/smiles-to-sdf">SMILES to SDF</a>.</p>
 
   <h2>PNG or SVG?</h2>
   <ul>
-    <li><strong>PNG</strong> — fixed resolution, universally supported, ideal for slides and chat.</li>
+    <li><strong>PNG</strong> — fixed resolution, universally supported, ideal for slides, chat and
+        quick documents.</li>
     <li><strong>SVG</strong> — vector, infinitely scalable, ideal for papers, posters and print.
         Use the <a href="/depict">2D structure generator</a> for SVG output.</li>
+  </ul>
+  <p>For a figure that will be printed at large size, use SVG. For a figure that will be pasted
+     into a slide or a chat message, PNG is usually more convenient.</p>
+
+  <h2>How to get a better image</h2>
+  <ul>
+    <li><strong>Use a clean SMILES</strong> — remove salts and counter-ions if you only want the
+        parent compound.</li>
+    <li><strong>Define stereochemistry</strong> — a SMILES with <code>@</code> or <code>@@</code>
+        produces a depiction with wedge/hash bonds.</li>
+    <li><strong>Choose the right tool</strong> — for a scalable figure, use the
+        <a href="/depict">SVG depiction tool</a>; for a 3D view, use
+        <a href="/3d">SMILES to 3D</a>.</li>
+    <li><strong>Check the layout</strong> — automatic 2D layout is usually good for drug-like
+        molecules, but crowded or unusual structures may need manual adjustment in a structure
+        editor.</li>
+  </ul>
+
+  <h2>What the image contains</h2>
+  <ul>
+    <li><strong>Atom labels</strong> — element symbols; carbons are usually unlabelled.</li>
+    <li><strong>Bonds</strong> — single, double, triple and aromatic/Kekulé representations.</li>
+    <li><strong>Charges</strong> — formal charges shown next to the atom.</li>
+    <li><strong>Stereochemistry</strong> — wedge and hash bonds for defined chiral centres.</li>
+  </ul>
+  <p>Hydrogens are implicit by default and are not drawn unless they are needed to show
+     stereochemistry or a charged group.</p>
+
+  <h2>Common uses</h2>
+  <ul>
+    <li>Adding a structure to a slide, poster or report.</li>
+    <li>Creating a thumbnail for a compound database or catalogue.</li>
+    <li>Illustrating a reaction scheme or a comparison of analogues.</li>
+    <li>Sharing a molecule in a chat or issue tracker without sending a structure file.</li>
+  </ul>
+
+  <h2>Limitations</h2>
+  <ul>
+    <li><strong>Fixed size</strong> — the output is 300 × 300 pixels. For a larger raster, render
+        at higher resolution with a local OpenBabel install or use SVG.</li>
+    <li><strong>White background</strong> — the PNG is not transparent. Use SVG if you need a
+        transparent background.</li>
+    <li><strong>No atom numbering or custom colours</strong> — the depiction is clean and
+        standard; use a structure editor for publication-specific styling.</li>
+    <li><strong>2D only</strong> — the image is a 2D layout, not a 3D conformer.</li>
   </ul>
 
   <h2>Frequently asked questions</h2>
@@ -18,5 +69,31 @@
      or render at higher resolution with a local OpenBabel install.</p>
   <h3>Can I get a transparent background?</h3>
   <p>The PNG output has a white background. SVG output keeps a transparent background.</p>
+  <h3>Can I change the image size?</h3>
+  <p>This page uses a fixed 300 × 300 canvas. For a different size, use the
+     <a href="/depict">SVG depiction tool</a> and set the dimensions in your document, or run
+     OpenBabel locally with your preferred options.</p>
+  <h3>Does it show stereochemistry?</h3>
+  <p>Yes, when the SMILES defines it with <code>@</code> or <code>@@</code>. The depiction uses
+     wedge and hash bonds for defined chiral centres.</p>
+  <h3>Does it show hydrogens?</h3>
+  <p>Hydrogens are implicit and are not drawn by default. They may appear when needed to show
+     stereochemistry or a charged group.</p>
+  <h3>PNG or SVG — which should I use?</h3>
+  <p>Use PNG for slides, chat and quick documents. Use SVG for papers, posters and anything that
+     will be printed or scaled. The <a href="/depict">2D structure generator</a> produces SVG.</p>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Why is the SMILES to PNG image small?","acceptedAnswer":{"@type":"Answer","text":"The default canvas is 300 by 300 pixels. For a larger figure, use the SVG output and scale it, or render at higher resolution with a local OpenBabel install."}},
+{"@type":"Question","name":"Can I get a transparent background?","acceptedAnswer":{"@type":"Answer","text":"The PNG output has a white background. SVG output keeps a transparent background."}},
+{"@type":"Question","name":"Can I change the image size?","acceptedAnswer":{"@type":"Answer","text":"This page uses a fixed 300 by 300 canvas. For a different size, use the SVG depiction tool and set the dimensions in your document, or run OpenBabel locally with your preferred options."}},
+{"@type":"Question","name":"Does the image show stereochemistry?","acceptedAnswer":{"@type":"Answer","text":"Yes, when the SMILES defines it with at-signs. The depiction uses wedge and hash bonds for defined chiral centres."}},
+{"@type":"Question","name":"Does the image show hydrogens?","acceptedAnswer":{"@type":"Answer","text":"Hydrogens are implicit and are not drawn by default. They may appear when needed to show stereochemistry or a charged group."}},
+{"@type":"Question","name":"PNG or SVG — which should I use?","acceptedAnswer":{"@type":"Answer","text":"Use PNG for slides, chat and quick documents. Use SVG for papers, posters and anything that will be printed or scaled. The 2D structure generator produces SVG."}}
+]}
+</script>
 {% endblock %}

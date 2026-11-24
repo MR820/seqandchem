@@ -76,16 +76,15 @@ read -r code rt < <(check "$URL")
 read -r api_code api_rt < <(check "$API_URL")
 svc_app=$(systemctl is-active chemtools 2>/dev/null || echo inactive)
 svc_web=$(systemctl is-active nginx 2>/dev/null || echo inactive)
-svc_gc=$(systemctl is-active goatcounter 2>/dev/null || echo inactive)
 now=$(date +%s)
 
-if [ "$code" = "200" ] && [ "$api_code" = "200" ] && [ "$svc_app" = "active" ] && [ "$svc_web" = "active" ] && [ "$svc_gc" = "active" ]; then
+if [ "$code" = "200" ] && [ "$api_code" = "200" ] && [ "$svc_app" = "active" ] && [ "$svc_web" = "active" ]; then
     if [ "$prev_status" = "fail" ]; then
         send_feishu "✅ SeqChem 已恢复
 
 主站: $URL → $code (${rt}s)
 API:  $API_URL → $api_code (${api_rt}s)
-服务: chemtools=$svc_app nginx=$svc_web goatcounter=$svc_gc
+服务: chemtools=$svc_app nginx=$svc_web
 时间: $(date '+%F %T %Z')"
         echo "$now ok" > "$STATE"
         log "RECOVERED main=$code api=$api_code"
@@ -96,13 +95,13 @@ API:  $API_URL → $api_code (${api_rt}s)
     exit 0
 fi
 
-log "FAIL main=$code api=$api_code app=$svc_app web=$svc_web gc=$svc_gc"
+log "FAIL main=$code api=$api_code app=$svc_app web=$svc_web"
 if [ "$prev_status" != "fail" ] || [ $((now - prev_ts)) -ge "$ALERT_EVERY" ]; then
     send_feishu "🚨 SeqChem 告警
 
 主站: $URL → $code (${rt}s)
 API:  $API_URL → $api_code (${api_rt}s)
-服务: chemtools=$svc_app nginx=$svc_web goatcounter=$svc_gc
+服务: chemtools=$svc_app nginx=$svc_web
 时间: $(date '+%F %T %Z')
 将每 5 分钟重试，1 小时提醒一次。"
     echo "$now fail" > "$STATE"

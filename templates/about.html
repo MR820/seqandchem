@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="page-title">About SeqChem</h1>
+<p class="lead">SeqChem is a free, account-free collection of chemistry and bioinformatics tools:
+   format conversion, molecular properties, structure depiction, 3D conformers, sequence
+   utilities, codon charts and molecular weight calculators.</p>
+
+<div class="prose">
+  <h2>What this site is</h2>
+  <p>SeqChem is built for people who need a quick, reliable answer without installing a
+     cheminformatics stack: convert a SMILES to MOL, check a molecule against Lipinski's rules,
+     draw a structure, translate a DNA sequence, calculate a protein mass or look up a codon. Every
+     tool runs on the server, requires no account and keeps no history of the molecules or
+     sequences you submit.</p>
+  <p>The site also exposes a public JSON API for the same operations. The API is keyless, has
+     fair-use rate limits and is documented at <a href="/api">/api</a>; a Python client is
+     available on <a href="https://pypi.org/project/seqchem/">PyPI</a>.</p>
+
+  <h2>How the tools work</h2>
+  <ul>
+    <li><strong>Molecule processing</strong> — OpenBabel 3.1.1 handles format conversion,
+        descriptors, depiction and 3D conformer generation.</li>
+    <li><strong>IUPAC names</strong> — OPSIN, the Open Parser for Systematic IUPAC Nomenclature
+        from the University of Cambridge, parses systematic names. Common and trivial names fall
+        back to a PubChem lookup from your browser.</li>
+    <li><strong>Sequence tools</strong> — FASTA/FASTQ parsing, GC content, reverse complement,
+        translation, molecular weight and primer Tm are implemented in pure Python on the server.
+        The calculations do not call an external service.</li>
+    <li><strong>Web server</strong> — Flask behind nginx, with Cloudflare as the CDN.</li>
+  </ul>
+
+  <h2>Accuracy and limits</h2>
+  <p>Chemistry software is a model of reality, not reality itself. A PDB file may not carry bond
+     orders; a SMILES string may be ambiguous about stereochemistry; a predicted logP or Tm depends
+     on the method; a force-field conformer is a low-energy geometry, not an experimental
+     structure. The tools report what the underlying software computes, and the pages explain the
+     assumptions and common failure modes.</p>
+  <p>SeqChem is a research and educational tool. It is not a substitute for experimental
+     validation, a regulatory submission, a clinical decision or a validated manufacturing
+     process. Check important results against the primary literature or an experimental
+     measurement.</p>
+
+  <h2>Data and privacy</h2>
+  <p>Molecules and sequences are processed in a subprocess or in Python and are not stored. The
+     anonymous feedback form stores only the message, category, page path and timestamp. Page
+     analytics use Cloudflare Web Analytics, which is cookie-free and does not build a personal
+     profile. Server logs are kept for security and operations. The full policy is at
+     <a href="/privacy">/privacy</a>.</p>
+
+  <h2>Updates and corrections</h2>
+  <p>Pages are updated when the underlying software changes, when a calculation is corrected or
+     when a user reports a problem. Guides and calculator pages carry a “last updated” date where
+     it matters. If you find an error, the fastest way to report it is the anonymous
+     <a href="#" data-feedback-open>feedback form</a> — include the page and the input that
+     produced the result.</p>
+
+  <h2>Who maintains it</h2>
+  <p>SeqChem is maintained by the SeqChem contributors. The source code is on
+     <a href="https://github.com/MR820/seqandchem">GitHub</a>; the public API and the Python client
+     are documented separately. There is no advertising, no account system and no paid tier.</p>
+
+  <h2>Contact</h2>
+  <p>Questions, bug reports and suggestions can be sent through the anonymous
+     <a href="#" data-feedback-open>feedback form</a>. For API or integration questions, include
+     the endpoint and a minimal example input so the issue can be reproduced.</p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"AboutPage","name":"About SeqChem","url":"{{ canonical }}","description":"Who maintains SeqChem, how the tools work, how data is handled and the limits of the service."}
+</script>
+{% endblock %}

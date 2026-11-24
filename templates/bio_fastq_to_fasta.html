@@ -1,21 +1,79 @@
 {% extends "bio_tool.html" %}
 {% block prose %}
 <div class="prose">
+  <h2>What this FASTQ to FASTA converter does</h2>
+  <p>FASTQ stores a header, a sequence and a per-base quality string. FASTA stores only the header
+     and the sequence. This converter drops the quality string and writes a standard FASTA record
+     for each read, preserving the identifier and the sequence.</p>
+  <p>It is useful when you no longer need per-base confidence: after trimming and filtering,
+     most aligners, assemblers, BLAST searches and sequence databases only require the sequence
+     itself.</p>
+
   <h2>Why drop quality scores?</h2>
   <p>Quality strings often double the size of a sequencing file. Once you have trimmed and
-     filtered your reads, most downstream tools — aligners, assemblers, BLAST, sequence
-     databases — only need the sequence itself. Converting to FASTA makes files smaller and
-     compatible with those tools.</p>
+     filtered your reads, the quality data is usually not needed downstream. Converting to FASTA
+     makes files smaller and compatible with tools that do not read FASTQ.</p>
+  <p>Quality data is discarded permanently. If you may need to re-run trimming, variant calling or
+     quality-based filtering, keep the original FASTQ file — the conversion is one-way.</p>
 
-  <h2>What happens to the quality data?</h2>
-  <p>It is discarded. If you still need the original reads, keep the FASTQ file — conversion is
-     one-way and cannot be undone.</p>
+  <h2>What is preserved and what is lost</h2>
+  <table>
+    <thead>
+      <tr><th>Information</th><th>Result</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Sequence letters</td><td>Preserved exactly</td></tr>
+      <tr><td>Identifiers</td><td>Preserved; <code>@</code> becomes <code>&gt;</code></td></tr>
+      <tr><td>Record order</td><td>Preserved</td></tr>
+      <tr><td>Quality scores</td><td>Discarded</td></tr>
+      <tr><td>Second header line (<code>+</code>)</td><td>Discarded</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Supported FASTQ variants</h2>
+  <p>The converter reads standard four-line FASTQ: header, sequence, a line starting with
+     <code>+</code>, and the quality string. It supports Sanger and Illumina 1.8+ encoding because
+     it does not interpret the quality characters — it simply removes them. Multi-line sequence
+     records, used by a few older tools, are not supported.</p>
+
+  <h2>When to use it</h2>
+  <ul>
+    <li>After trimming and filtering, when only the sequence is needed.</li>
+    <li>Preparing reads for an aligner, assembler or BLAST that expects FASTA.</li>
+    <li>Reducing file size for storage or transfer.</li>
+    <li>Submitting sequences to a database that does not accept FASTQ.</li>
+  </ul>
+  <p>For the reverse direction, use <a href="/bio/fasta-to-fastq">FASTA to FASTQ</a>. For a full
+     explanation of the formats, see the <a href="/guides/fasta-vs-fastq">FASTA vs FASTQ guide</a>.</p>
 
   <h2>Frequently asked questions</h2>
   <h3>Which FASTQ variants are supported?</h3>
-  <p>Standard four-line FASTQ (Sanger, Illumina 1.8+) is supported. Multi-line sequence
-     records, used by a few older tools, are not.</p>
+  <p>Standard four-line FASTQ (Sanger, Illumina 1.8+) is supported. Multi-line sequence records,
+     used by a few older tools, are not.</p>
   <h3>Are the identifiers preserved?</h3>
-  <p>Yes. The <code>@</code> header becomes a <code>&gt;</code> header with the same content.</p>
+  <p>Yes. The <code>@</code> header becomes a <code>&gt;</code> header with the same content,
+     including any description after the identifier.</p>
+  <h3>Can I recover the quality scores after conversion?</h3>
+  <p>No. The conversion is one-way; the quality data is removed. Keep the original FASTQ file if
+     you may need it.</p>
+  <h3>Does it trim or filter reads?</h3>
+  <p>No. It only changes the format. Trimming, adapter removal and quality filtering should be
+     done before conversion with a dedicated tool.</p>
+  <h3>How many records can I convert?</h3>
+  <p>The web textarea is intended for interactive files. For a large FASTQ file, use the
+     <a href="/api">API</a> or a command-line tool such as <code>seqtk</code>.</p>
+  <h3>What happens to the <code>+</code> line?</h3>
+  <p>It is discarded along with the quality string. FASTA has no equivalent line.</p>
 </div>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Which FASTQ variants are supported?","acceptedAnswer":{"@type":"Answer","text":"Standard four-line FASTQ with Sanger or Illumina 1.8+ encoding is supported. Multi-line sequence records, used by a few older tools, are not."}},
+{"@type":"Question","name":"Are the identifiers preserved when converting FASTQ to FASTA?","acceptedAnswer":{"@type":"Answer","text":"Yes. The at-sign header becomes a greater-than header with the same content, including any description after the identifier."}},
+{"@type":"Question","name":"Can I recover the quality scores after conversion?","acceptedAnswer":{"@type":"Answer","text":"No. The conversion is one-way; the quality data is removed. Keep the original FASTQ file if you may need it."}},
+{"@type":"Question","name":"Does the FASTQ to FASTA converter trim or filter reads?","acceptedAnswer":{"@type":"Answer","text":"No. It only changes the format. Trimming, adapter removal and quality filtering should be done before conversion with a dedicated tool."}},
+{"@type":"Question","name":"How many records can I convert?","acceptedAnswer":{"@type":"Answer","text":"The web textarea is intended for interactive files. For a large FASTQ file, use the API or a command-line tool such as seqtk."}},
+{"@type":"Question","name":"What happens to the plus line?","acceptedAnswer":{"@type":"Answer","text":"It is discarded along with the quality string. FASTA has no equivalent line."}}
+]}
+</script>
 {% endblock %}

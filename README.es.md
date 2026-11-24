@@ -98,7 +98,7 @@ Referencia completa con ejemplos de solicitud/respuesta: <https://seqandchem.com
 - **OpenBabel 3.1.1** CLI para todo el trabajo molecular (invocado como subproceso)
 - **OPSIN** (Universidad de Cambridge) para analizar nombres IUPAC, vía HTTP
 - **3Dmol.js** para renderizado 3D en el cliente
-- **GoatCounter** para analíticas de página respetuosas con la privacidad
+- **Cloudflare Web Analytics** para analíticas de página sin cookies
 - Sin base de datos: la aplicación es sin estado
 
 ## Estructura del repositorio
@@ -141,8 +141,8 @@ Feishu.
 ## Privacidad
 
 No se almacena nada en el servidor. Las moléculas y secuencias se convierten en un subproceso y se
-descartan. La única analítica es GoatCounter: sin cookies, sin datos personales, sin seguimiento
-entre sitios.
+descartan. La única analítica es Cloudflare Web Analytics: sin cookies, sin datos personales, sin
+seguimiento entre sitios.
 
 ## Créditos
 
