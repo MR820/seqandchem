@@ -1,0 +1,27 @@
+tests/test_seo_content.py
+  s_cca9ad2212bd78::t_cb5aaa7d57a00e 3,175-183
+app.py
+  s_cca9ad2212bd78::t_dcfa111ed9ffd3 1220
+templates/base.html
+  s_cca9ad2212bd78::t_cb5aaa7d57a00e 33
+deploy/nginx-main.conf
+  s_cca9ad2212bd78::t_b6e081b996f7fb 1-2
+deploy/README.md
+  s_cca9ad2212bd78::t_b6e081b996f7fb 78,163-164,171
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9d108b632612881c9eeb27ded73f0e3bfe62083a",
+  "prompts": {},
+  "sessions": {
+    "s_cca9ad2212bd78": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0e76450e-5aef-42e5-86cc-ccb8e0e104bd",
+        "model": "deepseek-flash"
+      },
+      "human_author": "xingzhiwei <xingzhiwei@xunlei.com>"
+    }
+  }
+}
