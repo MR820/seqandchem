@@ -75,7 +75,7 @@ Two primary checks already run every 5 minutes:
   Cloudflare's edge. It checks both `/health` endpoints and one `/api/v1/convert` call, and sends
   a Feishu message on OK → DOWN and DOWN → OK, with a 6-hour reminder while down.
 - On-host `uptime-check.sh`, cron `*/5 * * * *`, which also sees systemd state for chemtools,
-  nginx and goatcounter.
+  nginx.
 
 `.github/workflows/uptime.yml` is a secondary probe from a GitHub-hosted runner, so it is a
 different network path. It is best-effort only. The probe names itself
@@ -160,16 +160,15 @@ layer as `127.0.0.1`. `nginx-main.conf` fixes that with the PROXY protocol:
 **Any new vhost behind the stream layer must add `proxy_protocol` to its `listen` line**, or it
 will answer with `400 Bad Request`.
 
-The xboard node does not speak PROXY protocol (it resets the connection), so its SNI entry points
-at `127.0.0.1:12100` — a local stream listener that accepts the header and forwards plain TCP to
-`127.0.0.1:12005`.
+This repository manages SeqChem only. The production host may also run other services; merge the
+host's local nginx stream entries before deploying `nginx-main.conf`.
 
 Result: nginx access logs, `fail2ban`-style analysis and the app's per-IP rate limiter all see the
 real client address. GeoIP is not available (no MaxMind database).
 
 ## Cloudflare CDN
 
-Production is fronted by Cloudflare (`seqandchem.com`, `www`, `stats`). `nginx-main.conf`:
+Production is fronted by Cloudflare (`seqandchem.com`, `www`). `nginx-main.conf`:
 
 - trusts the published Cloudflare IPv4/IPv6 ranges
 - uses `CF-Connecting-IP` as `real_ip_header`

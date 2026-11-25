@@ -1217,6 +1217,7 @@ def _error_page(status, title, description, template):
         template, canonical=_base_url(), home_url=_base_url(),
         page="error", nav="", page_name="", credit=DEFAULT_CREDIT,
         title=title, description=description, robots="noindex,nofollow",
+        no_analytics=True,
     ), status
 
 

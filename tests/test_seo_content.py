@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import app as app_module
 from app import BIO_PAGES, PAGE_META
 from presets import PRESETS
 from seo_copy import PRESET_EXTRAS
@@ -171,3 +172,12 @@ def test_under_500_pages_expanded():
         prose = PRESETS[slug]["prose"]
         assert len(prose) >= 3000
         assert "FAQPage" in prose
+
+
+def test_error_pages_skip_cloudflare_analytics(monkeypatch):
+    monkeypatch.setattr(app_module, "CF_BEACON_TOKEN", "test-token")
+    client = app_module.app.test_client()
+    assert "cloudflareinsights" in client.get("/").data.decode()
+    for path in ("/no-such-page", "/panel/"):
+        body = client.get(path).data.decode()
+        assert "cloudflareinsights" not in body

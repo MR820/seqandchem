@@ -30,7 +30,7 @@
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"WebApplication","name":"SeqChem","url":"{{ canonical }}","applicationCategory":"ScienceApplication","operatingSystem":"Any","description":"{{ description }}","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
 </script>
-{% if cf_beacon_token %}
+{% if cf_beacon_token and not no_analytics %}
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "{{ cf_beacon_token }}"}'></script>
 {% endif %}
 </head>
