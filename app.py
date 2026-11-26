@@ -1179,7 +1179,7 @@ def sitemap():
         "/mol2-to-sdf": "2026-11-24",
         "/smiles-to-inchikey": "2026-11-24",
         "/xyz-to-sdf": "2026-11-24",
-        "/about": "2026-11-24",
+        "/about": "2026-11-26",
         "/privacy": "2026-11-24",
     }
     for path, prio, freq in entries:

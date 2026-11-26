@@ -16,7 +16,7 @@
      fair-use rate limits and is documented at <a href="/api">/api</a>; a Python client is
      available on <a href="https://pypi.org/project/seqchem/">PyPI</a>.</p>
 
-  <h2>How the tools work</h2>
+  <h2 id="how-the-tools-work">How the tools work</h2>
   <ul>
     <li><strong>Molecule processing</strong> — OpenBabel 3.1.1 handles format conversion,
         descriptors, depiction and 3D conformer generation.</li>
@@ -29,7 +29,7 @@
     <li><strong>Web server</strong> — Flask behind nginx, with Cloudflare as the CDN.</li>
   </ul>
 
-  <h2>Accuracy and limits</h2>
+  <h2 id="accuracy-and-limits">Accuracy and limits</h2>
   <p>Chemistry software is a model of reality, not reality itself. A PDB file may not carry bond
      orders; a SMILES string may be ambiguous about stereochemistry; a predicted logP or Tm depends
      on the method; a force-field conformer is a low-energy geometry, not an experimental
@@ -52,22 +52,46 @@
      when a user reports a problem. Guides and calculator pages carry a “last updated” date where
      it matters. If you find an error, the fastest way to report it is the anonymous
      <a href="#" data-feedback-open>feedback form</a> — include the page and the input that
-     produced the result.</p>
+     produced the result. You can also open an issue in the
+     <a href="https://github.com/MR820/seqandchem/issues">GitHub issue tracker</a>.</p>
+  <p><strong>Last reviewed:</strong> 2026-11-26.</p>
 
   <h2>Who maintains it</h2>
   <p>SeqChem is maintained by the SeqChem contributors. The source code is on
      <a href="https://github.com/MR820/seqandchem">GitHub</a>; the public API and the Python client
      are documented separately. There is no advertising, no account system and no paid tier.</p>
 
+  <h2 id="cite-seqchem">Cite SeqChem</h2>
+  <p>If SeqChem contributes to a paper, report, dataset or teaching material, cite the software
+     record rather than an individual tool page:</p>
+  <ul>
+    <li><strong>Version 1.0.0 DOI:</strong>
+        <a href="https://doi.org/10.5281/zenodo.24310592">10.5281/zenodo.24310592</a></li>
+    <li><strong>All versions (concept DOI):</strong>
+        <a href="https://doi.org/10.5281/zenodo.24310591">10.5281/zenodo.24310591</a></li>
+    <li><strong>bio.tools record:</strong> <a href="https://bio.tools/seqchem">bio.tools/seqchem</a></li>
+    <li><strong>Source code and issue tracker:</strong>
+        <a href="https://github.com/MR820/seqandchem">github.com/MR820/seqandchem</a></li>
+    <li><strong>Python client:</strong> <a href="https://pypi.org/project/seqchem/">PyPI seqchem</a></li>
+  </ul>
+  <p>For a methods section, name the engine that produced the result — OpenBabel 3.1.1 for
+     chemistry, OPSIN plus PubChem fallback for IUPAC names, or the built-in Python code for
+     sequence calculations — and report the input format and any non-default options. The
+     <a href="#how-the-tools-work">How the tools work</a> section above gives the implementation
+     details; the <a href="#accuracy-and-limits">Accuracy and limits</a> section explains the
+     assumptions that matter when interpreting a result.</p>
+
   <h2>Contact</h2>
   <p>Questions, bug reports and suggestions can be sent through the anonymous
-     <a href="#" data-feedback-open>feedback form</a>. For API or integration questions, include
-     the endpoint and a minimal example input so the issue can be reproduced.</p>
+     <a href="#" data-feedback-open>feedback form</a> or the
+     <a href="https://github.com/MR820/seqandchem/issues">GitHub issue tracker</a>. For API or
+     integration questions, include the endpoint and a minimal example input so the issue can be
+     reproduced.</p>
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"AboutPage","name":"About SeqChem","url":"{{ canonical }}","description":"Who maintains SeqChem, how the tools work, how data is handled and the limits of the service."}
+{"@context":"https://schema.org","@type":"AboutPage","name":"About SeqChem","url":"{{ canonical }}","description":"Who maintains SeqChem, how the tools work, how data is handled and the limits of the service.","dateModified":"2026-11-26","mainEntity":{"@type":"Organization","name":"SeqChem","url":"{{ home_url }}/","sameAs":["https://github.com/MR820/seqandchem","https://bio.tools/seqchem","https://pypi.org/project/seqchem/","https://doi.org/10.5281/zenodo.24310592"]}}
 </script>
 {% endblock %}

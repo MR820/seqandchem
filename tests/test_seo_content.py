@@ -138,9 +138,32 @@ def test_pdbqt_guide():
 
 def test_about_page():
     about = (ROOT / "templates" / "about.html").read_text(encoding="utf-8")
-    for term in ("About SeqChem", "AboutPage", "Cloudflare Web Analytics"):
+    for term in ("About SeqChem", "AboutPage", "Cloudflare Web Analytics",
+                 "Cite SeqChem", "10.5281/zenodo.24310592", "bio.tools/seqchem",
+                 "github.com/MR820/seqandchem/issues", 'id="how-the-tools-work"',
+                 'id="cite-seqchem"'):
         assert term in about
     assert PAGE_META["about"]["title"].startswith("About SeqChem")
+
+    base = (ROOT / "templates" / "base.html").read_text(encoding="utf-8")
+    for term in ("https://bio.tools/seqchem", "https://doi.org/10.5281/zenodo.24310592",
+                 "Methodology", "Cite"):
+        assert term in base
+
+
+def test_structured_data_is_valid_json():
+    import json
+    import re
+
+    client = app_module.app.test_client()
+    for path in ("/", "/about", "/properties", "/3d"):
+        html = client.get(path).data.decode()
+        blocks = re.findall(
+            r'<script type="application/ld\+json">(.*?)</script>', html, re.S
+        )
+        assert blocks, f"{path} has no JSON-LD"
+        for block in blocks:
+            json.loads(block)
 
 
 def test_molecular_weight_guide():
