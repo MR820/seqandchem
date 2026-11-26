@@ -146,6 +146,12 @@ Both are present in `deploy/nginx.conf`. Web Analytics is cookie-free and does n
 storage or cross-site identifiers; EU visitors are included in the aggregate counts. It is not an
 EU-only data-localization product. Keep `/privacy` disclosed for Cloudflare Web Analytics.
 
+The Cloudflare account contains more than one Web Analytics site. GraphQL queries must filter
+`rumPageloadEventsAdaptiveGroups` by the SeqChem `siteTag`
+(`7561aa3ebc5d42ac8dccbbba58973506`), otherwise the results mix in the airport panel's page
+views. `cf_daily.py` and `seo-weekly.py` set this as `CF_SITE_TAG`; update it if the RUM site is
+recreated.
+
 ## Real client IPs
 
 TLS is routed by SNI in an nginx `stream` block, so without help every request reaches the HTTP

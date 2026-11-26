@@ -18,6 +18,7 @@ FEISHU_ENV = os.environ.get("FEISHU_ENV", "/opt/seqchem-monitor/feishu.env")
 BING_ENV = os.environ.get("BING_ENV", "/opt/seqchem-monitor/bing-webmaster.env")
 CF_ENV = os.environ.get("CF_ENV", "/opt/seqchem-monitor/cloudflare-analytics.env")
 CF_ACCOUNT = os.environ.get("CF_ACCOUNT", "4a63097fa96be9e4cddf77737be16c1c")
+CF_SITE_TAG = os.environ.get("CF_SITE_TAG", "7561aa3ebc5d42ac8dccbbba58973506")
 HISTORY = os.environ.get("SEO_HISTORY", "/opt/seqchem-monitor/seo-history.json")
 DRY_RUN = os.environ.get("DRY_RUN") == "1"
 INSPECT_LIMIT = int(os.environ.get("INSPECT_LIMIT", "60"))
@@ -207,14 +208,14 @@ try:
         raise RuntimeError("CF_ANALYTICS_TOKEN missing")
     start_cf = today - datetime.timedelta(days=6)
     cf_query = """
-query($acc: String!, $start: Date!, $end: Date!) {
+query($acc: String!, $start: Date!, $end: Date!, $tag: String!) {
   viewer {
     accounts(filter: {accountTag: $acc}) {
       total: rumPageloadEventsAdaptiveGroups(
-        limit: 1, filter: {date_geq: $start, date_leq: $end}
+        limit: 1, filter: {date_geq: $start, date_leq: $end, siteTag: $tag}
       ) { count sum { visits } }
       daily: rumPageloadEventsAdaptiveGroups(
-        limit: 100, filter: {date_geq: $start, date_leq: $end}, orderBy: [date_ASC]
+        limit: 100, filter: {date_geq: $start, date_leq: $end, siteTag: $tag}, orderBy: [date_ASC]
       ) { count sum { visits } dimensions { date } }
     }
   }
@@ -225,7 +226,7 @@ query($acc: String!, $start: Date!, $end: Date!) {
         headers={"Authorization": f"Bearer {cf_token}", "Content-Type": "application/json"},
         json={"query": cf_query,
               "variables": {"acc": CF_ACCOUNT, "start": start_cf.isoformat(),
-                            "end": today.isoformat()}},
+                            "end": today.isoformat(), "tag": CF_SITE_TAG}},
         timeout=30,
     )
     cf_json = cf_resp.json()

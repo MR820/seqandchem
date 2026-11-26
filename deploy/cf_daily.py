@@ -8,12 +8,13 @@ import requests
 
 ENV = os.environ.get("CF_ENV", "/opt/seqchem-monitor/cloudflare-analytics.env")
 ACCOUNT = os.environ.get("CF_ACCOUNT", "4a63097fa96be9e4cddf77737be16c1c")
+SITE_TAG = os.environ.get("CF_SITE_TAG", "7561aa3ebc5d42ac8dccbbba58973506")
 QUERY = """
-query($acc: String!, $day: Date!) {
+query($acc: String!, $day: Date!, $tag: String!) {
   viewer {
     accounts(filter: {accountTag: $acc}) {
       rumPageloadEventsAdaptiveGroups(
-        limit: 1, filter: {date_geq: $day, date_leq: $day}
+        limit: 1, filter: {date_geq: $day, date_leq: $day, siteTag: $tag}
       ) { count sum { visits } }
     }
   }
@@ -45,7 +46,7 @@ def main():
         r = requests.post(
             "https://api.cloudflare.com/client/v4/graphql",
             headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
-            json={"query": QUERY, "variables": {"acc": ACCOUNT, "day": day}},
+            json={"query": QUERY, "variables": {"acc": ACCOUNT, "day": day, "tag": SITE_TAG}},
             timeout=20,
         )
         data = r.json()
